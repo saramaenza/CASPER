@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rulebot - Chat</title>
+    <link rel="stylesheet" href="styles/rulebot.css">
+    <link rel="stylesheet" href="styles/icons.css">
+    <!-- <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600&display=swap" rel="stylesheet"> -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <div class="chat-container">
+            <div id="left-container">
+                <div id="rules-head">
+                    <div id="welcome">
+                        <span id="initial-name">Ciao <b>Simone</b>,</span>
+                        <!-- <a href="/configuration" target="_blank" rel="noopener noreferrer">Configs</a> -->
+                    </div>
+                    <!-- <div id="profile">
+                        <span id = "initial"></span>
+                        <div id="profile-info" class='closed'>
+                            <button class="profile-button"><a href="/profile">Profilo</a></button>
+                            <input class="profile-button" type="button" id="logout" value="Logout">
+                        </div>
+                    </div> -->
+                    <div id="rules-buttons-container">
+                        <div type="button" id="show-rules" class="selector-button selector-selected"><i class='bx bx-log-in-circle' ></i> Automazioni</div>
+                        <div type="button" id="show-devices" class="selector-button selector-unselected"><i class='bx bx-alarm-exclamation'></i> Dispositivi</div>
+                        <!--<div type="button" id="show-problems" class="selector-button selector-unselected"><i class='bx bx-alarm-exclamation'></i> Problemi</div>-->
+                       <!--  <input type="button" disabled id="download" class="rule-button" value="Download regole">
+                        <input  type="button" id="aggiorna" class="rule-button" value="Aggiorna lista regole">-->
+                    </div>
+                </div>
+                
+                <div id="rules-container" class="leftbar-selected">
+                </div>
+                <div id="devices-list-container" class="leftbar-unselected">
+                    
+                </div>
+                 <!--<div id="problems-main-container" class="leftbar-unselected">
+                    <div id="problems-container"></div>
+                    <div id="goals-container"></div>
+                </div>-->
+
+                <div id="left-container-footer">
+                    <input class="rule-button" type="button" id="logout" value="Logout">
+                    <input class="rule-button report" type="button" id="report" value="Segnala errore" style="display: none;">
+                </div>
+                
+                <!-- <div class="rule">
+                    <div class="rule-head" ruleid='1'><span class="rule-name">Rule Name</span><img class='deleteImg' src="img/delete.svg" alt="" srcset=""></div>
+                    <div class="rule-element closed" descid='1'>description</div>
+                </div>
+                <div class="rule">
+                    <div class="rule-head" ruleid='2'><span class="rule-name">Rule Name</span><img class='deleteImg' src="img/delete.svg" alt="" srcset=""></div>
+                    <div class="rule-element closed" descid='2'>description</div>
+                </div>
+                -->
+            </div>
+            <div id="chat">
+                <div id="msgContainer">
+                    <!-- <div class="infoMsgContainer">
+                        <div class="infoLabel">Info di Sistema</div>
+                        <div class = "infoMsg">Il chatbot ci mette qualche secondo a rispondere, aspettare il caricamento della risposta. </div>
+                    </div> -->
+                    <!-- <div class="botMsgContainer">
+                        <div class="botLabel">Rulebot</div>
+                        <div class = "botMsg">Ciao, io sono RuleBot! Posso eseguire dei compiti per te in maniera automatica.</div>
+                    </div>
+                    <div class="userMsgContainer">
+                        <div class="userLabel">Utente</div>
+                        <div class = "userMsg">Ciao</div>
+                    </div>
+                    
+                    <div class="chat-state"><i class='bx bxs-analyse bx-spin'></i>Genero la spiegazione del conflitto</div>
+                    <div class="botMsgContainer isTyping">
+                        <div class="botLabel">Rulebot</div>
+                        <div class="botMsg"><img src="icons/typing.gif" class="typeGif"></div>
+                    </div> -->
+                </div>
+                <div id="inputContainer">
+                    <textarea id="inputBox" name="inputBox" placeholder="Inserisci qua il tuo input..."></textarea>
+                    <button id="send" class="inputButton send"><img class="buttonIcon" src="icons/send.png" alt=""></button>
+                    <!-- <button id="speech">🎤</button> -->
+                </div>
+            </div>
+        </div>
+        <div id="right-container">
+            <div id="token-info">
+                <!--<span>Total Token Usage: <span id="tokens">0</span></span>
+                <span>Total Conversation Cost: <span id="cost">0</span></span>-->
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.1/dist/js.cookie.min.js"></script>
+    <script src="scripts/jwt-decode.js"></script>
+    <script src="https://requirejs.org/docs/release/2.3.6/minified/require.js"></script>
+    <script src="scripts/rulebot.js"></script>
+</body>
+</html>

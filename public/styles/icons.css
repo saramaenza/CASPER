@@ -1,0 +1,12 @@
+.bx-check{color: #27932c;}
+.bx-error{color: #e3b70f;}
+.bx-x {color: #ad2929;}
+.bxs-analyse {
+    background: linear-gradient(45deg, #1529c5ad, #c20fe3b3);
+    -webkit-background-clip: text;
+    color: transparent; 
+}
+.bx{
+    font-size: 1.1em;
+    margin-right: 3.5px;
+}

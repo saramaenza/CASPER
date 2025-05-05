@@ -1,0 +1,11 @@
+{
+    "homepage":{
+        "user-label": "User name "
+    },
+    "personalpage":{
+        "user-label2": "Username: ",
+        "rule-list": "List of created rules: ",
+        "aggiorna": "refresh rules",
+        "download": "download rules"
+    }
+}

@@ -1,0 +1,980 @@
+
+//import jwt_decode from "./jwt-decode";
+const lang = Cookies.get("lang");
+const tokenRaw = Cookies.get("auth-token");
+const chat_session_id = Cookies.get("chat_session_id");
+const token = jwt_decode(tokenRaw);
+const userId = token.id;
+//const name = token.name.charAt(0).toUpperCase() + token.name.slice(1);
+const userName = token.name;
+let isReminderText = false;
+
+const base_link = window.location.origin;
+const getRuleList = `${base_link}/get_rule_list`; // chiamata POST per ricevere la lista delle regole
+const getDevices = `${base_link}/get_config`; // chiamata POST per ricevere la lista delle regole
+const sendMessage = `${base_link}/send_message`; // chiamata POST per ricevere la lista delle regole
+const changeRule = `${base_link}/changeRule`; // chiamata POST per aggiornare le regole dopo il cancellamento
+const getProblems = `${base_link}/get_problems`; // chiamata POST per ricevere la lista dei problemi
+const getGoals = `${base_link}/get_goals`; // chiamata POST per ricevere la lista dei goal
+const ping = `${base_link}/get_chat_state`; // chiamata POST per ricevere la lista dei goal
+const downButton = document.querySelector("#download");
+const aggiorna = document.querySelector("#aggiorna");
+
+// Immagine del profilo a pallina
+//const userProfile = document.querySelector('#profile');
+const initial = document.querySelector('#initial-name');
+//const profileInfo = document.querySelector('#profile-info');
+const reset = document.querySelector('#reset');
+
+
+const sse = new EventSource("/sse");
+
+const sendPing = async () => {
+  const response = await fetch(ping, {
+    method: "POST",
+    headers: {
+      "Accept": "application/json",
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({"action":"ping", "state": "", "id":null, "session_id": chat_session_id, "user_id": userId})
+  });
+  return 
+}
+setInterval(() => {
+  sendPing();
+}, 600000);
+
+
+sse.addEventListener("message", async ({ data }) => {
+  const message = JSON.parse(data);
+  if (message.action == "add-state") {
+    addChatState(message.state, message.id);
+  } else if (message.action == "confirm-state") {
+    confirmChatState(message.state, message.id);
+  } else if (message.action == "error-state") {
+    errorChatState(message.state, message.id);
+  } else if (message.action == "send-message") {
+    generateSSEBotMessage({"text": [message.state]});
+  }
+  else if (message.action == "update-automation-list") {
+    rulesList = await getRulesParam()
+    printUserRule(rulesList)
+  }
+  else if (message.action == "ping") {
+    console.log("Keep alive");
+  }
+ });
+
+
+const rulesContainer = document.querySelector('#rules-container');
+//const problemsContainer = document.querySelector('#problems-main-container');
+const devicesContainer = document.querySelector('#devices-list-container');
+document.getElementById('show-rules').addEventListener('click', function() {
+  if (this.classList.contains('selector-selected')) return;
+  else {
+    this.classList.remove('selector-unselected'); 
+    this.classList.add('selector-selected'); 
+    document.getElementById('show-devices').classList.remove('selector-selected');
+    document.getElementById('show-devices').classList.add('selector-unselected');
+  }
+  rulesContainer.classList.remove('leftbar-unselected');
+  rulesContainer.classList.add('leftbar-selected');
+  devicesContainer.classList.remove('leftbar-selected');
+  devicesContainer.classList.add('leftbar-unselected');
+});
+
+document.getElementById('show-devices').addEventListener('click', function() {
+  if (this.classList.contains('selector-selected')) return;
+  else {
+    this.classList.remove('selector-unselected'); 
+    this.classList.add('selector-selected'); 
+    document.getElementById('show-rules').classList.remove('selector-selected');
+    document.getElementById('show-rules').classList.add('selector-unselected');
+  }
+  rulesContainer.classList.remove('leftbar-selected');
+  rulesContainer.classList.add('leftbar-unselected');
+  devicesContainer.classList.remove('leftbar-unselected');
+  devicesContainer.classList.add('leftbar-selected');
+});
+
+let rulesList;
+window.addEventListener('load', async ()=>{
+  initial.innerHTML = `Ciao, <b>${userName}</b>`;
+  let chatID = document.createElement('p');
+  chatID.innerHTML = `Chat ID: <b>${chat_session_id}</b>`;
+  chatID.style.fontSize = '0.5em';
+  initial.appendChild(chatID);
+  let rulesList = await getRulesParam() //GET regole
+  //problemList = await getData(`${getProblems}?id=${userId}`) //GET problemi
+  let devicesList = await getData(`${getDevices}?id=${userId}`) //GET problemi
+  //goalList = await getData(`${getGoals}?id=${userId}`) //GET goal
+  
+
+  printUserRule(rulesList); //PRINT regole
+  printUserDevices(devicesList); //PRINT devices
+  //await printUserProblems(problemList);
+  //await printUserGoals(goalList); 
+  
+  //open_delete_rule();
+
+  if (lang == 'en'){
+    getBotResponse('hello my dear');
+    generateTypingMsg('bot');
+  }else{
+    getBotResponse('ciao, chi sei?');
+    generateTypingMsg('bot');
+  }
+
+})
+
+logoutButton = document.querySelector('#logout');
+logoutButton.addEventListener('click', ()=>{
+  Cookies.remove('auth-token');
+  location.reload();
+})
+//--------------------POST & GET FUNCTION----------------------------------
+//effettua POST generici verso il server
+async function postData(data, url) {
+  let id = userId;
+  return new Promise((resolve, reject) => {
+    fetch(url, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({data, id})
+    })
+    .then(response => response.json())
+    .then(data => {
+      resolve(data); // Risolve la promessa con i dati desiderati
+    })
+    .catch(error => {
+      console.log(error);
+      reject(error); // Reietta la promessa in caso di errore
+    });
+  });
+}
+
+async function deleteAutomation(rule_id) {
+  let id = userId;
+  await new Promise((resolve, reject) => {
+    fetch('/delete_rule', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({rule_id, id})
+    })
+    .then(response => response.json())
+    .then(data => {
+      resolve(data); // Risolve la promessa con i dati desiderati
+    })
+    .catch(error => {
+      console.log(error);
+      reject(error); // Reietta la promessa in caso di errore
+    });
+  });
+  let rulesList = await getRulesParam() //GET regole
+  printUserRule(rulesList);
+}
+  
+  //effettua GET generici dal server
+  async function getData(url) {
+    const response = await fetch(url);
+    const data = await response.json();
+    return data;
+  }
+  
+  function getRulesParam() {
+    return new Promise((resolve, reject) => {
+      fetch(getRuleList, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({"user_id": userId})
+      })
+      .then(response => response.json())
+      .then(data => {
+        resolve(data); // Risolve la promessa con i dati desiderati
+      })
+      .catch(error => {
+        console.log(error);
+        reject(error); // Reietta la promessa in caso di errore
+      });
+    });
+  }
+///////////
+
+
+/* const rulesContainer = document.querySelector('#rules-container');
+async function printUserRule_old(rules){
+  rulesContainer.innerText = '';
+  if (rules.length > 0){
+    rules.forEach(element => {
+      element = element['rule']
+      //let sentence = clientSentencer(rules[i]);
+      let rule = document.createElement('div');
+      rule.classList.add('rule');
+
+      let ruleHead = document.createElement('div');
+      ruleHead.classList.add('rule-head');
+      ruleHead.setAttribute('ruleid', element['ID']);
+      let ruleName = document.createElement('span')
+      ruleName.classList.add('rule-name');
+      ruleName.innerText = `${element['Nome']} (ID: ${element['ID']})`;
+
+      let ruleElement = document.createElement('div')
+      ruleElement.classList.add('rule-element');
+      ruleElement.classList.add('closed');
+      ruleElement.setAttribute('descid', element['ID']);
+      ruleElement.innerText  = element['Descrizione'];
+
+      let ruleYAML = document.createElement('div')
+      ruleElement.classList.add('rule-element');
+      ruleElement.classList.add('closed');
+      ruleElement.setAttribute('descid', element['ID']);
+      ruleElement.innerText  = element['Descrizione'];
+      rule.appendChild(ruleHead);
+      rule.appendChild(ruleElement);
+      ruleHead.appendChild(ruleName);
+      
+      rulesContainer.appendChild(rule);
+    });
+  }else{
+    console.log("Nessuna regola associata a questo account")
+  }
+} */
+async function printUserRule(rules) {
+
+  const rulesContainer = document.querySelector('#rules-container');
+  rulesContainer.innerText = '';
+  if (rules.length > 0) {
+    rules.forEach((element, index) => {
+      element = element['config']
+      setTimeout(() => {
+        let rule = document.createElement('div');
+        rule.classList.add('rule');
+
+        let ruleHead = document.createElement('div');
+        ruleHead.classList.add('rule-head');
+        ruleHead.setAttribute('ruleid', element['id']);
+        let ruleName = document.createElement('span');
+        ruleName.classList.add('rule-name');
+        ruleName.innerText = `${element['alias']} (ID: ${element['id']})`;
+
+        let ruleElement = document.createElement('div');
+        ruleElement.classList.add('rule-element', 'closed');
+        ruleElement.setAttribute('descid', element['id']);
+        ruleElement.innerHTML = element['description'] || 'Questa automazione non ha una descrizione';
+
+        const icon = document.createElement('i');
+        icon.classList.add('bx', 'bxs-trash', 'deleteButton');
+        icon.id = element['id'];
+
+        ruleHead.appendChild(ruleName);
+        ruleHead.appendChild(icon);
+        rule.appendChild(ruleHead);
+        rule.appendChild(ruleElement);
+        rulesContainer.appendChild(rule);
+
+        // Aggiungi l'event listener per l'apertura del contenuto
+        ruleHead.addEventListener('click', (event) => {
+          if (
+            event.target.classList.contains('rule-head') ||
+            event.target.classList.contains('rule-name')
+          ) {
+            displayDesc(ruleHead);
+          } else if (event.target.classList.contains('deleteButton')) {
+            if (confirm("Sei sicuro di voler eliminare l'automazione?")) {
+              deleteAutomation(ruleHead.getAttribute('ruleid'));
+            }
+            //deleteRule(ruleHead.getAttribute('ruleid'), rulesList);
+          }
+        });
+      }, index * 100); // Ritardo di 500ms tra ogni regola
+    });
+  } else {
+    console.log("Nessuna regola associata a questo account");
+  }
+}
+
+
+async function printUserDevices(devicesList) {
+  const devices = devicesList['selected'];
+  const devicesContainer = document.querySelector('#devices-list-container');
+  devicesContainer.innerHTML = '';
+  let cleanList = {};
+  if (devicesList != true) { //organizzo per stanze "a", salvo il nome dell entita "f"
+    devices.forEach(element => {
+      if (cleanList.hasOwnProperty(element['a'])) {
+        cleanList[element['a']].push(element['f']);
+      }else {
+        cleanList[element['a']] = [element['f']];
+      }
+    })
+    console.log(cleanList);
+  }else{ return "Nessun dispositivo associato a questo account"; }
+  // Crea e aggiungi il titolo
+  //const title = document.createElement('h3');
+  //title.innerText = 'Conflitti e Catene';
+  //rulesContainer.appendChild(title);
+  setTimeout(() => {
+    Object.keys(cleanList).forEach((key) => {
+      let room = document.createElement('div');
+      room.classList.add('room');
+      let roomName = document.createElement('h3');
+      roomName.classList.add('room-name');
+      roomName.innerText = key;
+      room.appendChild(roomName);
+      let devicesList = document.createElement('div');
+      devicesList.classList.add('devices-list');
+      cleanList[key].forEach((device) => {
+        let deviceElement = document.createElement('div');
+        deviceElement.classList.add('device-element');
+        deviceElement.innerText = device;
+        devicesList.appendChild(deviceElement);
+      });
+      room.appendChild(devicesList);
+      devicesContainer.appendChild(room);
+    });
+  }, 100);
+}
+
+/*async function printUserProblems(rules) {
+  const rulesContainer = document.querySelector('#problems-container');
+  rulesContainer.innerText = '';
+
+  // Crea e aggiungi il titolo
+  const title = document.createElement('h3');
+  title.innerText = 'Conflitti e Catene';
+  rulesContainer.appendChild(title);
+
+  // Ordina i problemi: prima quelli non risolti, poi quelli risolti
+  rules.sort((a, b) => {
+    if (a.solved === b.solved) {
+      return 0;
+    } else if (a.solved === false) {
+      return -1;
+    } else {
+      return 1;
+    }
+  });
+
+  if (rules.length > 0) {
+    rules.forEach((element, index) => {
+      setTimeout(() => {
+        let whyButton = document.createElement('div');
+        let rule = document.createElement('div');
+        rule.classList.add('rule');
+
+        // Se il problema è risolto, imposta l'opacità a 0.6
+        if (element['solved'] == true) {
+          rule.style.opacity = '0.6';
+        }
+
+        let ruleHead = document.createElement('div');
+        ruleHead.classList.add('rule-head');
+        ruleHead.setAttribute('problemid', element['id']);
+
+        let ruleName = document.createElement('span');
+        ruleName.classList.add('rule-name');
+        ruleName.innerText = `${element['name']} (ID: ${element['id']})`;
+
+        let icon = document.createElement('i');
+        let solvedTag = document.createElement('span');
+        if (element['solved'] == false) {
+          icon.classList.add('bx', 'bx-error');
+        } else {
+          icon.classList.add('bx', 'bx-check');
+          solvedTag.innerText = 'RISOLTO';
+          solvedTag.classList.add('solved-tag');
+        }
+        ruleName.prepend(icon);
+
+        let ruleElement = document.createElement('div');
+        ruleElement.classList.add('rule-element', 'closed');
+        ruleElement.setAttribute('problemdescid', element['id']);
+
+        let connector = "";
+        if (element['type'] == 'direct_chain') {
+          connector = " attiva <i>direttamente</i> ";
+        } else if (element['type'] == 'indirect_chain') {
+          connector = " attiva in modo <i>indiretto</i> ";
+        } else {
+          connector = " è in conflitto con ";
+        }
+
+        let description = `L'automazione <b>"${element['automations'][0]['alias']}"</b>${connector}l'automazione <b>"${element['automations'][1]['alias']}"</b>`;
+        ruleElement.innerHTML = description;
+
+        // Crea il bottone "ripristina" e aggiungilo solo se il problema è risolto
+        if (element['solved'] == true) {
+          let restoreButton = document.createElement('div');
+          restoreButton.innerText = 'Ripristina';
+          restoreButton.classList.add('restore-button');
+          restoreButton.addEventListener('click', (event) => {
+            restoreProblem(element['id']);
+          });
+          ruleElement.appendChild(restoreButton);
+        }
+
+        whyButton.classList.add('why-button');
+        whyButton.innerText = "Perché?";
+        if (element['solved'] == true) {
+          whyButton.classList.add('disabled');
+        } else {
+          whyButton.addEventListener('click', (event) => {
+            generateUserMsg(`Perché si verifica ${ruleName.innerText}?`);
+          });
+          ruleElement.appendChild(whyButton);
+        }
+       
+
+        ruleHead.appendChild(ruleName);
+        ruleHead.appendChild(solvedTag);
+        rule.appendChild(ruleHead);
+        rule.appendChild(ruleElement);
+        rulesContainer.appendChild(rule);
+
+        // Aggiungi l'event listener per l'apertura del contenuto
+        ruleHead.addEventListener('click', (event) => {
+          if (
+            event.target.classList.contains('rule-head') ||
+            event.target.classList.contains('rule-name')
+          ) {
+            displayProblemDesc(ruleHead);
+          }
+        });
+      }, index * 50); // Ritardo di 50ms tra ogni problema
+    });
+  } else {
+    console.log("Nessun problema presente");
+  }
+}
+*/
+/*
+async function restoreProblem(problemId) {
+  const proceed = confirm('Stai per ripristinare un problema gia risolto. Vuoi continuare?');
+  if (!proceed) {
+    return; // L'utente ha annullato l'operazione
+  }
+  
+  const response = await fetch(`${base_link}/restore_problem`, {
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ problemId, userId })
+  });
+  const data = await response.json();
+  if (data.success) {
+    // Aggiorna la lista dei problemi
+    problemList = await getData(`${getProblems}?id=${userId}`);
+    printUserProblems(problemList);
+    // Aggiorna la lista dei goal
+    goalList = await getData(`${getGoals}?id=${userId}`);
+    printUserGoals(goalList);
+  }
+}
+*/
+/*
+async function printUserGoals(rules) {
+
+  const rulesContainer = document.querySelector('#goals-container');
+  rulesContainer.innerText = '';
+  // Crea e aggiungi il titolo
+  const title = document.createElement('h3');
+  title.innerText = 'Conflitti sui goal';
+  rulesContainer.appendChild(title);
+
+  // Ordina i problemi: prima quelli non risolti, poi quelli risolti
+  rules.sort((a, b) => {
+    if (a.solved === b.solved) {
+      return 0;
+    } else if (a.solved === false) {
+      return -1;
+    } else {
+      return 1;
+    }
+  });
+
+  if (rules.length > 0) {
+    rules.forEach((element, index) => {
+      setTimeout(() => {
+        let whyButton = document.createElement('div');
+        let rule = document.createElement('div');
+        rule.classList.add('rule');
+
+        // Se il problema è risolto, imposta l'opacità a 0.6
+        if (element['solved'] == true) {
+          rule.style.opacity = '0.6';
+        }
+
+        let ruleHead = document.createElement('div');
+        ruleHead.classList.add('rule-head');
+        ruleHead.setAttribute('problemid', element['id']);
+
+        let ruleName = document.createElement('span');
+        ruleName.classList.add('rule-name');
+        ruleName.innerText = `${element['name']} (ID: ${element['id']})`;
+
+        let icon = document.createElement('i');
+        let solvedTag = document.createElement('span');
+        if (element['solved'] == false) {
+          icon.classList.add('bx', 'bx-error');
+        } else {
+          icon.classList.add('bx', 'bx-check');
+          // Aggiungi l'etichetta "RISOLTO"
+          solvedTag.innerText = 'RISOLTO';
+          solvedTag.classList.add('solved-tag');
+        }
+        ruleName.prepend(icon);
+
+        let ruleElement = document.createElement('div');
+        ruleElement.classList.add('rule-element', 'closed');
+        ruleElement.setAttribute('problemdescid', element['id']);
+
+        let description = `${element['description']}. <br> <b>Scenario:</b> ${element['scenario']}`;
+        ruleElement.innerHTML = description;
+
+        // Crea il bottone "ripristina" e aggiungilo solo se il problema è risolto
+        if (element['solved'] == true) {
+          let restoreButton = document.createElement('div');
+          restoreButton.innerText = 'Ripristina';
+          restoreButton.classList.add('restore-button');
+          restoreButton.addEventListener('click', (event) => {
+            restoreProblem(element['id']);
+          });
+          ruleElement.appendChild(restoreButton);
+        }
+
+        whyButton.classList.add('why-button');
+        whyButton.innerText = "Perché?";
+        if (element['solved'] == true) {
+          whyButton.classList.add('disabled');
+        } else {
+          whyButton.addEventListener('click', (event) => {
+            generateUserMsg(`Perché si verifica ${ruleName.innerText}?`);
+          });
+          ruleElement.appendChild(whyButton);
+        }
+
+        ruleHead.appendChild(ruleName);
+        ruleHead.appendChild(solvedTag);
+        rule.appendChild(ruleHead);
+        rule.appendChild(ruleElement);
+        rulesContainer.appendChild(rule);
+
+        // Aggiungi l'event listener per l'apertura del contenuto
+        ruleHead.addEventListener('click', (event) => {
+          if (
+            event.target.classList.contains('rule-head') ||
+            event.target.classList.contains('rule-name')
+          ) {
+            displayProblemDesc(ruleHead);
+          }
+        });
+      }, index * 50); // Ritardo di 50ms tra ogni problema
+    });
+  } else {
+    console.log("Nessun problema presente");
+  }
+}
+*/
+
+//cancella una regola dalla lista
+async function deleteRule(id, obj){
+    let size = Object.keys(obj).length;
+    let tmp;
+    for (let i = 0; i<size; i++){
+      if (obj[i].ruleid == id){
+        tmp = i;
+      }
+    }
+    obj.splice(tmp, 1);
+    document.querySelector(`div [ruleid='${id}']`).parentNode.remove();
+    //document.getElementById(`${id}`).parentElement.remove();
+    let newsize = Object.keys(obj).length;
+    for (let i = 0; i<newsize; i++){
+      obj[i].id = i+1; 
+    }
+    postData(obj, changeRule)
+  }
+/* 
+  async function getUserRule(url){
+    const response = await fetch(`${url}?id=${userId}`);
+    if(response.status === 200){
+      const data = await response.json();
+      return data;
+    }else{
+      return {};
+    }
+  }
+ */
+
+  // =============================================
+
+const msgContainer = document.querySelector('#msgContainer');
+const queryText = document.querySelector("#inputBox");
+const inputButton = document.querySelector(".inputButton");
+const buttonIcon = document.querySelector(".buttonIcon");
+
+let justSent = false;
+
+
+// ===================== Message Generator =======================//
+inputButton.addEventListener('click', (event)=>{
+    if (inputButton.classList.contains("send")) {
+        generateUserMsg();
+        justSent = true;
+    }
+})
+function generateUserMsg(input=""){
+    if (!inputButton.classList.contains("send-disabled")) {
+      let textValue = ""
+      if (input == "") textValue = queryText.value;
+      else textValue = input;
+      if(textValue !== ""){
+        const userMsgContainer = document.createElement('div');
+        userMsgContainer.classList.add('userMsgContainer'); //contiene il div del testo e il div dell'avatar
+
+        const userLabel = document.createElement('div');
+        userLabel.classList.add('userLabel');
+        let username = document.createTextNode(name);
+        userLabel.append(username);
+
+        const userMsg = document.createElement('div');
+        userMsg.classList.add('userMsg');
+
+         /* const userImg = document.createElement("IMG");
+        userImg.setAttribute("src", "icons/user.png");
+        userImg.classList.add('userImg'); */
+        
+        let text = document.createTextNode(textValue);
+        if(isReminderText) {
+
+          getBotResponse('"'+textValue+'"');
+          isReminderText = false;
+        }
+        else getBotResponse(textValue)
+        queryText.value = ""
+
+        
+        userMsg.appendChild(text);
+        userMsgContainer.appendChild(userLabel);
+        userMsgContainer.appendChild(userMsg);
+        msgContainer.appendChild(userMsgContainer);
+        
+        userMsgContainer.scrollIntoView()
+        generateTypingMsg('bot');
+        inputButton.classList.add('send-disabled');
+        /*buttonIcon.src = "icons/microphone.png"
+        inputButton.className = "inputButton speech"*/
+      }
+    }
+}
+
+function generateTypingMsg(type){//type = user | bot
+  
+    const MsgContainer = document.createElement('div');
+    MsgContainer.classList.add(`${type}MsgContainer`); //contiene il div del testo e il div dell'avatar
+    MsgContainer.classList.add('isTyping');
+
+    const Msg = document.createElement('div');
+    Msg.classList.add(`${type}Msg`);
+
+    const botLabel = document.createElement('div');
+    botLabel.classList.add('botLabel');
+    let username = document.createTextNode("Rulebot");
+    botLabel.appendChild(username);
+    /* const Img = document.createElement("IMG");
+    Img.setAttribute("src", `icons/${type}.png`);
+    Img.classList.add(`${type}Img`); */
+    
+    const typeGif = document.createElement("IMG");
+    typeGif.setAttribute("src", "icons/typing.gif");
+    typeGif.className = "typeGif";
+
+    Msg.appendChild(typeGif);
+    if (type === 'user'){
+        MsgContainer.appendChild(Msg);
+        MsgContainer.appendChild(botLabel);
+    }else{
+        MsgContainer.appendChild(botLabel);
+        MsgContainer.appendChild(Msg);
+    }
+    
+    msgContainer.appendChild(MsgContainer);
+    
+    MsgContainer.scrollIntoView()
+}
+
+function addChatState(state, id){
+  const box = document.createElement('div');
+  const icon = document.createElement('i');
+  const stateText = document.createElement('p');
+  stateText.style.display = 'inline-block';
+  stateText.style.margin = '0';
+  stateText.textContent = state;
+  stateText.id = 'text-'+id;
+  box.classList.add('chat-state');
+  box.id = id;
+  icon.classList.add('bx', 'bxs-analyse', 'bx-spin');
+  box.appendChild(icon);
+  box.appendChild(stateText);
+  if (document.querySelector('.isTyping') != null)
+    document.querySelector('.isTyping').before(box);
+  else
+    msgContainer.appendChild(box);
+  box.style.opacity = 0;
+  setTimeout(() => {
+    box.style.opacity = 1;
+  }, 100);
+}
+
+function confirmChatState(state, id){
+  if (document.querySelector(`#${id}`) != null){
+    const box = document.querySelector(`#${id}>.bx`);
+    const div = document.querySelector(`#${id}`);
+    const text = document.querySelector(`#text-${id}`);
+    box.classList.remove('bxs-analyse', 'bx-spin');
+    box.classList.add('bx-check');
+    text.textContent = state;
+    div.id = '';
+    text.id = '';
+  }
+}
+
+function errorChatState(state, id){
+  if (document.querySelector(`#${id}`) != null){
+    const box = document.querySelector(`#${id}>.bx`);
+    const div = document.querySelector(`#${id}`);
+    const text = document.querySelector(`#text-${id}`);
+    box.classList.remove('bxs-analyse', 'bx-spin');
+    box.classList.add('bx-x');
+    text.textContent = state;
+    div.id = '';
+    text.id = '';
+  }
+}
+
+
+async function getBotResponse(query){
+    let id = token.id;
+    if(query.value !== ""){
+        fetch(sendMessage,{
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({text: query, user_id: id, session: chat_session_id})
+        })
+        .then(response => response.json())
+        .then(data => {
+          //console.log(`Received data -> ${JSON.stringify(data)}`)
+          //updateTokens(data['tokens'])
+          //confirmChatState();
+          return generateBotMsg({"text": [data['text']]}); //data = {api: fulfillment message, lang: lang message}
+        })
+        .catch(error =>{
+          console.log(error)
+          //errorChatState();
+          return generateBotMsg({"text":["Scusa, ma qualcosa è andato storto, puoi riprovare a mandare il messaggio?"], "lang": 'it'})
+        });
+    }
+}
+
+async function generateSSEBotMessage(text) {
+  let currentMessage = text;
+  const iconsList = document.querySelectorAll('.bx');
+  let lastIcon = iconsList[iconsList.length - 1];
+  const botMsgContainer = document.createElement('div');
+  botMsgContainer.classList.add('botMsgContainer'); //contiene il div del testo e il div dell'avatar
+
+  const botMsg = document.createElement('div');
+  botMsg.classList.add('botMsg');
+
+  const botLabel = document.createElement('div');
+  botLabel.classList.add('botLabel');
+  let username = document.createTextNode("Rulebot");
+  botLabel.appendChild(username);
+  currentMessage = currentMessage.replace(/\*{1,3}(.*?)\*{1,3}/g, "<b>$1</b>"); //modifica *, **, *** con il grassetto
+  currentMessage = currentMessage.replace(/\n/g, "<br>");
+  botMsg.innerHTML = currentMessage; //aggiunge il testo al messaggio
+  if (i<=1) botMsgContainer.appendChild(botLabel);
+  botMsgContainer.appendChild(botMsg);
+  lastIcon.after(botMsgContainer);
+  //msgContainer.appendChild(botMsgContainer);
+
+  botMsgContainer.scrollIntoView()
+  
+}
+
+async function generateBotMsg(messages){
+    let text = "";
+    const toRead = []; //array di frasi da leggere dalla sintesi vocale
+    let sent = false;
+    let currentMessage = '';
+    let i = 0;
+    for (let el of messages['text']){
+        i++;
+        currentMessage = el;
+        if(currentMessage !== ""){
+            try{
+                if(i === 0) clearInterval();
+            }catch(err){
+                console.log(err);
+            }
+            sent = true;
+            const botMsgContainer = document.createElement('div');
+            botMsgContainer.classList.add('botMsgContainer'); //contiene il div del testo e il div dell'avatar
+
+            const botMsg = document.createElement('div');
+            botMsg.classList.add('botMsg');
+
+            const botLabel = document.createElement('div');
+            botLabel.classList.add('botLabel');
+            let username = document.createTextNode("Rulebot");
+            botLabel.appendChild(username);
+            /* const botImg = document.createElement("IMG");
+            botImg.setAttribute("src", "icons/bot.png");
+            botImg.classList.add('botImg'); */
+
+            /* text = document.createTextNode(currentMessage);
+            botMsg.appendChild(text); */
+            //console.log("currentMessage: ", currentMessage)
+            currentMessage = currentMessage.replace(/(\*{1,3})(.*?)\1/g, "<b>$2</b>");
+            currentMessage = currentMessage.replace(/(^|\n)#{1,3}\s+(.*?)($|\n)/g, "$1<b>$2</b>$3"); //modifica *, **, ***, #, ##, ### con il grassetto
+            currentMessage = currentMessage.replace(/\n/g, "<br>");
+            botMsg.innerHTML = currentMessage; //aggiunge il testo al messaggio
+            if (i<=1) botMsgContainer.appendChild(botLabel);
+            botMsgContainer.appendChild(botMsg);
+            msgContainer.appendChild(botMsgContainer);
+
+            botMsgContainer.scrollIntoView()
+            toRead.push(el)
+        }
+    }
+    const typeGif = document.querySelector('.isTyping');
+    if (typeGif != null) typeGif.remove(); 
+    inputButton.classList.remove('send-disabled');
+    justSent = false;
+    //readMessage(toRead);
+}
+function deleteTyping() {
+    if(document.querySelector('.isTyping') != null)
+    document.querySelector('.isTyping').remove();
+}
+
+let tokens_span = document.querySelector("#tokens")
+let cost_span = document.querySelector("#cost")
+function updateTokens(data){
+
+  let total_tokens = data[0]
+  let total_cost = data[1]
+  if (total_tokens > -1) tokens_span.innerHTML = total_tokens
+  if (total_cost > -1)cost_span.innerHTML = total_cost
+}
+// ========================= InputButton Change ===================== //
+queryText.addEventListener("keydown", (event) =>{
+	if (event.keyCode == 13 && queryText.value == ""){
+		event.preventDefault()
+	}else if (event.keyCode == 13 && queryText.value != "" &&!event.shiftKey){
+		event.preventDefault()
+		generateUserMsg();
+	}
+})
+queryText.addEventListener("keyup", (event) =>{
+    /* if (queryText.value !== ""){
+        buttonIcon.src = "icons/send.png"
+        inputButton.className = "inputButton send"
+    }else{
+        buttonIcon.src = "icons/microphone.png"
+        inputButton.className = "inputButton speech"
+    } */
+	
+		if (event.keyCode == 13 && !event.shiftKey) generateUserMsg();
+	//}
+    
+});
+
+
+// ================= Rule description display =================== //
+
+/* function open_delete_rule(){
+  const ruleName = document.querySelectorAll('.rule-head');
+  ruleName.forEach(el =>{
+    el.addEventListener('click', (event) =>{
+        if(event.target.classList[0] == 'rule-head' || event.target.classList[0] == 'rule-name') displayDesc(el);
+        else if(event.target.classList[0] == 'deleteImg') {
+          deleteRule(el.getAttribute('ruleid'), rulesList);
+        }
+        //console.log(event.target)
+        
+    });
+})
+}
+
+function displayDesc(el){ //el = ruleName cliccato
+    const ruleId = el.getAttribute('ruleid');
+    const ruleDesc = document.querySelector(`div [descid='${ruleId}']`);
+    const state = ruleDesc.classList[1];
+    if (state == 'closed'){
+        ruleDesc.style.maxHeight = '1000px'
+        ruleDesc.style.padding = '1em'
+        ruleDesc.setAttribute('class', 'rule-element open')
+    }else{
+        ruleDesc.style.maxHeight = '0'
+        setTimeout(() => {
+          ruleDesc.style.padding = '0'
+        }, 500);
+        
+        ruleDesc.setAttribute('class', 'rule-element closed')
+    }
+    
+} */
+function displayDesc(el) {
+  const ruleId = el.getAttribute('ruleid');
+  const ruleDesc = document.querySelector(`div[descid='${ruleId}']`);
+  const state = ruleDesc.classList.contains('closed') ? 'closed' : 'open';
+  if (state === 'closed') {
+    ruleDesc.style.maxHeight = '1000px';
+    ruleDesc.style.padding = '1em';
+    ruleDesc.classList.remove('closed');
+    ruleDesc.classList.add('open');
+  } else {
+    ruleDesc.style.maxHeight = '0';
+    setTimeout(() => {
+      ruleDesc.style.padding = '0';
+    }, 500);
+    ruleDesc.classList.remove('open');
+    ruleDesc.classList.add('closed');
+  }
+}
+
+function displayProblemDesc(el) {
+
+  const ruleId = el.getAttribute('problemid');
+  const ruleDesc = document.querySelector(`div[problemdescid='${ruleId}']`);
+  const state = ruleDesc.classList.contains('closed') ? 'closed' : 'open';
+  if (state === 'closed') {
+
+    ruleDesc.style.maxHeight = '1000px';
+    ruleDesc.style.padding = '1em';
+    ruleDesc.classList.remove('closed');
+    ruleDesc.classList.add('open');
+  } else {
+    ruleDesc.style.maxHeight = '0';
+    setTimeout(() => {
+      ruleDesc.style.padding = '0';
+    }, 500);
+    ruleDesc.classList.remove('open');
+    ruleDesc.classList.add('closed');
+  }
+}

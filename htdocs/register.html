@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="it">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Rulebot - Signup</title>
+		<link rel="stylesheet" href="styles/login.css">
+    <!-- <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600&display=swap" rel="stylesheet"> -->
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400&display=swap" rel="stylesheet">
+	</head>
+	<body>
+		<div class="container">
+			<div class="error-info"><h4>❗ Questo è un errore</h4></div>
+			<form class="register">
+				<h3>Registrati</h3>
+			
+				<label for="name" id="name-label">Nome</label>
+				<input type="text" placeholder="Nome" id="name" class="input-field" name="nome">
+
+				<label for="cognome" id="surname-label">Cognome</label>
+				<input type="text" placeholder="Cognome" id="surname" class="input-field" name="cognome">
+
+				<label for="email" id="email-label">Indirizzo email</label>
+				<input type="email" placeholder="@" id="email" class="input-field" name="email">
+
+				<label for="password" id="pass-label">Password</label>
+				<input type="password" placeholder="Password" id="password" class="input-field" name="password">
+
+				<label for="re-password" id="re-pass-label">Conferma Password</label>
+				<input type="password" placeholder="Riscrivi la Password" id="re-password" class="input-field" name="re-password">
+				
+				<button id="reg-form">Registrati</button>
+				<div class="link-container"><a class ="alternative "href="/">Oppure accedi</a></div>
+			</form>
+		</div>
+        <script src="scripts/register.js"></script>
+    </body>
+</html>

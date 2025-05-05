@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rulebot - Login</title>
+    <link rel="icon" href="icons/favicon.svg" />
+    <link rel="stylesheet" href="styles/login.css">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    
+    <div class="container">
+        <div class="error-info"><h4>❗ Questo è un errore</h4></div>
+        <form>
+            <h3>Accedi</h3>
+        
+            <label for="email" id="email-label">Indirizzo email</label>
+            <input type="text" placeholder="@" id="email" class="input-field" name="email" required>
+        
+            <label for="password" id="pass-label">Password</label>
+            <input type="password" placeholder="Password" id="password" class="input-field" name="password" required>
+
+            <!--<div class="social languages">
+                <div class="go flag flag-selected" lang="it" id="it"><img src="./icons/it-flag.png" alt="italiano"></div>
+                <div class="fb flag" lang="en" id="en"><img src="./icons/uk-flag.png" alt="inglese"></div>
+             <div class="go"><i class="fab fa-google"></i>  Google</div>
+            <div class="fb"><i class="fab fa-facebook"></i>  Facebook</div> 
+            </div>-->
+            <button type='submit' id="login">Accedi</button>
+            <!-- <div class="g_id_signin" data-type="standard" data-size="big"></div>-->
+            <div class="link-container"><a class ="alternative "href="/registration">Oppure registrati</a></div>
+        </form>
+        
+    </div>
+    <script src="/scripts/login.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/js-cookie@2.2.1/src/js.cookie.min.js" type="module"></script>
+    <script src="/scripts/langSwitch.js"></script>
+</body>
+</html>

@@ -1,0 +1,52 @@
+
+@media screen and (max-width: 740px) {
+    #chatContainer{
+        height: 100%;
+        display: none;
+    }
+    #chatHead{
+        width: 95%;
+    }
+    #chat{
+        width: 95%;
+        height: 100%;
+    }
+    #inputContainer{
+        width: 95%;
+    }
+    .closeChat{
+        height: 50%;
+        margin-right: 5%;
+        cursor: pointer;
+        display: inline;
+    }
+    #chatTrigger{
+        background: #42a5f5;
+        height: 60px;
+        border-radius: 50%;
+        width: 60px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .closed{
+        position: absolute;
+        bottom: 3%;
+    }
+    .open{
+        position: initial;
+    }
+
+    .chatDisplay{
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+        position: absolute;
+        height: 98vh;
+    }
+
+    .userImg,.botImg{
+        width: 15%;
+    }
+  }

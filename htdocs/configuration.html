@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Environment Configuration</title>
+    <link rel="stylesheet" href="styles/config.css">
+</head>
+<body>
+    <div id="container">
+        <h1>Configure Your Environment</h1>
+        <div class="config-form">
+            <input type="url" name="Home Assistant URL" id="home-assistant-url" 
+                   placeholder="Home Assistant URL (es: http://homeassistant:8123)" 
+                   class="input-field" required>
+            
+            <input type="text" name="Home Assistant Access Token" id="home-assistant-token" 
+                   placeholder="Home Assistant Long-Lived Access Token" 
+                   class="input-field" required>
+            <span>The process will fetch all the entities and automations.</span>
+            <button value="Load Devices" id="load-devices" class="button">
+                <span class="button-text">Load devices</span>
+                <span class="spinner hidden"></span>
+            </button>
+        
+            <div id="status-message" class="status-message hidden"></div>
+        </div>
+        
+        <div id="devices-list" class="devices-container hidden">
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.1/dist/js.cookie.min.js"></script>
+    <script src="scripts/jwt-decode.js"></script>
+    <script src="scripts\configuration.js"></script>
+</body>
+</html>

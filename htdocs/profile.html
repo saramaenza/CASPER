@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rulebot - Profilo</title>
+    <link rel="stylesheet" href="styles/profile.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <div id="internal-container">
+            <div id="info-container">
+                <a href="/rulebot">Vai alla chat</a>
+                <input type="button" id="logout" value="Logout">
+            </div>
+            <div id="form-container">
+                <div id="internal-form-container">
+                    <div id="profile">
+                        <span id = "initial">S</span>
+                    </div>
+                    <div class="info">
+                        <span class='info-label'><b>Nome:</b></span>
+                        <span id='name' class='info-value'></span>
+                    </div>
+                    <div class="info">
+                        <span class='info-label'><b>Cognome:</b></span>
+                        <span id='surname' class='info-value'></span>
+                    </div>
+                    <div class="info">
+                        <span class='info-label'><b>Email:</b></span>
+                        <span id='email' class='info-value'></span>
+                    </div>
+                    <div class="info">
+                        <span class='info-label'><b>Password:</b></span>
+                        <span id='password' class='info-value'></span>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.1/dist/js.cookie.min.js"></script>
+   <!--  <script src="scripts/jwt-decode.js"></script> -->
+    <script src="scripts/profile.js"></script>
+</body>
+</html>

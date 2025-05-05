@@ -1,0 +1,174 @@
+html {
+  margin: 0;
+  padding: 0;
+  font-size: 1.1em;
+}
+
+body{
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    background: #f7f7f7;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 400;
+}
+
+#container{
+  width: 80%;
+  height: 100%;
+ margin-left: 10%;
+ margin-right: 10%;
+}
+
+.device-checkbox{
+    width: 20px;
+    height: 20px;
+}
+
+#save-selection{
+    right: 0;
+    position: fixed;
+    bottom: 0;
+    width: 30%;
+}
+
+/* 
+button{
+    margin-top: 30px;
+    width: 100%;
+    color: #ffffff;
+    background-color: #6a85ff;
+    padding: 15px 0;
+    font-size: 18px;
+    font-weight: 600;
+    border-radius: 5px;
+    cursor: pointer;
+}
+button:hover{
+    background-color: #41507D;
+    color: #ffffff
+}
+
+.input-field{
+    display: block;
+    height: 50px;
+    width: 40%;
+    border: 1px solid #6a85ff;
+    color: black;
+    border-radius: 3px;
+    padding: 0 10px;
+    margin-top: 8px;
+    font-size: 14px;
+    font-weight: 300;
+} */
+
+.config-form {
+    max-width: 600px;
+    margin: 20px auto;
+    padding: 20px;
+}
+
+.input-field {
+    width: 100%;
+    padding: 12px;
+    margin: 8px 0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.button {
+    width: 100%;
+    padding: 12px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 10px 0;
+}
+
+.button:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+.spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    border-top-color: transparent;
+    margin-left: 10px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.hidden {
+    display: none;
+}
+
+.status-message {
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 4px;
+    background: #e8f5e9;
+}
+
+.status-message.error {
+    background: #ffebee;
+    color: #c62828;
+}
+
+.room-group {
+    margin: 20px 0;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.room-group h3 {
+    margin: 0 0 15px 0;
+    color: #2c3e50;
+    border-bottom: 2px solid #e9ecef;
+    padding-bottom: 8px;
+}
+
+.device-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.device-item {
+    padding: 12px;
+    margin: 8px 0;
+    background: white;
+    border-radius: 4px;
+    border: 1px solid #e9ecef;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+}
+
+.device-name {
+    color: #6c757d;
+    font-style: italic;
+}
+
+.device-desc {
+    color: #868e96;
+    font-size: 0.9em;
+    margin-left: auto;
+}
+.entity-id{
+    display: none;
+}
