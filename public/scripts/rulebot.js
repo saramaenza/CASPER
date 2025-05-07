@@ -299,6 +299,7 @@ async function printUserRule(rules) {
     });
   } else {
     console.log("Nessuna regola associata a questo account");
+    rulesContainer.innerText = 'Nessuna regola associata a questo account';
   }
 }
 
@@ -308,7 +309,7 @@ async function printUserDevices(devicesList) {
   const devicesContainer = document.querySelector('#devices-list-container');
   devicesContainer.innerHTML = '';
   let cleanList = {};
-  if (devicesList != true) { //organizzo per stanze "a", salvo il nome dell entita "f"
+  if (devicesList != true && devices != undefined) { //organizzo per stanze "a", salvo il nome dell entita "f"
     devices.forEach(element => {
       if (cleanList.hasOwnProperty(element['a'])) {
         cleanList[element['a']].push(element['f']);

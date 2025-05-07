@@ -5,7 +5,7 @@ const secret = 'sdjkfh8923yhjdksbfma@#*(&@*!^#&@bhjb2qiuhesdbhjdsfg839ujkdhfjk'
 const { MongoClient, ObjectId } = require("mongodb");
 const path = require('path');
 const serverConfig = fs.readFileSync('configs.json');
-const dbName = JSON.parse(serverConfig)['africa']['db_name'];
+const dbName = JSON.parse(serverConfig)['grimilde']['db_name'];
 const uri =
   "mongodb://127.0.0.1:27017";
 
@@ -227,6 +227,7 @@ const getConflicts = async (userId) => {
 
 const getAutomations=async (userId) => {
     const client = new MongoClient(uri);
+    console.log("QUA")
     try {
         const database = client.db(dbName);
         const automations = database.collection('automations');
@@ -235,7 +236,8 @@ const getAutomations=async (userId) => {
     } catch (err) {
         console.log('error in getAutomationsByUserId');
         console.log(err);
-        return err;
+        return []        
+        //return err;
     } finally {
         await client.close();
     }
