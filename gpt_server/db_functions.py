@@ -6,7 +6,11 @@ from bson.objectid import ObjectId
 
 # Connessione globale al database
 client = MongoClient("mongodb://localhost:27017/")
-db = client["rulebot-dev"]
+db = None
+
+def set_db(db_name):
+    global db
+    db = client[db_name]
 
 def update_state(user_id, session_id, state):
     try:

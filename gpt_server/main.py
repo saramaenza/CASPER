@@ -12,11 +12,16 @@ from langgraph.prebuilt import ToolNode, tools_condition
 from langgraph.checkpoint.memory import MemorySaver
 from langchain_core.prompts import ChatPromptTemplate
 
+from config import get_server_choice
 import tools as _tools
 import utils
 import prompts
 import db_functions as _db
 from models import gpt4
+
+data = get_server_choice()
+utils.set_base_url(data['base_url'], data['port'])
+_db.set_db(data['db_name'])
 
 memory = MemorySaver()
 llm = gpt4
@@ -102,7 +107,7 @@ def send_message():
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True, port=8080)
+    app.run(debug=True, port=8080, use_reloader=False)
 
 
 """

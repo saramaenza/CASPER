@@ -2,7 +2,10 @@ from copy import deepcopy
 import requests
 import json
 
-base_url = "https://africa.isti.cnr.it:8888"
+base_url = None
+def set_base_url(url, port):
+    global base_url
+    base_url = f"{url}:{port}"
 
 def inject_user_id(ai_msg, user_id, session_id):
     tool_calls = []
