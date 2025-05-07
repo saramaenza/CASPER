@@ -72,7 +72,7 @@ graph = graph_builder.compile(checkpointer=memory)
 
 
 
-@app.route('/demo/send_message', methods=['POST'])
+@app.route('/send_message', methods=['POST'])
 def send_message():
     try:
         data = request.json
