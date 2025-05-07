@@ -3,12 +3,13 @@ const fs = require('fs');
 const jwt = require('jsonwebtoken')
 const secret = 'sdjkfh8923yhjdksbfma@#*(&@*!^#&@bhjb2qiuhesdbhjdsfg839ujkdhfjk'
 const { MongoClient, ObjectId } = require("mongodb");
-const path = require('path');
-const serverConfig = fs.readFileSync('configs.json');
-const dbName = JSON.parse(serverConfig)['grimilde']['db_name'];
+
 const uri =
   "mongodb://127.0.0.1:27017";
-
+let dbName = "";
+const setServerConfig = (server) => {
+    dbName = server.db_name;
+}
 
 //crea nuovo utente e lo mette nel db
 const createUser = async (name,surname,pass,email) =>{
@@ -528,6 +529,7 @@ const deleteRule = async (userId, ruleId) => {
 // };
 
 module.exports = {
+    setServerConfig,
     createUser,
     createGoogleUser,
     verifyToken,

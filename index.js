@@ -17,16 +17,20 @@ const nodemailer = require('nodemailer');
 const sse = new SSE(); */
 
 const app = express();
+ // Funzione per selezionare la configurazione
 
 //======== LOGIN/REG LIBRARIES ==========
 const uuid = require('uuid');
 const bcrypt = require('bcryptjs')
 const cookieParser = require('cookie-parser')
 const jwt = require('jsonwebtoken')
-const {createUser, getUser, verifyToken, isLogged, createGoogleUser, userInfo, verifyEmail, getConflicts, getAutomations, getGoals, restoreProblem, getConfiguration, saveConfiguration,  saveSelectedConfiguration, saveAutomations, saveAutomation, deleteRule } = require('./db_methods.cjs');
+const {setServerConfig, createUser, getUser, verifyToken, isLogged, createGoogleUser, userInfo, verifyEmail, getConflicts, getAutomations, getGoals, restoreProblem, getConfiguration, saveConfiguration,  saveSelectedConfiguration, saveAutomations, saveAutomation, deleteRule } = require('./db_methods.cjs');
 const JWT_SECRET = 'sdjkfh8923yhjdksbfma@#*(&@*!^#&@bhjb2qiuhesdbhjdsfg839ujkdhfjk'
 // =======================================
 const { getEntities, getAutomationsHA, postAutomationHA } = require('./utils.cjs');
+const { selectConfig } = require('./config.cjs');
+const configs = await selectConfig();
+setServerConfig(configs); //imposta la configurazione del server in db_methods.cjs
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -46,8 +50,9 @@ app.use(function (req, res, next) {
   next();
 });
 
-const rawData = fs.readFileSync('configs.json');
-const configs = JSON.parse(rawData)['grimilde']; //0 per giove, 1 per africa
+
+//const rawData = fs.readFileSync('configs.json');
+//const configs = JSON.parse(rawData)['grimilde']; //0 per giove, 1 per africa
 const python_server = "http://127.0.0.1:8080"
 
 const port = process.env.PORT || configs.port; //3500 || 443

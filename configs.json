@@ -1,21 +1,6 @@
-{
-    "giove":{
-        "base_url": "http://rulebot.isti.cnr.it",
-        "cert_path": "C:/Certbot/live/giove.isti.cnr.it-0003/cert.pem",
-        "key_path": "C:/Certbot/live/giove.isti.cnr.it-0003/privkey.pem",
-        "fullchain_path": "C:/Certbot/live/giove.isti.cnr.it-0003/chain.pem",
-        "port": "3500",
-        "db_name": "eTAP"
-    },
-    "africa":{
-        "base_url": "http://africa.isti.cnr.it/",
-        "cert_path": "C:/Certbot/live/africa.isti.cnr.it/cert.pem",
-        "key_path": "C:/Certbot/live/africa.isti.cnr.it/privkey.pem",
-        "fullchain_path": "C:/Certbot/live/africa.isti.cnr.it/chain.pem",
-        "port": "8888",
-        "db_name": "rulebot-dev"
-    },
-    "local":{
+[
+    {
+        "name": "localhost",
         "base_url": "http://localhost/",
         "cert_path": "",
         "key_path": "",
@@ -23,7 +8,26 @@
         "port": "6644",
         "db_name": "casper"
     },
-    "grimilde": {
+    {
+        "name": "giove",
+        "base_url": "http://rulebot.isti.cnr.it",
+        "cert_path": "C:/Certbot/live/giove.isti.cnr.it-0003/cert.pem",
+        "key_path": "C:/Certbot/live/giove.isti.cnr.it-0003/privkey.pem",
+        "fullchain_path": "C:/Certbot/live/giove.isti.cnr.it-0003/chain.pem",
+        "port": "3500",
+        "db_name": "eTAP"
+    },
+    {
+        "name": "africa",
+        "base_url": "http://africa.isti.cnr.it/",
+        "cert_path": "C:/Certbot/live/africa.isti.cnr.it/cert.pem",
+        "key_path": "C:/Certbot/live/africa.isti.cnr.it/privkey.pem",
+        "fullchain_path": "C:/Certbot/live/africa.isti.cnr.it/chain.pem",
+        "port": "8888",
+        "db_name": "rulebot-dev"
+    },
+    {
+        "name": "grimilde",
         "base_url": "https://grimilde.isti.cnr.it/",
         "cert_path": "C:/Certbot/live/grimilde.isti.cnr.it/cert.pem",
         "key_path": "C:/Certbot/live/grimilde.isti.cnr.it/privkey.pem",
@@ -31,4 +35,4 @@
         "port": "7548",
         "db_name": "casper"
     }
-}
+]
