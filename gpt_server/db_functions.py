@@ -83,12 +83,12 @@ def get_automation(user_id, automation_id):
             for auto in automation['automation_data']:
                 if auto['id'] == automation_id:
                     return auto['config']
-        return "Automazione non trovata"
+        return None
     except Exception as e:
         print("--> Get Automation by ID Error <--")
         print(e)
         print("----------------")
-        return None
+        return e
 
 
 def get_devices(user_id):
@@ -141,7 +141,7 @@ def save_tmp_data(user_id, session_id, data):
         print(user_id, session_id)
         print(e)
         print("----------------")
-        return None
+        return e
     
 def get_tmp_data(user_id, session_id):
     try:
@@ -156,4 +156,17 @@ def get_tmp_data(user_id, session_id):
         print(user_id, session_id)
         print(e)
         print("----------------")
-        return None
+        return e
+
+def remove_tmp_data(user_id, session_id):
+    try:
+        collection = db["temp_data"]
+        this_state = collection.find_one({"user_id": user_id, "session_id": session_id})
+        if this_state is not None:
+            collection.delete_one({"_id": this_state["_id"]})
+    except Exception as e:
+        print("--> Remove Temp Automation Error <--")
+        print(user_id, session_id)
+        print(e)
+        print("----------------")
+        return e
