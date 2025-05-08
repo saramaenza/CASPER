@@ -113,3 +113,45 @@ def get_user_name(user_id):
         print(e)
         print("----------------")
         return None
+
+def save_tmp_data(user_id, session_id, data):
+    """
+    Salva i dati temporanei per l'utente e la sessione specificati 
+    data: dict -> {'automation': JSON string, 'checks': dict -> {'conflict':bool, 'energy': bool}}
+    """
+    try:
+        collection = db["temp_data"]
+        this_state = collection.find_one({"user_id": user_id, "session_id": session_id})
+        if this_state is not None:
+            collection.update_one(
+                {"_id": this_state["_id"]},
+                {"$set": {"data": data, "last_update": datetime.now()}}
+            )
+        else:
+            collection.insert_one({
+                "user_id": user_id,
+                "session_id": session_id,
+                "data": data,
+                "created": datetime.now(),
+                "last_update": datetime.now()
+            })
+    except Exception as e:
+        print("--> Save Temp Automation Error <--")
+        print(user_id, session_id)
+        print(e)
+        print("----------------")
+    
+def get_tmp_data(user_id, session_id):
+    try:
+        collection = db["temp_data"]
+        this_state = collection.find_one({"user_id": user_id, "session_id": session_id})
+        if this_state is not None:
+            return this_state['data']
+        else:
+            return None
+    except Exception as e:
+        print("--> Get Temp Automation Error <--")
+        print(user_id, session_id)
+        print(e)
+        print("----------------")
+        return None
