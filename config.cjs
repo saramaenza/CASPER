@@ -7,13 +7,13 @@ const readline = require('readline').createInterface({
 const configFile = fs.readFileSync('configs.json');
 const configData = JSON.parse(configFile);
 
-let coicheString = "Please select a server:\n";
+let coicheString = "Node.js - Please select a server:\n";
 for (let i in configData) {
   coicheString = coicheString.concat(`[${i}]: ${configData[i].name}\n`);
 }
 coicheString = coicheString.concat(`Your Choice: `);
 
-function selectConfig() { // Rimuovi async da qui, la Promise lo gestirà
+function selectConfig() {
   return new Promise((resolve, reject) => {
     readline.question(coicheString, choice => {
       const selectedIndex = parseInt(choice);
