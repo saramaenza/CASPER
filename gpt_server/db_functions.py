@@ -117,7 +117,7 @@ def get_user_name(user_id):
 def save_tmp_data(user_id, session_id, data):
     """
     Salva i dati temporanei per l'utente e la sessione specificati 
-    data: dict -> {'automation': JSON string, 'checks': dict -> {'conflict':bool, 'energy': bool}}
+    data: dict -> {'automation': JSON string, 'checks': dict -> {'conflict':str -> "To do"/"Done", 'energy': str}}
     """
     try:
         collection = db["temp_data"]
@@ -135,11 +135,13 @@ def save_tmp_data(user_id, session_id, data):
                 "created": datetime.now(),
                 "last_update": datetime.now()
             })
+        return True
     except Exception as e:
         print("--> Save Temp Automation Error <--")
         print(user_id, session_id)
         print(e)
         print("----------------")
+        return None
     
 def get_tmp_data(user_id, session_id):
     try:
