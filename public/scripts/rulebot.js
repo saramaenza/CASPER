@@ -19,6 +19,15 @@ const getGoals = `${base_link}/get_goals`; // chiamata POST per ricevere la list
 const ping = `${base_link}/get_chat_state`; // chiamata POST per ricevere la lista dei goal
 const downButton = document.querySelector("#download");
 const aggiorna = document.querySelector("#aggiorna");
+let currentIndex = 0;
+const carousel = document.querySelector(".carousel");
+let carouselItems = document.querySelectorAll(".carousel__item");
+const [btnLeftCarousel, btnRightCarousel] = document.querySelectorAll(
+  ".carousel-button"
+);
+let carouselCount = carouselItems.length;
+let pos = 0;
+let translateX = 0;
 
 // Immagine del profilo a pallina
 //const userProfile = document.querySelector('#profile');
@@ -65,10 +74,10 @@ sse.addEventListener("message", async ({ data }) => {
   }
  });
 
-
 const rulesContainer = document.querySelector('#rules-container');
-//const problemsContainer = document.querySelector('#problems-main-container');
+const problemsContainer = document.querySelector('#problems-main-container');
 const devicesContainer = document.querySelector('#devices-list-container');
+
 document.getElementById('show-rules').addEventListener('click', function() {
   if (this.classList.contains('selector-selected')) return;
   else {
@@ -76,11 +85,15 @@ document.getElementById('show-rules').addEventListener('click', function() {
     this.classList.add('selector-selected'); 
     document.getElementById('show-devices').classList.remove('selector-selected');
     document.getElementById('show-devices').classList.add('selector-unselected');
+    document.getElementById('show-problems').classList.remove('selector-selected');
+    document.getElementById('show-problems').classList.add('selector-unselected');
   }
   rulesContainer.classList.remove('leftbar-unselected');
   rulesContainer.classList.add('leftbar-selected');
   devicesContainer.classList.remove('leftbar-selected');
   devicesContainer.classList.add('leftbar-unselected');
+  problemsContainer.classList.remove('leftbar-selected');
+  problemsContainer.classList.add('leftbar-unselected');
 });
 
 document.getElementById('show-devices').addEventListener('click', function() {
@@ -90,11 +103,33 @@ document.getElementById('show-devices').addEventListener('click', function() {
     this.classList.add('selector-selected'); 
     document.getElementById('show-rules').classList.remove('selector-selected');
     document.getElementById('show-rules').classList.add('selector-unselected');
+    document.getElementById('show-problems').classList.remove('selector-selected');
+    document.getElementById('show-problems').classList.add('selector-unselected');
   }
   rulesContainer.classList.remove('leftbar-selected');
   rulesContainer.classList.add('leftbar-unselected');
   devicesContainer.classList.remove('leftbar-unselected');
   devicesContainer.classList.add('leftbar-selected');
+  problemsContainer.classList.remove('leftbar-selected');
+  problemsContainer.classList.add('leftbar-unselected');
+});
+
+document.getElementById('show-problems').addEventListener('click', function() {
+  if(this.classList.contains('selector-selected')) return;
+  else {
+    this.classList.remove('selector-unselected'); 
+    this.classList.add('selector-selected'); 
+    document.getElementById('show-devices').classList.remove('selector-selected');
+    document.getElementById('show-devices').classList.add('selector-unselected');
+    document.getElementById('show-rules').classList.remove('selector-selected');
+    document.getElementById('show-rules').classList.add('selector-unselected');
+  }
+  rulesContainer.classList.remove('leftbar-selected');
+  rulesContainer.classList.add('leftbar-unselected');
+  devicesContainer.classList.remove('leftbar-selected');
+  devicesContainer.classList.add('leftbar-unselected');
+  problemsContainer.classList.remove('leftbar-unselected');
+  problemsContainer.classList.add('leftbar-selected');
 });
 
 let rulesList;
@@ -127,11 +162,12 @@ window.addEventListener('load', async ()=>{
 
 })
 
+/*
 logoutButton = document.querySelector('#logout');
 logoutButton.addEventListener('click', ()=>{
   Cookies.remove('auth-token');
   location.reload();
-})
+})*/
 //--------------------POST & GET FUNCTION----------------------------------
 //effettua POST generici verso il server
 async function postData(data, url) {
@@ -978,4 +1014,86 @@ function displayProblemDesc(el) {
     ruleDesc.classList.remove('open');
     ruleDesc.classList.add('closed');
   }
+}
+
+function toggleStayOpen(button) {
+  const collapse = button.parentElement.nextElementSibling;
+  const isOpen = collapse.classList.contains('show');
+
+  if (isOpen) {
+    // chiusura
+    collapse.style.maxHeight = collapse.scrollHeight + 'px'; // necessario per animazione fluida
+    requestAnimationFrame(() => {
+      collapse.style.maxHeight = '0px';
+      collapse.classList.remove('show');
+      button.classList.remove('active');
+    });
+  } else {
+    // apertura
+    collapse.classList.add('show');
+    collapse.style.maxHeight = collapse.scrollHeight + 'px';
+    button.classList.add('active');
+
+    // rimuovi maxHeight dopo transizione per evitare problemi su resize
+    collapse.addEventListener('transitionend', function handler() {
+      collapse.style.maxHeight = 'none';
+      collapse.removeEventListener('transitionend', handler);
+    });
+  }
+}
+
+function carousel_control_prev() {
+  let calculate = pos > 0 ? (pos - 1) % carouselCount : carouselCount;
+  if (pos > 0) translateX = pos === 1 ? 0 : translateX - 100;
+  else if (pos <= 0) {
+    translateX = 100 * (carouselCount - 1);
+    calculate = carouselCount - 1;
+  }
+
+  pos = slide({
+    show: calculate,
+    disable: pos,
+    translateX: translateX
+  });
+}
+
+function carousel_control_next() {
+  let calculate = (pos + 1) % carouselCount;
+  if (pos >= carouselCount - 1) {
+    calculate = 0;
+    translateX = 0;
+  } else {
+    translateX += 100;
+  }
+
+  pos = slide({
+    show: calculate,
+    disable: pos,
+    translateX: translateX
+  });
+}
+
+function slide(options) {
+  function active(_pos) {
+    carouselItems[_pos].classList.toggle("active");
+  }
+
+  function inactive(_pos) {
+    carouselItems[_pos].classList.toggle("active");
+  }
+
+  inactive(options.disable);
+  active(options.show);
+
+  document.querySelectorAll(".carousel__item").forEach((item, index) => {
+    if (index === options.show) {
+      item.classList.remove("not_active");
+      item.style.transform = `translateX(-${options.translateX}%) scale(1)`;
+    } else {
+      item.classList.add("not_active");
+      item.style.transform = `translateX(-${options.translateX}%) scale(0.9)`;
+    }
+  });
+
+  return options.show;
 }
