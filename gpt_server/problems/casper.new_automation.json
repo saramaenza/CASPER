@@ -1,0 +1,30 @@
+  [
+    {
+      "id": "1746629662875",
+      "config": {
+        "id": "1746629662875",
+        "alias": "Spengi aria condizionata quando è caldo",
+        "description": "",
+        "triggers": [
+          {
+            "type": "temperature",
+            "device_id": "a24cf7f1a05a48da6fa9a6a352edb738",
+            "entity_id": "c903fca897d3ca52a02c7be8e37271ab",
+            "domain": "sensor",
+            "trigger": "device",
+            "above": 26
+          }
+        ],
+        "conditions": [],
+        "actions": [
+          {
+            "type": "turn_off",
+            "device_id": "280e80f05bac59e20d7b901d6d483dfb",
+            "entity_id": "1e833b3d059eb1a6b67b2a26aa64bf18",
+            "domain": "fan"
+          }
+        ],
+        "mode": "single"
+      }
+    }
+  ]

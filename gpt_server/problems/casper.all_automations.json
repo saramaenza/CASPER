@@ -1,0 +1,222 @@
+[{
+  "_id": {
+    "$oid": "681b3954f50da999699d5dd3"
+  },
+  "user_id": "681b32b0f15a9285411c12b1",
+  "automation_data": [
+    {
+      "id": "1742296609609",
+      "config": {
+        "id": "1742296609609",
+        "alias": "Accendi aria condizionata quando è caldo",
+        "description": "",
+        "triggers": [
+          {
+            "trigger": "numeric_state",
+            "entity_id": [
+              "sensor.temperatura_casa_temperature"
+            ],
+            "above": 26
+          }
+        ],
+        "conditions": [],
+        "actions": [
+          {
+            "type": "turn_on",
+            "device_id": "280e80f05bac59e20d7b901d6d483dfb",
+            "entity_id": "1e833b3d059eb1a6b67b2a26aa64bf18",
+            "domain": "fan"
+          }
+        ],
+        "mode": "single"
+      }
+    },
+    {
+      "id": "1742297001655",
+      "config": {
+        "id": "1742297001655",
+        "alias": "Purificatore acceso alta umidità",
+        "description": "",
+        "triggers": [
+          {
+            "trigger": "numeric_state",
+            "entity_id": [
+              "sensor.umidita_salotto_humidity"
+            ],
+            "above": 64.9
+          }
+        ],
+        "conditions": [],
+        "actions": [
+          {
+            "type": "turn_on",
+            "device_id": "fe8c1a3e82b6d5e012030fcaab7a8560",
+            "entity_id": "75b979f2072975499abfb202179febb7",
+            "domain": "fan"
+          }
+        ],
+        "mode": "single"
+      }
+    },
+    {
+      "id": "1742297057431",
+      "config": {
+        "id": "1742297057431",
+        "alias": "Forno a mezzogiorno",
+        "description": "",
+        "triggers": [
+          {
+            "trigger": "time",
+            "at": "00:00:00"
+          }
+        ],
+        "conditions": [],
+        "actions": [
+          {
+            "type": "turn_on",
+            "device_id": "33b7bbd28a9d46677e30a67eaebb3cef",
+            "entity_id": "af8782fadca3d1df734f7e16b59de9c8",
+            "domain": "switch"
+          }
+        ],
+        "mode": "single"
+      }
+    },
+    {
+      "id": "1742297104112",
+      "config": {
+        "id": "1742297104112",
+        "alias": "Luce camera mattina",
+        "description": "",
+        "triggers": [
+          {
+            "trigger": "time",
+            "at": "08:30:00"
+          }
+        ],
+        "conditions": [],
+        "actions": [
+          {
+            "type": "turn_on",
+            "device_id": "6bbe9438e486969949c5312525e4564a",
+            "entity_id": "bf3d2a1da646b0ad9c4a502a01c7fffd",
+            "domain": "light"
+          }
+        ],
+        "mode": "single"
+      }
+    },
+    {
+      "id": "1742297367576",
+      "config": {
+        "id": "1742297367576",
+        "alias": "Spegni dispositivi rumore alto",
+        "description": "",
+        "triggers": [
+          {
+            "trigger": "numeric_state",
+            "entity_id": [
+              "sensor.rumore_salotto_sound_pressure"
+            ],
+            "above": 39.9
+          }
+        ],
+        "conditions": [
+          {
+            "condition": "time",
+            "after": "22:30:00"
+          }
+        ],
+        "actions": [
+          {
+            "type": "turn_off",
+            "device_id": "3de374e80ab95337ad95afc121311965",
+            "entity_id": "d966b7c7a42479a5bea2664934fb4ad8",
+            "domain": "switch"
+          },
+          {
+            "type": "turn_off",
+            "device_id": "fe8c1a3e82b6d5e012030fcaab7a8560",
+            "entity_id": "75b979f2072975499abfb202179febb7",
+            "domain": "fan"
+          }
+        ],
+        "mode": "single"
+      }
+    },
+    {
+      "id": "1742297623466",
+      "config": {
+        "id": "1742297623466",
+        "alias": "Spegni luce nessuno è in casa",
+        "description": "",
+        "triggers": [
+          {
+            "trigger": "state",
+            "entity_id": [
+              "binary_sensor.presenza_casa_presence"
+            ],
+            "to": "off"
+          }
+        ],
+        "conditions": [],
+        "actions": [
+          {
+            "type": "turn_off",
+            "device_id": "6bbe9438e486969949c5312525e4564a",
+            "entity_id": "bf3d2a1da646b0ad9c4a502a01c7fffd",
+            "domain": "light"
+          },
+          {
+            "type": "turn_off",
+            "device_id": "6bbe9438e486969949c5312525e4564a",
+            "entity_id": "bf3d2a1da646b0ad9c4a502a01c7fffd",
+            "domain": "light"
+          },
+          {
+            "type": "turn_off",
+            "device_id": "6acf2a2a00e69f2a22775de7df0a5cbe",
+            "entity_id": "fa0f6696d0e6ddff12c1cedf2e447330",
+            "domain": "light"
+          },
+          {
+            "type": "turn_off",
+            "device_id": "f9e2f24b1cec1212725cee161f5702ac",
+            "entity_id": "7d6ced8196a01b1e7a4310f3349da05d",
+            "domain": "light"
+          }
+        ],
+        "mode": "single"
+      }
+    },
+    {
+      "id": "1742811926491",
+      "config": {
+        "id": "1742811926491",
+        "alias": "Notifica termine lavastoviglie",
+        "description": "",
+        "triggers": [
+          {
+            "type": "turned_off",
+            "device_id": "883378e20edd52aa320016174c8923b0",
+            "entity_id": "363afe59417f75cf8351e81525a01c02",
+            "domain": "switch",
+            "trigger": "device"
+          }
+        ],
+        "conditions": [],
+        "actions": [
+          {
+            "action": "notify.notify",
+            "metadata": {},
+            "data": {
+              "target": "Alexa",
+              "domain": "media_player"
+            }
+          }
+        ],
+        "mode": "single"
+      }
+    }
+  ]
+}]

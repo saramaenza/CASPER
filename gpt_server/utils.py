@@ -51,7 +51,7 @@ def update_chat_state(action:str, state: str, session_id: str, user_id: str, id:
     action: send-message, state: "Messaggio intermedio del bot", id Non serve --> invia un messaggio come se fosse rulebot nella chat user id session id
     action: update-automation-list state: "", id: "" --> aggiorna la lista delle automazioni
     """
-    #print(f"Update Chat State: {action} - {state} - {session_id} - {user_id} - {id}")
+    print(f"Update Chat State: {action} - {state} - {session_id} - {user_id} - {id}")
     try:
         requests.post(f'{base_url}/get_chat_state', json={"action":action, "state": state, "id":id, "session_id": session_id, "user_id": user_id})
     except Exception as e:
