@@ -86,6 +86,7 @@ body{
   display: flex;
   border: none;
   flex-direction: column;
+  overflow-y: scroll;
 }
 
 #chat{
@@ -393,10 +394,9 @@ body{
 .carousel__buttons {
   margin: 10px 0;
   display: flex;
-  width: 80%;
-}
-.carousel__buttons .carousel-button:focus {
-  background-color: rgb(154, 163, 247);
+  width: 100%;
+  justify-content: center;
+  padding-bottom: 2rem;
 }
 .carousel__buttons .carousel-button:hover {
   background-color: #ddd;
@@ -424,7 +424,7 @@ body{
 .carousel {
   overflow: hidden;
   display: grid;
-  grid-template-columns: repeat(2, 90%);
+  grid-template-columns: repeat(3, 90%);
 }
 .carousel .carousel__item.active {
   transform: scale(1) translateX(-0%);
