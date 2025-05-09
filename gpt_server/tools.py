@@ -87,12 +87,12 @@ def generate_automation(
         else:
             data['automation']['id'] = automation_id
         #response = utils.save_automation(user_id, session_id, data['automation'], automation_id )
-        checks = _db.get_tmp_data(user_id, session_id)
+        checks = _db.get_tmp_data(user_id)
         if checks is not None and 'checks' in checks:
             checks = checks['checks']
         else:
             checks = {'conflict': 'To do', 'energy': 'To do'}
-        response = _db.save_tmp_data(user_id, session_id, {'automation': data['automation'], 'checks': checks})
+        response = _db.save_tmp_data(user_id, {'automation': data['automation'], 'checks': checks})
         if response == True:
             utils.update_chat_state(action="confirm-state", state="Automazione generata con successo", session_id=session_id, user_id=user_id, id='generate-automation')
             #utils.update_chat_state(action="update-automation-list", state="", session_id=session_id, user_id=user_id)
@@ -117,7 +117,7 @@ def conflict_check(
     """
     try:
         utils.update_chat_state(action="add-state", state="Controllo conflitti e catene", session_id=session_id, user_id=user_id, id='conflict-check')
-        data = _db.get_tmp_data(user_id, session_id)
+        data = _db.get_tmp_data(user_id)
         if data is None:
             #nessuna tmp_data salvata, dovrebbe significare che non c'è nessuna automazione under construction
             #quindi verifico se l'utente sta provando a controllare un automazione già esistente
@@ -127,15 +127,15 @@ def conflict_check(
                 return f"L'automazione con ID {automation_id} non è presente nel sistema."
             else:
                 #!TODO: logica di controllo conflitti per automazioni già esistenti
-                checks = {'conflict': 'Done', 'energy': 'To do'}
-                _db.save_tmp_data(user_id, session_id, {'automation': automation, 'checks':checks }) #sostituisco i dati temporanei, se esistenti
+                checks = {'conflict': 'Done', 'energy': 'To do'} #!!!BUG? puo essere incosistente se l'utente ha gia fatto un check energetico
+                _db.save_tmp_data(user_id, {'automation': automation, 'checks':checks }) #sostituisco i dati temporanei, se esistenti
                 utils.update_chat_state(action="confirm-state", state="Nessun problema trovato", session_id=session_id, user_id=user_id, id='conflict-check')
-                return "Nessun conflitto trovato, ma il check energetico non è stato eseguito. Procedi con il check energetico."
+                return f"Nessun conflitto trovato. Eventuali check da effettuare {checks}."
         else:
             #ho trovato una tmp_data, quindi sono in fase di generazione di una nuova automazione
             #!TODO: logica di controllo conflitti per automazioni in fase di generazione
             data['checks']['conflict'] = 'Done'
-            _db.save_tmp_data(user_id, session_id, data) #sostituisco i dati temporanei, se esistenti
+            _db.save_tmp_data(user_id, data) #sostituisco i dati temporanei, se esistenti
             utils.update_chat_state(action="confirm-state", state="Nessun problema trovato", session_id=session_id, user_id=user_id, id='conflict-check')
             return f"Nessun conflitto trovato. Eventuali check rimasti: {data['checks']}"
     except Exception as e:
@@ -154,7 +154,7 @@ def energy_check(
     """
     try:
         utils.update_chat_state(action="add-state", state="Controllo problemi energetici", session_id=session_id, user_id=user_id, id='energy-check')
-        data = _db.get_tmp_data(user_id, session_id)
+        data = _db.get_tmp_data(user_id)
         if data is None:
             #nessuna tmp_data salvata, dovrebbe significare che non c'è nessuna automazione under construction
             #quindi verifico se l'utente sta provando a controllare un automazione già esistente
@@ -165,14 +165,14 @@ def energy_check(
             else:
                 #!TODO: logica di controllo conflitti energetici per automazioni già esistenti
                 checks = {'conflict': 'Done', 'energy': 'Done'}
-                _db.save_tmp_data(user_id, session_id, {'automation': automation, 'checks':checks }) #sostituisco i dati temporanei, se esistenti
+                _db.save_tmp_data(user_id, {'automation': automation, 'checks':checks }) #sostituisco i dati temporanei, se esistenti
                 utils.update_chat_state(action="confirm-state", state="Nessun problema trovato", session_id=session_id, user_id=user_id, id='energy-check')
                 return "Nessun problema energetico trovato"
         else:
             #ho trovato una tmp_data, quindi sono in fase di generazione di una nuova automazione
             #!TODO: logica di controllo conflitti per automazioni in fase di generazione
             data['checks']['energy'] = 'Done'
-            _db.save_tmp_data(user_id, session_id, data) #sostituisco i dati temporanei, se esistenti
+            _db.save_tmp_data(user_id, data) #sostituisco i dati temporanei, se esistenti
             utils.update_chat_state(action="confirm-state", state="Nessun problema trovato", session_id=session_id, user_id=user_id, id='energy-check')
             return f"Nessun problema energetico trovato. Eventuali check rimasti: {data['checks']}"
     except Exception as e:
@@ -190,13 +190,14 @@ def save_automation(
     """
     try:
         utils.update_chat_state(action="add-state", state="Salvo l'automazione", session_id=session_id, user_id=user_id, id='save-automation')
-        data = _db.get_tmp_data(user_id, session_id)
+        data = _db.get_tmp_data(user_id)
         if data is None:
             utils.update_chat_state(action="error-state", state="Nessuna automazione da salvare", session_id=session_id, user_id=user_id, id='save-automation')
             return "Nessuna automazione da salvare."
         else:
             response = utils.save_automation(user_id, session_id, data['automation'], data['automation']['id'])
         if response.status_code == 200:
+            _db.remove_tmp_data(user_id) #rimuovo i dati temporanei
             utils.update_chat_state(action="confirm-state", state="Automazione generata e salvata con successo", session_id=session_id, user_id=user_id, id='save-automation')
             utils.update_chat_state(action="update-automation-list", state="", session_id=session_id, user_id=user_id)
             return f"L'automazione è stata salvata con successo. {response.json()}"
