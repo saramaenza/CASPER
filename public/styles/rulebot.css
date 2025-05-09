@@ -86,7 +86,6 @@ body{
   display: flex;
   border: none;
   flex-direction: column;
-  overflow-y: scroll;
 }
 
 #chat{
@@ -222,7 +221,6 @@ body{
 #rules-container{
   width: 100%;
   height: inherit;
-  overflow-y: auto;
 }
 
 #problems-main-container{
@@ -475,6 +473,7 @@ body{
 .leftbar-selected{
   display: block;
   margin-top: 2rem;
+  overflow-y: auto;
 }
 .leftbar-unselected{
   display: none !important;
