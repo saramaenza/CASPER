@@ -1,0 +1,48 @@
+++stesso trigger, azioni opposte -> VERIFICATO OK
+conflitto certo:
+-- quando spengo il forno, spegni la luce in cucina
+-- quando spengo il forno, accendi la luce in cucina
+
+++stesso trigger, condizioni non sovrapposte, azioni opposte -> VERIFICATO OK
+NO conflitto:
+-- quando esco da casa, se sta piovendo, accendi la luce ingresso colore blu
+-- quando esco da casa, se c'e sole, spegni luce ingresso
+
+++stesso trigger, condizioni sovrapposte, azioni opposte -> VERIFICATO OK
+conflitto certo: (nella stessa chat, rulebot le crea entrambe anche se si accorge che c'e qualcosa di strano, il comportamento giusto sarebbe stato sovrascrivere la prima con la seconda)
+-- quando entro in camera da letto, se la luce e accesa, spegni la televisione
+-- quando entro in camera da letto, se la luce e accesa, accendi la televisione
+
+++stesso trigger, 1 automazione con condizione e una no, azioni overwrite-> 
+No conflitto: -> VERIFICATO OK
+-- quando entro in cucina accendi la luce (6)
+-- quando entro in cucina, se sono tra le 22 e le 5, accendi la luce al 35% di luminosita (7)
+Conflitto certo: -> VERIFICATO, NON TROVA CONFLITTO
+-- quando entro in cucina accendi la luce (6)
+-- quando entro in cucina, accendi la luce al 35% di luminosita (12)
+
+++trigger diversi, azioni opposte con zone diverse ->
+No conflitto: VERIFICATO OK
+-- quando la qualita dell'aria e bassa, accendi il purificatore in salotto
+-- quando esco da casa, spegni il purificatore in camera da letto
+
+++trigger diversi, azioni opposte -> 
+conflitto possibile: VERIFICATO OK
+-- quando la qualita dell'aria e bassa, accendi il purificatore
+-- quando esco da casa, spegni il purificatore
+
+++trigger diversi, azioni sussunte -> 
+conflitto possibile: VERIFICATO OK
+-- (quando esco da casa spegni tutte le luci) (13)
+-- (quando sono le 5 accendi la luce del salotto) (14)
+
+++stesso trigger, 2 condizioni sovrapposte, azioni opposte ->
+No conflitto:
+-- (quando la temperatura e maggiore di 10 gradi, se sono tra le 10 e le 15 e sono in casa, accendi il condizionatore)
+-- (quando la temperatura e maggiore di 10 gradi, se sono tra le 10 e le 15 e non sono in casa, spegni il condizionatore)
+Conflitto certo:
+-- (quando la temperatura e maggiore di 10 gradi, se sono tra le 10 e le 15 e sono in casa, accendi il condizionatore)
+-- (quando la temperatura e maggiore di 10 gradi, se sono tra le 10 e le 15 e sono in casa, spegni il condizionatore)
+
+
+trigger binari opposti, azioni opposte -> NO conflitto (quando entro in cucina accendi la luce, quando esco dalla cucina spegni la luce)

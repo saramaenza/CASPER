@@ -1,0 +1,406 @@
+{
+  "user_id": "681e05bfd5c21048c157e431",
+  "automation_data": [
+    {
+      "id": "1",
+      "config": {
+        "alias": "Spegni Luce Cucina al Forno Spento",
+        "description": "Spegne la luce della cucina quando il forno viene spento.",
+        "trigger": [
+          {
+            "platform": "state",
+            "entity_id": "switch.forno",
+            "to": "off"
+          }
+        ],
+        "condition": [],
+        "action": [
+          {
+            "service": "light.turn_off",
+            "target": {
+              "entity_id": "light.luce_cucina"
+            }
+          }
+        ],
+        "id": "1"
+      }
+    },
+    {
+      "id": "2",
+      "config": {
+        "alias": "Accendi luce cucina spegnendo forno",
+        "description": "Accensione automatica della luce della cucina al momento dello spegnimento del forno.",
+        "trigger": [
+          {
+            "platform": "state",
+            "entity_id": "switch.forno",
+            "to": "off"
+          }
+        ],
+        "action": [
+          {
+            "service": "light.turn_on",
+            "target": {
+              "entity_id": "light.luce_cucina"
+            }
+          }
+        ],
+        "id": "2"
+      }
+    },
+    {
+      "id": "3",
+      "config": {
+        "alias": "Accensione Luce Portone durante Pioggia con Assenza in Casa",
+        "description": "Accende la luce del portone d'ingresso di colore blu quando non si rileva presenza in casa e c'è pioggia.",
+        "trigger": [
+          {
+            "platform": "state",
+            "entity_id": "binary_sensor.presenza_casa_presence",
+            "to": "off"
+          }
+        ],
+        "condition": [
+          {
+            "condition": "state",
+            "entity_id": "weather.openweathermap",
+            "state": "rain"
+          }
+        ],
+        "action": [
+          {
+            "service": "light.turn_on",
+            "data": {
+              "entity_id": "light.luce_portone_d_ingresso",
+              "color_name": "blue"
+            }
+          }
+        ],
+        "id": "3"
+      }
+    },
+    {
+      "id": "4",
+      "config": {
+        "alias": "Spegnimento luce portone d'ingresso quando assente e soleggiato",
+        "description": "Spegne la luce del portone d'ingresso se non c'è presenza in casa e il meteo indica sole.",
+        "trigger": [
+          {
+            "platform": "state",
+            "entity_id": "binary_sensor.presenza_casa_presence",
+            "to": "off"
+          }
+        ],
+        "condition": [
+          {
+            "condition": "state",
+            "entity_id": "weather.openweathermap",
+            "state": "sunny"
+          }
+        ],
+        "action": [
+          {
+            "service": "light.turn_off",
+            "target": {
+              "entity_id": [
+                "light.luce_portone_d_ingresso"
+              ]
+            }
+          }
+        ],
+        "id": "4"
+      }
+    },
+    {
+      "id": "5",
+      "config": {
+        "alias": "Spegni TV in Camera con Presenza e Luce Accesa",
+        "description": "Automazione per spegnere la TV della camera da letto quando viene rilevata presenza e la luce è accesa.",
+        "trigger": [
+          {
+            "platform": "state",
+            "entity_id": "binary_sensor.presenza_camera_da_letto_presence",
+            "to": "on"
+          }
+        ],
+        "condition": [
+          {
+            "condition": "state",
+            "entity_id": "light.luce_camera_letto",
+            "state": "on"
+          }
+        ],
+        "action": [
+          {
+            "service": "switch.turn_off",
+            "target": {
+              "entity_id": "switch.tv_camera_da_letto"
+            }
+          }
+        ],
+        "id": "5"
+      }
+    },
+    {
+      "id": "6",
+      "config": {
+        "alias": "Presenza Camera da letto e Luce accesa attiva TV",
+        "description": "Questo è un'automazione che accende la TV quando c'è presenza nella camera da letto e la luce nella stanza è già accesa.",
+        "trigger": [
+          {
+            "platform": "state",
+            "entity_id": "binary_sensor.presenza_camera_da_letto_presence",
+            "to": "on"
+          }
+        ],
+        "condition": [
+          {
+            "condition": "state",
+            "entity_id": "light.luce_camera_letto",
+            "state": "on"
+          }
+        ],
+        "action": [
+          {
+            "service": "switch.turn_on",
+            "target": {
+              "entity_id": "switch.tv_camera_da_letto"
+            }
+          }
+        ],
+        "id": "6"
+      }
+    },
+    {
+      "id": "7",
+      "config": {
+        "alias": "Accendi luce cucina con movimento",
+        "description": "Automazione che accende la luce della cucina quando viene rilevato movimento.",
+        "trigger": [
+          {
+            "platform": "state",
+            "entity_id": "binary_sensor.presenza_cucina_presence",
+            "to": "on"
+          }
+        ],
+        "condition": [],
+        "action": [
+          {
+            "service": "light.turn_on",
+            "target": {
+              "entity_id": "light.luce_cucina"
+            }
+          }
+        ],
+        "id": "7"
+      }
+    },
+    {
+      "id": "8",
+      "config": {
+        "alias": "Accensione automatica luce cucina notte",
+        "description": "Questa automazione accende la luce in cucina con luminosità ridotta durante la notte quando il sensore rileva movimento.",
+        "trigger": [
+          {
+            "platform": "state",
+            "entity_id": "binary_sensor.presenza_cucina_presence",
+            "to": "on"
+          }
+        ],
+        "condition": [
+          {
+            "condition": "time",
+            "after": "22:00:00",
+            "before": "05:00:00"
+          }
+        ],
+        "action": [
+          {
+            "service": "light.turn_on",
+            "data": {
+              "entity_id": "light.luce_cucina",
+              "brightness_pct": 35
+            }
+          }
+        ],
+        "id": "8"
+      }
+    },
+    {
+      "id": "9",
+      "config": {
+        "alias": "Attivazione purificatore salotto per qualità aria bassa",
+        "description": "Attiva automaticamente il purificatore del salotto quando la qualità dell'aria della casa è bassa.",
+        "trigger": [
+          {
+            "platform": "state",
+            "entity_id": "sensor.qualita_casa_aqi",
+            "to": "bassa"
+          }
+        ],
+        "condition": [],
+        "action": [
+          {
+            "service": "fan.turn_on",
+            "data": {},
+            "target": {
+              "entity_id": "fan.purificatore_salotto"
+            }
+          }
+        ],
+        "id": "9"
+      }
+    },
+    {
+      "id": "10",
+      "config": {
+        "alias": "Spegni Purificatore Camera quando Simone esce",
+        "description": "Spegni il purificatore in salotto quando non è rilevata la presenza in casa.",
+        "trigger": [
+          {
+            "platform": "state",
+            "entity_id": "binary_sensor.presenza_casa_presence",
+            "to": "off"
+          }
+        ],
+        "condition": [],
+        "action": [
+          {
+            "service": "fan.turn_off",
+            "target": {
+              "entity_id": "fan.purificatore_salotto"
+            }
+          }
+        ],
+        "id": "10"
+      }
+    },
+    {
+      "id": "11",
+      "config": {
+        "alias": "Air Quality Exceeds Threshold - Activate Purifier",
+        "description": "Activates the living room air purifier when air quality exceeds 100.",
+        "trigger": [
+          {
+            "platform": "numeric_state",
+            "entity_id": "sensor.qualita_casa_aqi",
+            "above": 100
+          }
+        ],
+        "condition": [],
+        "action": [
+          {
+            "service": "fan.turn_on",
+            "target": {
+              "entity_id": "fan.purificatore_salotto"
+            }
+          }
+        ],
+        "id": "11"
+      }
+    },
+    {
+      "id": "12",
+      "config": {
+        "alias": "Disattiva purificatore all'uscita di casa",
+        "description": "Questa automazione spegne il purificatore del salotto quando l'utente esce di casa, senza valutare condizioni aggiuntive.",
+        "trigger": [
+          {
+            "platform": "state",
+            "entity_id": "binary_sensor.presenza_casa_presence",
+            "to": "off"
+          }
+        ],
+        "condition": [],
+        "action": [
+          {
+            "service": "fan.turn_off",
+            "target": {
+              "entity_id": "fan.purificatore_salotto"
+            }
+          }
+        ],
+        "id": "12"
+      }
+    },
+    {
+      "id": "13",
+      "config": {
+        "alias": "Accendi luce cucina quando presente",
+        "description": "Accende la luce in cucina al 35% luminanza quando viene rilevata presenza nell'area cucina.",
+        "trigger": [
+          {
+            "platform": "state",
+            "entity_id": "binary_sensor.presenza_cucina_presence",
+            "to": "on"
+          }
+        ],
+        "condition": [],
+        "action": [
+          {
+            "service": "light.turn_on",
+            "data": {
+              "entity_id": "light.luce_cucina",
+              "brightness_pct": 35
+            }
+          }
+        ],
+        "id": "13"
+      }
+    },
+    {
+      "id": "14",
+      "config": {
+        "alias": "Spegni luci se casa è vuota",
+        "description": "Spegni tutte le luci quando non c'è nessuno in casa.",
+        "trigger": [
+          {
+            "platform": "state",
+            "entity_id": "binary_sensor.presenza_casa_presence",
+            "to": "off"
+          }
+        ],
+        "condition": [],
+        "action": [
+          {
+            "service": "light.turn_off",
+            "target": {
+              "entity_id": [
+                "light.luce_cucina",
+                "light.luce_bagno",
+                "light.luce_camera_letto",
+                "light.luce_comodino",
+                "light.luce_salotto",
+                "light.luce_portone_d_ingresso"
+              ]
+            }
+          }
+        ],
+        "id": "14"
+      }
+    },
+    {
+      "id": "15",
+      "config": {
+        "alias": "Accensione Luce Salotto alle 17:00",
+        "description": "Questa automazione accende la luce del salotto ogni giorno alle ore 17:00.",
+        "trigger": [
+          {
+            "platform": "time",
+            "at": "17:00:00"
+          }
+        ],
+        "condition": [],
+        "action": [
+          {
+            "service": "light.turn_on",
+            "target": {
+              "entity_id": "light.luce_salotto"
+            }
+          }
+        ],
+        "id": "15"
+      }
+    }
+  ]
+}
