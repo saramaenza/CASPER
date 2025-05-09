@@ -1,7 +1,7 @@
 [
     {
         "name": "localhost",
-        "base_url": "http://localhost/",
+        "base_url": "http://localhost",
         "cert_path": "",
         "key_path": "",
         "fullchain_path": "",
@@ -19,7 +19,7 @@
     },
     {
         "name": "africa",
-        "base_url": "http://africa.isti.cnr.it/",
+        "base_url": "http://africa.isti.cnr.it",
         "cert_path": "C:/Certbot/live/africa.isti.cnr.it/cert.pem",
         "key_path": "C:/Certbot/live/africa.isti.cnr.it/privkey.pem",
         "fullchain_path": "C:/Certbot/live/africa.isti.cnr.it/chain.pem",
@@ -28,7 +28,7 @@
     },
     {
         "name": "grimilde",
-        "base_url": "https://grimilde.isti.cnr.it/",
+        "base_url": "https://grimilde.isti.cnr.it",
         "cert_path": "C:/Certbot/live/grimilde.isti.cnr.it/cert.pem",
         "key_path": "C:/Certbot/live/grimilde.isti.cnr.it/privkey.pem",
         "fullchain_path": "C:/Certbot/live/grimilde.isti.cnr.it/chain.pem",

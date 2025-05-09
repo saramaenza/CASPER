@@ -228,11 +228,11 @@ const getConflicts = async (userId) => {
 
 const getAutomations=async (userId) => {
     const client = new MongoClient(uri);
-    console.log("QUA")
     try {
         const database = client.db(dbName);
         const automations = database.collection('automations');
-        const userAutomations = await automations.findOne({ 'user_id': userId });
+        const userAutomations = await automations.findOne({ 'user_id': userId }); // Sistemare nel caso non ci siano automazioni
+        if (!userAutomations) return []; // Se non ci sono automazioni, restituisci null o un array vuoto
         return userAutomations['automation_data'];
     } catch (err) {
         console.log('error in getAutomationsByUserId');
