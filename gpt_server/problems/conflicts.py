@@ -23,18 +23,18 @@ headers = {
 }
 
 # Load JSON file
-with open("casper.all_automations.json", "r") as file:
-    all_rules = json.load(file)
-    
-with open("casper.new_automation.json", "r") as file: #questa dà conflitto possibile, ma sarebbe certo (è per come è stato creato il file dell'automazione)
-    automations_post = json.load(file)
+with open("casper.all.json", "r") as file:
+    all_rules_all = json.load(file)
+
+#with open("casper.new_automation.json", "r") as file: #questa dà conflitto possibile, ma sarebbe certo (è per come è stato creato il file dell'automazione)
+#    automations_post = json.load(file)
 
 #with open("casper.new_automation_2.json", "r") as file: #conflitto certo (ok)
     #automations_post = json.load(file)
 
 
-all_rules = all_rules[0]["automation_data"]
-automations_post = automations_post[0]["config"]
+all_rules = [all_rules_all["automation_data"][13]["config"]]
+automations_post = all_rules_all["automation_data"][14]["config"]
 
 
 infoConflictArrayLLM = []   #contiene le coppie di automazioni in conflitto tra loro
@@ -90,8 +90,8 @@ def process_action_conflict(action1, action2, ruleName1, ruleName2, entityRuleNa
         entitiesByDomainAndArea2 = getEntitiesByDomainAndArea(area2, domain2)
         device_id2 = getDevicesId(entitiesByDomainAndArea2)
 
-    arrayDeviceActionId1 = device_id1.split(", ") if isinstance(device_id1, str) else device_id1
-    arrayDeviceActionId2 = device_id2.split(", ") if isinstance(device_id2, str) else device_id2
+    arrayDeviceActionId1 = device_id1.split(", ") if isinstance(device_id1, str) else device_id1 #???
+    arrayDeviceActionId2 = device_id2.split(", ") if isinstance(device_id2, str) else device_id2 #???
 
     if type_of_conflict == "possible" and not arrayDeviceActionId2:
         return
@@ -101,7 +101,7 @@ def process_action_conflict(action1, action2, ruleName1, ruleName2, entityRuleNa
         return
 
     deviceNameAction1 = getNameUserDevice(common_device[0]) or common_device[0]
-    deviceNameAction2 = deviceNameAction1
+    deviceNameAction2 = deviceNameAction1 # ???
 
     infoPlatform1 = getInfoPlatform(domain1, action1)
     infoPlatform2 = getInfoPlatform(domain2, action2)
@@ -336,7 +336,7 @@ def arrayConditions(condition1, condition2):
         for c in condition1:
             if("conditions" in c):
                 for condition in c["conditions"]:
-                    condition = getConditionInfo(condition, c["condition"])
+                    condition = getConditionInfo(condition, c["condition"]) #{"condition":..., "device":..., "type":..., "user":..., "zone":...}
                     conditionInfo1.append(condition)
             elif("condition" in c):
                 condition = getConditionInfo(c, c["condition"])
@@ -353,7 +353,7 @@ def arrayConditions(condition1, condition2):
     return conditionInfo1, conditionInfo2
 
 def checkCondition(condition1, condition2):
-    if (not condition1 or not condition2):
+    if (not condition1 or not condition2): #dovrebbe essere AND ?
         return True
     if (condition1 == condition2):
         return True
@@ -411,7 +411,7 @@ def getConditionInfo(condition, typeCondition):
 
 def process_conditions(condition1, condition2):
     if condition1:
-        if condition1[0]['condition'] == "or" and len(condition1[0]['conditions']) == 1:
+        if condition1[0]['condition'] == "or" and len(condition1[0]['conditions']) == 1: #Perche' si modifica l'or in and se c'è una sola condizione? In teoria se c'è una sola condizione non ha senso avere l'or
             condition1[0]['condition'] = "and"
     if condition2:
         if condition2[0]['condition'] == "or" and len(condition2[0]['conditions']) == 1:
@@ -421,14 +421,14 @@ def process_conditions(condition1, condition2):
 def find_trigger(automations, id):
     for automation in automations:
         if automation.get("id") == id:
-            trigger = automation['config'].get("triggers") or automation['config'].get("trigger")
+            trigger = automation.get("triggers") or automation.get("trigger")
             return trigger
     return None
 
 def find_condition(automations, id):
     for automation in automations:
         if automation.get("id") == id:
-            conditions = automation['config'].get("condition") or automation['config'].get("conditions")
+            conditions = automation.get("condition") or automation.get("conditions")
             return conditions
     return None
 
@@ -449,30 +449,30 @@ def process_triggers_and_conditions(rules, idAutomation1, idAutomation2, automat
 
 
 ########### MAIN PROBLEM CHECKING FUNCTION #########
-
+import time
 def detectAppliancesConflictsForLLM(rules, rule1):
+    start = time.time()
     infoConflictArrayLLM.clear()
 
-    entityRuleName1 = "automation." + rule1.get("alias", None).replace(" ", "_")
-    ruleName1 = rule1.get("alias", None)
-    domainTrigger1 = rule1["trigger"][0].get("domain", None) if "trigger" in rule1 and isinstance(rule1["trigger"], list) and rule1["trigger"] else None
+    ruleName1 = rule1.get("alias", None) #None potrebbe tornare errore nella linea successiva
+    entityRuleName1 = "automation." + ruleName1.replace(" ", "_") #sostituito con l'alias della nuova automazione spazi -> _
+    
+    domainTrigger1 = rule1["trigger"][0].get("domain", None) if "trigger" in rule1 and isinstance(rule1["trigger"], list) and rule1["trigger"] else None #trigger o triggerS?
     idAutomation1 = rule1.get("id", None)
     actions1 = rule1.get("actions", []) or rule1.get("action", [])
-
     
     for action1 in actions1:
         for rule2 in rules:
-            rule2 = rule2["config"]
             ruleName2 = rule2.get("alias", None)
             #entityRuleName2 = rule2["entity_id"]
             entityRuleName2 = "automation." + ruleName2.replace(" ", "_")
 
             if entityRuleName1 != entityRuleName2:
                 # Triggers and conditions overlap (possible/certain conflict)
-                domainTrigger2 = rule2["trigger"][0].get("domain", None) if "trigger" in rule2 and isinstance(rule2["trigger"], list) and rule2["trigger"] else None
+                domainTrigger2 = rule2["trigger"][0].get("domain", None) if "trigger" in rule2 and isinstance(rule2["trigger"], list) and rule2["trigger"] else None #trigger o triggerS?
                 actions2 = rule2.get("actions", []) or rule2.get("action", [])
                 idAutomation2 = rule2.get("id", None)
-                trigger1, condition1, trigger2, condition2 = process_triggers_and_conditions(rules, idAutomation1, idAutomation2, automations_post)
+                trigger1, condition1, trigger2, condition2 = process_triggers_and_conditions(rules, idAutomation1, idAutomation2, rule1)
                 type_of_conflict = "certain" if trigger1 == trigger2 and checkCondition(condition1, condition2) else "possible"
                 
                 #print("Trigger1: ", trigger1)
@@ -491,11 +491,10 @@ def detectAppliancesConflictsForLLM(rules, rule1):
                 # Conflict on actions and solution retrieval
                 for action2 in actions2:
                     process_action_conflict(action1, action2, ruleName1, ruleName2, entityRuleName1, entityRuleName2, domainTrigger1, domainTrigger2, condition1, condition2, type_of_conflict, "llm", idAutomation1, idAutomation2, "automation_description", "automation2_description")
-                
+    endtime = time.time()
+    elapsed_time = endtime - start
+    print("Elapsed time: ", elapsed_time, " seconds") 
     return infoConflictArrayLLM
-
-
-
 
 
 infoConflictArrayLLM = detectAppliancesConflictsForLLM(all_rules, automations_post)
