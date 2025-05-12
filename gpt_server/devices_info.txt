@@ -1,0 +1,15 @@
+binary_sensor, switch, light: state -> bool (on/off)
+
+sensor: state -> str(int)
+
+sensor - unit_of_measurement:
+%
+°C
+lx
+dB
+ppm -> overwrite to ppm(CO2)
+
+light -> attributes: {effect_list [str], supported_color_modes [str]}
+sensor -> attributes: {options [str]}
+fan -> attributes: {preset_modes [str]}
+number (eg, velocità ventole) -> attributes: {min [int], max [int]}
