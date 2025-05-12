@@ -690,6 +690,9 @@ function displayProblemDesc(el) {
   }
 }
 
+
+// ===================== Carousel ======================= //
+
 function toggleStayOpen(button) {
   const collapse = button.parentElement.nextElementSibling;
   const isOpen = collapse.classList.contains('show');
