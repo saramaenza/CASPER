@@ -3,6 +3,7 @@ import requests
 from requests import get, post
 import re
 import ast
+import db_functions as _db
 
 #url HA ufficio
 base_url = "http://luna.isti.cnr.it:8123"
@@ -107,8 +108,6 @@ def process_action_conflict(action1, action2, ruleName1, ruleName2, entityRuleNa
     infoPlatform2 = getInfoPlatform(domain2, action2)
 
     if checkOperatorsAppliances(getEventType(action1), getEventType(action2)) and not attr1 and not attr2:
-        print("QUI ARRIVA 1")
-        print(infoPlatform1)
         append_conflict(ruleName1, ruleName2, getEventType(action1), getEventType(action2), None, None, None, None, "", "", infoPlatform1, infoPlatform2, domainTrigger1, domainTrigger2, deviceNameAction1, deviceNameAction2, condition1, condition2, getDeviceClass(deviceNameAction1), automation1_description, automation2_description, type_of_conflict, type_of_front_end, idAutomation1, idAutomation2)
     elif attr1 or attr2:
         dataAttr = attr1 if attr1 else attr2
@@ -450,7 +449,8 @@ def process_triggers_and_conditions(rules, idAutomation1, idAutomation2, automat
 
 ########### MAIN PROBLEM CHECKING FUNCTION #########
 import time
-def detectAppliancesConflictsForLLM(rules, rule1):
+def detectAppliancesConflictsForLLM(user_id, rule1):
+    rules = _db.get_automations(user_id) #[{"id": automation_id_int, "config": {"id", "alias", "description", "triggers"...}, ...]
     start = time.time()
     infoConflictArrayLLM.clear()
 
@@ -496,7 +496,7 @@ def detectAppliancesConflictsForLLM(rules, rule1):
     print("Elapsed time: ", elapsed_time, " seconds") 
     return infoConflictArrayLLM
 
-
-infoConflictArrayLLM = detectAppliancesConflictsForLLM(all_rules, automations_post)
+user_id = "6487f4a2089f04476b4d4d8c" #ID utente di test
+infoConflictArrayLLM = detectAppliancesConflictsForLLM(user_id, automations_post)
 
 print("Info Conflict Array LLM: ", infoConflictArrayLLM)
