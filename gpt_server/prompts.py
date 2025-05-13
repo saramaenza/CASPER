@@ -73,5 +73,3 @@ Double-check the entity_ids to ensure the automation is correctly generated.
 Home Devices: {home_devices}
 Current date and time: {time_date}
 """
-
-automation_recommender = """ """
