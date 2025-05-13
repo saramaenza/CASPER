@@ -73,10 +73,11 @@ def update_chat_state(action:str, state: str, session_id: str, user_id: str, id:
     action: error-state, state: "", id: 5 --> segnala un errore nello stato con id
     action: send-message, state: "Messaggio intermedio del bot", id Non serve --> invia un messaggio come se fosse rulebot nella chat user id session id
     action: update-automation-list state: "", id: "" --> aggiorna la lista delle automazioni
+    action: generate-problem-card, state: List[isActive, headerText, cardText, containerArrowList, recommendations], id: "" --> genera un problema card
     """
     print(f"Update Chat State: {action} - {state} - {session_id} - {user_id} - {id}")
     try:
-        requests.post(f'{base_url}/get_chat_state', json={"action":action, "state": state, "id":id, "session_id": session_id, "user_id": user_id})
+        requests.post(f'{base_url}/post_chat_state', json={"action":action, "state": state, "id":id, "session_id": session_id, "user_id": user_id})
     except Exception as e:
         print("--> Update Chat State Error utils.py<--")
         print(e)

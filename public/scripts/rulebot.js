@@ -69,6 +69,15 @@ sse.addEventListener("message", async ({ data }) => {
     rulesList = await getRulesParam()
     printUserRule(rulesList)
   }
+  else if (message.action == "generate-problem-card") {
+    createConflictCard(
+      message.isActive,
+      message.headerText,
+      message.cardText,
+      message.containerArrowList,
+      message.recommendations
+    );
+  }
   else if (message.action == "ping") {
     console.log("Keep alive");
   }
@@ -692,6 +701,122 @@ function displayProblemDesc(el) {
 
 
 // ===================== Carousel ======================= //
+
+function createConflictCard(isActive, headerText, cardText, containerArrowList, recommendations) {
+    //isActive = boolean (True dovrebbe essere solo la prima card generata)
+    //containerArrowList = list di stringhe
+    //recommendations = {"alias_automazione1": ["opzione1", "opzione2"], "alias_automazione2": ["opzione3", "opzione4"]}
+    const svgArrow = () => {
+        const svgNS = "http://www.w3.org/2000/svg";
+        const svg = document.createElementNS(svgNS, "svg");
+        svg.setAttribute("width", "18");
+        svg.setAttribute("height", "40");
+        svg.setAttribute("viewBox", "0 0 18 40");
+        const path = document.createElementNS(svgNS, "path");
+        path.setAttribute("d", "M9 39.9991L17.7538 25.0535L0.433666 24.9453L9 39.9991ZM7.75003 -0.00937502L7.73701 2.07396L10.7369 2.09271L10.75 0.00937502L7.75003 -0.00937502ZM7.71097 6.24063L7.68492 10.4073L10.6849 10.4261L10.7109 6.25938L7.71097 6.24063ZM7.65888 14.574L7.63284 18.7407L10.6328 18.7594L10.6588 14.5927L7.65888 14.574ZM7.6068 22.9073L7.59378 24.9907L10.5937 25.0094L10.6067 22.9261L7.6068 22.9073ZM7.59378 24.9907L7.58596 26.2406L10.5859 26.2593L10.5937 25.0094L7.59378 24.9907ZM7.57034 28.7404L7.55471 31.2403L10.5547 31.259L10.5703 28.7592L7.57034 28.7404ZM7.53909 33.7401L7.52347 36.24L10.5234 36.2587L10.539 33.7589L7.53909 33.7401Z");
+        path.setAttribute("fill", "#1F3BB3");
+        svg.appendChild(path);
+        return svg;
+    };
+
+
+    const card = document.createElement("div");
+    card.className = "card border-dark carousel__item";
+    if (isActive) {
+        card.classList.add("active");
+    }else {
+        card.classList.add("not_active");
+    }
+
+    const header = document.createElement("div");
+    header.className = "card-header";
+    header.textContent = headerText;
+    card.appendChild(header);
+
+    const body = document.createElement("div");
+    body.className = "card-body";
+
+    const spanText = document.createElement("span");
+    spanText.className = "card-text";
+    spanText.textContent = cardText;
+    body.appendChild(spanText);
+
+    const container = document.createElement("div");
+    container.className = "container_arrow";
+
+    containerArrowList.forEach((item, index) => {
+        const p = document.createElement("p");
+        p.textContent = item;
+        container.appendChild(p);
+        if (index < containerArrowList.length - 1) {
+            container.appendChild(svgArrow());
+        }
+        
+    });
+    body.appendChild(container);
+
+    const title = document.createElement("p");
+    title.className = "card-title";
+    title.textContent = "Come posso risolvere?";
+    body.appendChild(title);
+
+    const accordion = document.createElement("div");
+    accordion.className = "accordion stay-open";
+    let index = 0;
+    for (let automationAlias in recommendations) {
+        const item = document.createElement("div");
+        item.className = "accordion-item";
+
+        const header = document.createElement("h2");
+        header.className = "accordion-header";
+
+        const button = document.createElement("button");
+        button.className = "accordion-button";
+        button.setAttribute("onclick", "toggleStayOpen(this)");
+        button.textContent = `Modifica l'automazione  "${automationAlias}"`;
+
+        header.appendChild(button);
+        item.appendChild(header);
+
+        const collapse = document.createElement("div");
+        collapse.className = "accordion-collapse";
+        if (index === 0) collapse.classList.add("active");
+
+        const body = document.createElement("div");
+        body.className = "accordion-body";
+
+        recommendations[automationAlias].forEach((labelText, i) => {
+            const formCheck = document.createElement("div");
+            formCheck.className = "form-check";
+
+            const input = document.createElement("input");
+            input.className = "form-check-input";
+            input.type = "radio";
+            input.name = "radioDefault";
+            input.id = `radioDefault${index}-${i}`;
+
+            const label = document.createElement("label");
+            label.className = "form-check-label";
+            label.setAttribute("for", input.id);
+            label.textContent = labelText;
+
+            formCheck.appendChild(input);
+            formCheck.appendChild(label);
+            body.appendChild(formCheck);
+        });
+
+        collapse.appendChild(body);
+        item.appendChild(collapse);
+        accordion.appendChild(item);
+        index++;
+    };
+
+    body.appendChild(accordion);
+    card.appendChild(body);
+    mainContainer.appendChild(card);
+    return card;
+}
+
 
 function toggleStayOpen(button) {
   const collapse = button.parentElement.nextElementSibling;
