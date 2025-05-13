@@ -165,8 +165,8 @@ window.addEventListener('load', async ()=>{
     getBotResponse('hello my dear');
     generateTypingMsg('bot');
   }else{
-    getBotResponse('ciao, chi sei?');
-    generateTypingMsg('bot');
+    //getBotResponse('ciao, chi sei?');
+    //generateTypingMsg('bot');
   }
 
 })
@@ -662,17 +662,25 @@ queryText.addEventListener("keyup", (event) =>{
 function displayDesc(el) {
   const ruleId = el.getAttribute('ruleid');
   const ruleDesc = document.querySelector(`div[descid='${ruleId}']`);
-  const state = ruleDesc.classList.contains('closed') ? 'closed' : 'open';
-  if (state === 'closed') {
-    ruleDesc.style.maxHeight = '1000px';
-    ruleDesc.style.padding = '1em';
+  const isClosed = ruleDesc.classList.contains('closed');
+
+  if (isClosed) {
+    // Apertura
+    ruleDesc.style.maxHeight = ruleDesc.scrollHeight + 'px'; // Imposta l'altezza dinamica
     ruleDesc.classList.remove('closed');
     ruleDesc.classList.add('open');
+
+    // Rimuovi maxHeight dopo la transizione per evitare problemi su resize
+    ruleDesc.addEventListener('transitionend', function handler() {
+      ruleDesc.style.maxHeight = 'none';
+      ruleDesc.removeEventListener('transitionend', handler);
+    });
   } else {
-    ruleDesc.style.maxHeight = '0';
-    setTimeout(() => {
-      ruleDesc.style.padding = '0';
-    }, 500);
+    // Chiusura
+    ruleDesc.style.maxHeight = ruleDesc.scrollHeight + 'px'; // Necessario per calcolare l'altezza corrente
+    requestAnimationFrame(() => {
+      ruleDesc.style.maxHeight = '0px'; // Riduci l'altezza a 0
+    });
     ruleDesc.classList.remove('open');
     ruleDesc.classList.add('closed');
   }
