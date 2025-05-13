@@ -323,7 +323,7 @@ async function printUserDevices(devicesList) {
     Object.keys(cleanList).forEach((key) => {
       let room = document.createElement('div');
       room.classList.add('room');
-      let roomName = document.createElement('h3');
+      let roomName = document.createElement('div');
       roomName.classList.add('room-name');
       roomName.innerText = key;
       room.appendChild(roomName);
