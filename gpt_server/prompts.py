@@ -68,8 +68,10 @@ Your output should be a dictionary containing:
   - description: The detailed description of the generated automation indicating the event, conditions, and actions and all the setted parameters.
   - message: Optionally, a message for the user.
 
-Use Italian language.
+Use Italian language for the description and the message.
 Double-check the entity_ids to ensure the automation is correctly generated.
 Home Devices: {home_devices}
 Current date and time: {time_date}
 """
+
+automation_recommender = """ """
