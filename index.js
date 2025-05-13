@@ -397,7 +397,7 @@ app.get('/get_goals', verifyToken, async (req, res) => {
 });
 
 let ssesessions = new Map();
-app.post('/get_chat_state', async (req, res) =>{
+app.post('/post_chat_state', async (req, res) =>{
   try {
     let body = {"action": req.body.action, "state": req.body.state, "id": req.body.id};
     const session_id = req.body.session_id;
@@ -418,7 +418,7 @@ app.post('/get_chat_state', async (req, res) =>{
     if (!ssesessions.get(session_id)) ssesessions.set(session_id, session);
     session.push("Init");
   } catch (error) {
-    console.log('/update_chat_state error:')
+    console.log('/init_chat_state error:')
     console.log(error)
   }
 }) 
