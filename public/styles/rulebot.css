@@ -267,8 +267,12 @@ body{
   font-weight: bold;
   border-bottom: 1px solid #2F4156;
   font-size: 17px;
+  letter-spacing: 0.05rem;
 }
 
+.bx{
+  margin-top: 2px;
+}
 .room{
   width: 90%;
   margin: 4px auto 4px auto;
