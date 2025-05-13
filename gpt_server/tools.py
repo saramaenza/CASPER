@@ -13,6 +13,7 @@ import prompts
 import responses
 import db_functions as _db
 import utils
+from problems.conflicts import detectAppliancesConflictsForLLM as detectConflicts
 
 
 url = os.environ["HASS_URL"]
@@ -134,6 +135,7 @@ def conflict_check(
         else:
             #ho trovato una tmp_data, quindi sono in fase di generazione di una nuova automazione
             #!TODO: logica di controllo conflitti per automazioni in fase di generazione
+            conflicts = detectConflicts(user_id, data['automation'])
             data['checks']['conflict'] = 'Done'
             _db.save_tmp_data(user_id, data) #sostituisco i dati temporanei, se esistenti
             utils.update_chat_state(action="confirm-state", state="Nessun problema trovato", session_id=session_id, user_id=user_id, id='conflict-check')
