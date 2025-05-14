@@ -329,25 +329,59 @@ async function printUserDevices(devicesList) {
   //title.innerText = 'Conflitti e Catene';
   //rulesContainer.appendChild(title);
   setTimeout(() => {
-    Object.keys(cleanList).forEach((key) => {
-      let room = document.createElement('div');
-      room.classList.add('room');
-      let roomName = document.createElement('div');
-      roomName.classList.add('room-name');
-      roomName.innerText = key;
-      room.appendChild(roomName);
-      let devicesList = document.createElement('div');
-      devicesList.classList.add('devices-list');
-      cleanList[key].forEach((device) => {
-        let deviceElement = document.createElement('div');
-        deviceElement.classList.add('device-element');
-        deviceElement.innerText = device;
-        devicesList.appendChild(deviceElement);
-      });
-      room.appendChild(devicesList);
-      devicesContainer.appendChild(room);
+  Object.keys(cleanList).forEach((key) => {
+    // Crea il contenitore della stanza
+    let room = document.createElement('div');
+    room.classList.add('room');
+    
+    let roomName = document.createElement('div');
+    roomName.classList.add('room-name');
+    roomName.innerText = key;
+
+    // Aggiungi il listener per il clic
+    roomName.addEventListener('click', () => {
+      roomName.classList.toggle('active');
+      // Trova il contenitore "prova" associato
+      const prova = roomName.nextElementSibling;
+
+      if (prova && prova.classList.contains('prova')) {
+        // Alterna la classe 'open' per gestire l'apertura e la chiusura
+        if (prova.classList.contains('open')) {
+          prova.style.maxHeight = '0'; // Nascondi
+          prova.classList.remove('open');
+        } else {
+          prova.style.maxHeight = prova.scrollHeight + 'px'; // Mostra
+          prova.classList.add('open');
+        }
+      }
     });
-  }, 100);
+
+    room.appendChild(roomName);
+
+    // Crea il contenitore "prova"
+    let prova = document.createElement('div');
+    prova.classList.add('prova');
+
+    // Crea la lista dei dispositivi
+    let devicesList = document.createElement('div');
+    devicesList.classList.add('devices-list');
+    cleanList[key].forEach((device) => {
+      let deviceElement = document.createElement('div');
+      deviceElement.classList.add('device-element');
+      deviceElement.innerText = device;
+      devicesList.appendChild(deviceElement);
+    });
+
+    // Aggiungi "devices-list" come figlio di "prova"
+    prova.appendChild(devicesList);
+
+    // Aggiungi "prova" come figlio di "room"
+    room.appendChild(prova);
+
+    // Aggiungi "room" al contenitore principale
+    devicesContainer.appendChild(room);
+  });
+}, 100);
 }
 
 //cancella una regola dalla lista

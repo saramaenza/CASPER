@@ -270,12 +270,16 @@ body{
   letter-spacing: 0.05rem;
 }
 
+.room-name {
+  cursor: pointer;
+}
+
 .bx{
   margin-top: 2px;
 }
 .room{
   width: 90%;
-  margin: 4px auto 4px auto;
+  margin: 4px auto 15px auto;
   background-color: white;
   border: 1px solid #2F4156;
   border-radius: 4px;
@@ -291,6 +295,28 @@ body{
 
 .card-body, .devices-list {
   padding: 1.25rem;
+}
+
+.prova {
+  max-height: 0; 
+  overflow: hidden; 
+  transition: 0.4s ease;
+}
+
+.prova.open {
+  max-height: 1000px;
+}
+
+.room-name::after {
+  content: '▾';
+  color: white;
+  position: absolute;
+  right: 1rem;
+  transition: transform 0.3s;
+}
+
+.room-name.active::after {
+  transform: rotate(180deg);
 }
 
 .card-title {
