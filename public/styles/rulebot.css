@@ -97,6 +97,7 @@ body{
   display: flex;
   border: none;
   flex-direction: column;
+  overflow-y: overlay;
 }
 
 #chat{
@@ -236,13 +237,9 @@ body{
 .report:hover{
   background-color: #b0b324;
 }
-#rules-container{
+#rules-container, #problems-main-container{
   width: 100%;
   height: inherit;
-}
-
-#problems-main-container{
-  animation: fadeIn 0.5s forwards;
 }
 
 #problems-main-container h3{
@@ -588,12 +585,17 @@ body{
 .leftbar-selected{
   display: block;
   margin-top: 2rem;
-  overflow-y: auto;
+  overflow-y: overlay;
 }
 .leftbar-unselected{
   display: none !important;
 }
 
+#devices-list-container {
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+  height: 100%;
+}
 .why-button{
   width: fit-content;
   padding: 8px;
