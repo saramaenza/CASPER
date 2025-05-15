@@ -241,7 +241,6 @@ body{
   width: 100%;
   height: inherit;
 }
-
 #problems-main-container h3{
   width: 90%;
   margin: 17px auto;
@@ -515,6 +514,7 @@ body{
   overflow: hidden;
   display: grid;
   grid-template-columns: repeat(7, 90%);
+  animation: fadeIn 0.5s forwards;
 }
 .carousel .carousel__item.active {
   transform: scale(1) translateX(-0%);
