@@ -510,6 +510,10 @@ body{
   background-color: #7A90A9;
 }
 
+#logo {
+  background: radial-gradient(circle, #4e63cc 17%, rgba(224, 236, 245, 1) 65%)
+}
+
 .carousel-button-left  {
   margin-left: 10px;
   margin-right: 10px;;
