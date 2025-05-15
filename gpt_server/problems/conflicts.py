@@ -451,7 +451,6 @@ def process_triggers_and_conditions(rules, idAutomation1, idAutomation2, automat
 import time
 def detectAppliancesConflictsForLLM(user_id, rule1):
     rules = _db.get_automations(user_id) #[{"id": automation_id_int, "config": {"id", "alias", "description", "triggers"...}, ...]
-    start = time.time()
     infoConflictArrayLLM.clear()
 
     ruleName1 = rule1.get("alias", None) #None potrebbe tornare errore nella linea successiva
@@ -491,9 +490,6 @@ def detectAppliancesConflictsForLLM(user_id, rule1):
                 # Conflict on actions and solution retrieval
                 for action2 in actions2:
                     process_action_conflict(action1, action2, ruleName1, ruleName2, entityRuleName1, entityRuleName2, domainTrigger1, domainTrigger2, condition1, condition2, type_of_conflict, "llm", idAutomation1, idAutomation2, "automation_description", "automation2_description")
-    endtime = time.time()
-    elapsed_time = endtime - start
-    print("Elapsed time: ", elapsed_time, " seconds") 
     return infoConflictArrayLLM
 
 user_id = "6487f4a2089f04476b4d4d8c" #ID utente di test
