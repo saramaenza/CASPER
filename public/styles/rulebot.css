@@ -477,6 +477,11 @@ body{
   justify-content: center;
   align-items: center;
 }
+.carousel-wrapper {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
 .carousel__buttons {
   margin: 10px 0;
   display: flex;
@@ -487,33 +492,43 @@ body{
 .carousel-button:hover {
   background-color: #2F4156;
 }
-.carousel__buttons .carousel-button:not(:nth-last-child()) {
-  margin-right: 10px;
-}
-.carousel__buttons .carousel-button {
-  font-size: 1.2rem;
-  margin-right: 10px;
+
+.carousel-button {
+  font-size: 1.3rem;
   box-shadow: 0 4px 8px #eee;
-  padding: 0.5rem 0.8rem;
+  padding: 1rem 0.8rem;
   cursor: pointer;
-  border: 1px solid #7A90A9;;
+  border: 1px solid #7A90A9;
   color: white;
   border-radius: 50%;
-  height: 40px;
-  width: 40px;
+  height: 35px;
+  width: 35px;
   display: flex;
   justify-content: center;
   align-items: center;
   outline: none;
+  background-color: #7A90A9;
 }
-.carousel-button {
-   background-color: #7A90A9;
+
+.carousel-button-left  {
+  margin-left: 10px;
+  margin-right: 10px;;
+}
+
+.carousel-button-right {
+  margin-left: 10px;
+  margin-right: 10px;
+}
+
+.carousel__item {
+  margin-left: 2%; 
+  margin-right: 2%;
 }
 
 .carousel {
   overflow: hidden;
   display: grid;
-  grid-template-columns: repeat(7, 90%);
+  grid-template-columns: repeat(7, 96%);
   animation: fadeIn 0.5s forwards;
 }
 .carousel .carousel__item.active {
@@ -524,11 +539,6 @@ body{
   border-radius: 5px;
   transition: all 0.8s ease;
   width: 100%
-}
-
-.carousel__item {
-  margin-left: 5%; 
-  margin-right: 5%;
 }
 
 .not_active {
