@@ -341,26 +341,24 @@ async function printUserDevices(devicesList) {
     // Aggiungi il listener per il clic
     roomName.addEventListener('click', () => {
       roomName.classList.toggle('active');
-      // Trova il contenitore "prova" associato
-      const prova = roomName.nextElementSibling;
+      const devicesList_container = roomName.nextElementSibling;
 
-      if (prova && prova.classList.contains('prova')) {
+      if (devicesList_container && devicesList_container.classList.contains('devicesList_container')) {
         // Alterna la classe 'open' per gestire l'apertura e la chiusura
-        if (prova.classList.contains('open')) {
-          prova.style.maxHeight = '0'; // Nascondi
-          prova.classList.remove('open');
+        if (devicesList_container.classList.contains('open')) {
+          devicesList_container.style.maxHeight = '0'; // Nascondi
+          devicesList_container.classList.remove('open');
         } else {
-          prova.style.maxHeight = prova.scrollHeight + 'px'; // Mostra
-          prova.classList.add('open');
+          devicesList_container.style.maxHeight = devicesList_container.scrollHeight + 'px'; // Mostra
+          devicesList_container.classList.add('open');
         }
       }
     });
 
     room.appendChild(roomName);
 
-    // Crea il contenitore "prova"
-    let prova = document.createElement('div');
-    prova.classList.add('prova');
+    let devicesList_container = document.createElement('div');
+    devicesList_container.classList.add('devicesList_container');
 
     // Crea la lista dei dispositivi
     let devicesList = document.createElement('div');
@@ -372,13 +370,8 @@ async function printUserDevices(devicesList) {
       devicesList.appendChild(deviceElement);
     });
 
-    // Aggiungi "devices-list" come figlio di "prova"
-    prova.appendChild(devicesList);
-
-    // Aggiungi "prova" come figlio di "room"
-    room.appendChild(prova);
-
-    // Aggiungi "room" al contenitore principale
+    devicesList_container.appendChild(devicesList);
+    room.appendChild(devicesList_container);
     devicesContainer.appendChild(room);
   });
 }, 100);
