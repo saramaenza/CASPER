@@ -337,10 +337,7 @@ body{
   width: 40%; 
   height: auto;
 }
-.svg_condition{
-  width: 3.5%; 
-  height: auto;
-}
+
 .automation_name {
   font-size: 14px;
 }
@@ -866,3 +863,61 @@ border-radius: 5px;
     }
   }
 
+@media (max-width: 1280px) {
+  #left-container {
+    width: 50%;
+  }
+  #chat {
+    width: 50%;
+  }
+  .carousel-wrapper {
+    max-width: 700px;
+    margin: 0 auto;
+  }
+  .card-header, .room-name {
+    font-size: 1.1em;
+  }
+  .room-name {
+    font-size: 0.9em;
+  }
+  .rule {
+    font-size: 0.9em;
+  }
+  .devices-list {
+    padding: 1rem;
+    font-size: 0.9em;
+  }
+  .carousel__item,
+  .card {
+    font-size: 0.9em;
+  }
+  .accordion-button {
+    font-size: 0.65em;
+  }
+  .form-check label {
+    font-size: 0.85em;
+  }
+  .container_arrow {
+    margin-top: 0.5rem;
+  }
+  .container_arrow p,
+  .container_actions p {
+    font-size: 1em;
+  }
+  .carousel-button {
+    width: 32px;
+    height: 32px;
+    font-size: 1.2em;
+  }
+  .leftbar-selected {
+    margin-top: 1rem;
+  }
+  .svg_conflict2 {
+    width: 9%; 
+    height: auto;
+  }
+  .svg_chain {
+    width: 4%; 
+    height: auto;
+  }
+}
