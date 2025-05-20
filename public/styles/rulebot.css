@@ -324,6 +324,22 @@ body{
   color: #212529;
 }
 
+.conflict_rappresentation_container {
+  width: 100%; 
+  border-collapse: collapse; 
+  margin-top: 1rem; 
+  margin-bottom: 1rem;
+}
+
+td {
+  border: none; 
+  text-align: center; 
+  vertical-align: middle;
+}
+.cell_img_conf {
+  width: 10%;
+}
+
 .container_arrow {
   text-align: center;
   margin-top: 2rem;
@@ -357,7 +373,7 @@ body{
   align-items: center;
 }
 
-.container_actions span {
+.container_actions span, .conflict_rappresentation_container span {
   color: red;
   font-weight: bold;
 }
