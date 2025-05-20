@@ -6,7 +6,7 @@ from bson.objectid import ObjectId
 
 # Connessione globale al database
 client = MongoClient("mongodb://localhost:27017/")
-db = None
+db = client["casper"]
 
 def set_db(db_name):
     global db

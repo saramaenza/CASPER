@@ -1,0 +1,638 @@
+<div class="card border-dark carousel__item active">
+                                    <div class="card-header">Catena Diretta</div>
+                                    <div class="card-body">
+                                        <span class="card-text">
+                                            L'esecuzione dell'automazione "<i>Accendi luce salotto</i>" attiva l'automazione 
+                                            "<i>Chiudi porta</i>".
+                                        </span>
+                                        <div class="container_arrow">
+                                            <p>Alle 09:00, <b>accendi la luce di salotto</b></p>
+                                            <p class="automation_name"><i>Accendi luce salotto</i></p>
+                                                <p>
+                                                    <svg class="svg_chain" width='18' height='40' viewBox='0 0 18 40' fill='none' xmlns='http://www.w3.org/2000/svg'>
+                                                        <path d='M8.75 39.9991L17.5038 25.0535L0.183666 24.9453L8.75 39.9991ZM7.50003 -0.00937502L7.34378 24.9907L10.3437 25.0094L10.5 0.00937502L7.50003 -0.00937502ZM7.34378 24.9907L7.3344 26.49L10.3343 26.5088L10.3437 25.0094L7.34378 24.9907Z' fill='#4E63CC'/>
+                                                    </svg>
+                                                </p>
+                                            <p><b>Quando la luce di salotto si accende</b>, chiudi la porta di cucina</p>
+                                            <p class="automation_name"><i>Chiudi porta</i></p>
+                                        </div>
+                                        <p class="card-title">Come posso risolvere?</p>
+                                        <div class="accordion stay-open">
+                                            <div class="accordion-item">
+                                            <h2 class="accordion-header">
+                                                <button class="accordion-button" onclick="toggleStayOpen(this)">
+                                                Modifica l'automazione "Accendi aria condizionata mattina"
+                                                </button>
+                                            </h2>
+                                            <div class="accordion-collapse active">
+                                                <div class="accordion-body">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault1">
+                                                        <label class="form-check-label" for="radioDefault1">
+                                                        Default radio
+                                                        </label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
+                                                        <label class="form-check-label" for="radioDefault2">
+                                                        Default radio
+                                                        </label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
+                                                        <label class="form-check-label" for="radioDefault2">
+                                                        Default radio
+                                                        </label>
+                                                    </div>
+                                                    
+                                                </div>
+                                            </div>
+                                            </div>
+                                        
+                                            <div class="accordion-item">
+                                            <h2 class="accordion-header">
+                                                <button class="accordion-button" onclick="toggleStayOpen(this)">
+                                                Modifica l'automazione "Chiudi finestre aria condizionata accesa"
+                                                </button>
+                                            </h2>
+                                            <div class="accordion-collapse">
+                                                <div class="accordion-body">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault1">
+                                                        <label class="form-check-label" for="radioDefault1">
+                                                        Default radio
+                                                        </label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
+                                                        <label class="form-check-label" for="radioDefault2">
+                                                        Default radio
+                                                        </label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
+                                                        <label class="form-check-label" for="radioDefault2">
+                                                        Default radio
+                                                        </label>
+                                                    </div>
+                                                    
+                                                </div>
+                                            </div>
+                                            </div>
+                                        
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
+                                            <label class="form-check-label" for="radioDefault2">
+                                            Ignora il problema
+                                            </label>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                                <div class="card border-dark carousel__item not_active">
+                                    <div class="card-header">Catena Indiretta</div>
+                                    <div class="card-body">
+                                        <span class="card-text">
+                                            L'esecuzione dell'automazione "<i>Accendi aria condizionata quando è caldo</i>" può attivare l'automazione 
+                                            "<i>Spegni dispositivi rumore alto</i>" perchè può alterare la variabile <b>rumore</b>.
+                                        </span>
+                                        <div class="container_arrow">
+                                            <p>Quando è caldo, <b>accendi aria condionata</b></p>
+                                            <p class="automation_name"><i>Accendi luce salotto</i></p>
+                                                <p>
+                                                    <svg class="svg_chain" width="18" height="40" viewBox="0 0 18 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                        <path d="M9 39.9991L17.7538 25.0535L0.433666 24.9453L9 39.9991ZM7.75003 -0.00937502L7.73701 2.07396L10.7369 2.09271L10.75 0.00937502L7.75003 -0.00937502ZM7.71097 6.24063L7.68492 10.4073L10.6849 10.4261L10.7109 6.25938L7.71097 6.24063ZM7.65888 14.574L7.63284 18.7407L10.6328 18.7594L10.6588 14.5927L7.65888 14.574ZM7.6068 22.9073L7.59378 24.9907L10.5937 25.0094L10.6067 22.9261L7.6068 22.9073ZM7.59378 24.9907L7.58596 26.2406L10.5859 26.2593L10.5937 25.0094L7.59378 24.9907ZM7.57034 28.7404L7.55471 31.2403L10.5547 31.259L10.5703 28.7592L7.57034 28.7404ZM7.53909 33.7401L7.52347 36.24L10.5234 36.2587L10.539 33.7589L7.53909 33.7401ZM9 39.9991L17.7538 25.0535L0.433666 24.9453L9 39.9991ZM7.75003 -0.00937502L7.73701 2.07396L10.7369 2.09271L10.75 0.00937502L7.75003 -0.00937502ZM7.71097 6.24063L7.68492 10.4073L10.6849 10.4261L10.7109 6.25938L7.71097 6.24063ZM7.65888 14.574L7.63284 18.7407L10.6328 18.7594L10.6588 14.5927L7.65888 14.574ZM7.6068 22.9073L7.59378 24.9907L10.5937 25.0094L10.6067 22.9261L7.6068 22.9073ZM7.59378 24.9907L7.58596 26.2406L10.5859 26.2593L10.5937 25.0094L7.59378 24.9907ZM7.57034 28.7404L7.55471 31.2403L10.5547 31.259L10.5703 28.7592L7.57034 28.7404ZM7.53909 33.7401L7.52347 36.24L10.5234 36.2587L10.539 33.7589L7.53909 33.7401Z" fill="#4E63CC"></path>
+                                                    </svg>
+                                                </p>
+                                            <p><i>rumore</i></p>
+                                            <p>
+                                                <svg class="svg_chain" width="18" height="40" viewBox="0 0 18 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                    <path d="M9 39.9991L17.7538 25.0535L0.433666 24.9453L9 39.9991ZM7.75003 -0.00937502L7.73701 2.07396L10.7369 2.09271L10.75 0.00937502L7.75003 -0.00937502ZM7.71097 6.24063L7.68492 10.4073L10.6849 10.4261L10.7109 6.25938L7.71097 6.24063ZM7.65888 14.574L7.63284 18.7407L10.6328 18.7594L10.6588 14.5927L7.65888 14.574ZM7.6068 22.9073L7.59378 24.9907L10.5937 25.0094L10.6067 22.9261L7.6068 22.9073ZM7.59378 24.9907L7.58596 26.2406L10.5859 26.2593L10.5937 25.0094L7.59378 24.9907ZM7.57034 28.7404L7.55471 31.2403L10.5547 31.259L10.5703 28.7592L7.57034 28.7404ZM7.53909 33.7401L7.52347 36.24L10.5234 36.2587L10.539 33.7589L7.53909 33.7401ZM9 39.9991L17.7538 25.0535L0.433666 24.9453L9 39.9991ZM7.75003 -0.00937502L7.73701 2.07396L10.7369 2.09271L10.75 0.00937502L7.75003 -0.00937502ZM7.71097 6.24063L7.68492 10.4073L10.6849 10.4261L10.7109 6.25938L7.71097 6.24063ZM7.65888 14.574L7.63284 18.7407L10.6328 18.7594L10.6588 14.5927L7.65888 14.574ZM7.6068 22.9073L7.59378 24.9907L10.5937 25.0094L10.6067 22.9261L7.6068 22.9073ZM7.59378 24.9907L7.58596 26.2406L10.5859 26.2593L10.5937 25.0094L7.59378 24.9907ZM7.57034 28.7404L7.55471 31.2403L10.5547 31.259L10.5703 28.7592L7.57034 28.7404ZM7.53909 33.7401L7.52347 36.24L10.5234 36.2587L10.539 33.7589L7.53909 33.7401Z" fill="#4E63CC"></path>
+                                                </svg>
+                                            </p>
+                                            <p>Quando c'è troppo rumore, <b>spegni tutti i dispositivi</b></p>
+                                            <p class="automation_name"><i>Spegni dispositivi rumore alto</i></p>
+                                        </div>
+                                        <p class="card-title">Come posso risolvere?</p>
+                                        <div class="accordion stay-open">
+                                            <div class="accordion-item">
+                                            <h2 class="accordion-header">
+                                                <button class="accordion-button" onclick="toggleStayOpen(this)">
+                                                Modifica l'automazione "Accendi aria condizionata quando è caldo"
+                                                </button>
+                                            </h2>
+                                            <div class="accordion-collapse active">
+                                                <div class="accordion-body">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault1">
+                                                        <label class="form-check-label" for="radioDefault1">
+                                                        Default radio
+                                                        </label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
+                                                        <label class="form-check-label" for="radioDefault2">
+                                                        Default radio
+                                                        </label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
+                                                        <label class="form-check-label" for="radioDefault2">
+                                                        Default radio
+                                                        </label>
+                                                    </div>
+                                                    
+                                                </div>
+                                            </div>
+                                            </div>
+                                        
+                                            <div class="accordion-item">
+                                            <h2 class="accordion-header">
+                                                <button class="accordion-button" onclick="toggleStayOpen(this)">
+                                                Modifica l'automazione "Spegni dispositivi rumore alto"
+                                                </button>
+                                            </h2>
+                                            <div class="accordion-collapse">
+                                                <div class="accordion-body">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault1">
+                                                        <label class="form-check-label" for="radioDefault1">
+                                                        Default radio
+                                                        </label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
+                                                        <label class="form-check-label" for="radioDefault2">
+                                                        Default radio
+                                                        </label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
+                                                        <label class="form-check-label" for="radioDefault2">
+                                                        Default radio
+                                                        </label>
+                                                    </div>
+                                                    
+                                                </div>
+                                            </div>
+                                            </div>
+                                        
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
+                                            <label class="form-check-label" for="radioDefault2">
+                                            Ignora il problema
+                                            </label>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                                <div class="card border-dark carousel__item not_active">
+                                    <div class="card-header">Conflitto 1</div>
+                                    <div class="card-body">
+                                        <span class="card-text">
+                                            
+                                            Le automazioni "automazione 1" e "automazione 2" sono in conflitto quando sono le 09:00 perché le azioni che eseguono sono incompatibili tra loro.
+                                        </span>
+                                        <div class="container_arrow">
+                                            <p>Alle 09:00</p>
+                                                <p>
+                                                    <svg class="svg_conflict" viewBox="0 0 140 35" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                        <path d="M6 35L11.7735 25H0.226497L6 35ZM6 15H5L5 25H6H7L7 15H6ZM6 25H5V26H6H7V25H6Z" fill="#4E63CC"/>
+                                                        <path d="M134 35L139.774 25H128.226L134 35ZM134 15H133V25H134H135V15H134ZM134 25H133V26H134H135V25H134Z" fill="#4E63CC"/>
+                                                        <line x1="4.99561" y1="15" x2="69.9956" y2="15" stroke="#4E63CC" stroke-width="2"/>
+                                                        <line x1="69.9956" y1="15" x2="134.996" y2="15" stroke="#4E63CC" stroke-width="2"/>
+                                                        <line x1="70" y1="15" x2="70" y2="-5.96046e-08" stroke="#4E63CC" stroke-width="2"/>
+                                                    </svg>
+                                                </p>
+                                            <div class="container_actions">
+                                                <div>
+                                                    <p><span>accendi</span> la luce salotto</p>
+                                                    <p class="automation_name"><i>Accendi luce mattina</i></p>
+                                                </div>
+                                                <div>
+                                                    <p><span>spegni</span> la luce salotto</p>
+                                                    <p class="automation_name"><i>Spegni luce mattina</i></p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="card-title">Come posso risolvere?</div>
+                                        <div class="accordion stay-open">
+                                            <div class="accordion-item">
+                                            <h2 class="accordion-header">
+                                                <button class="accordion-button" onclick="toggleStayOpen(this)">
+                                                Modifica l'automazione "Accendi aria condizionata quando è caldo"
+                                                </button>
+                                            </h2>
+                                            <div class="accordion-collapse active">
+                                                <div class="accordion-body">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault1">
+                                                        <label class="form-check-label" for="radioDefault1">
+                                                        Default radio
+                                                        </label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
+                                                        <label class="form-check-label" for="radioDefault2">
+                                                        Default radio
+                                                        </label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
+                                                        <label class="form-check-label" for="radioDefault2">
+                                                        Default radio
+                                                        </label>
+                                                    </div>
+                                                    
+                                                </div>
+                                            </div>
+                                            </div>
+                                        
+                                            <div class="accordion-item">
+                                            <h2 class="accordion-header">
+                                                <button class="accordion-button" onclick="toggleStayOpen(this)">
+                                                Modifica l'automazione "Spegni dispositivi rumore alto"
+                                                </button>
+                                            </h2>
+                                            <div class="accordion-collapse">
+                                                <div class="accordion-body">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault1">
+                                                        <label class="form-check-label" for="radioDefault1">
+                                                        Default radio
+                                                        </label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
+                                                        <label class="form-check-label" for="radioDefault2">
+                                                        Default radio
+                                                        </label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
+                                                        <label class="form-check-label" for="radioDefault2">
+                                                        Default radio
+                                                        </label>
+                                                    </div>
+                                                    
+                                                </div>
+                                            </div>
+                                            </div>
+                                        
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
+                                            <label class="form-check-label" for="radioDefault2">
+                                            Ignora il problema
+                                            </label>
+                                        </div>
+
+                                    </div>
+                                </div>  
+
+                                <div class="card border-dark carousel__item not_active">
+                                    <div class="card-header">Conflitto 2</div>
+                                    <div class="card-body">
+                                        
+                                        <span class="card-text">
+                            
+                                            Le automazioni "automazione 1" e "automazione 2"  sono in conflitto quando sono le 09:00, se piove e se sono in salotto perché le azioni che eseguono sono incompatibili tra loro.
+                                        </span>
+                                        <div class="container_arrow">
+                                            <p>Alle 09:00</p>
+                                            <p>
+                                                <svg class="svg_conflict" viewBox="0 0 140 35" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                    <path d="M6 35L11.7735 25H0.226497L6 35ZM6 15H5L5 25H6H7L7 15H6ZM6 25H5V26H6H7V25H6Z" fill="#4E63CC"/>
+                                                    <path d="M134 35L139.774 25H128.226L134 35ZM134 15H133V25H134H135V15H134ZM134 25H133V26H134H135V25H134Z" fill="#4E63CC"/>
+                                                    <line x1="4.99561" y1="15" x2="69.9956" y2="15" stroke="#4E63CC" stroke-width="2"/>
+                                                    <line x1="69.9956" y1="15" x2="134.996" y2="15" stroke="#4E63CC" stroke-width="2"/>
+                                                    <line x1="70" y1="15" x2="70" y2="-5.96046e-08" stroke="#4E63CC" stroke-width="2"/>
+                                                </svg>
+                                            </p>
+                                            <div class="container_actions">
+                                                <div>
+                                                    <p style="color:green;">se piove</p>
+                                                    <p>
+                                                        <svg class="svg_conflict2" width='18' height='40' viewBox='0 0 18 40' fill='none' xmlns='http://www.w3.org/2000/svg'>
+                                                            <path d='M8.75 39.9991L17.5038 25.0535L0.183666 24.9453L8.75 39.9991ZM7.50003 -0.00937502L7.34378 24.9907L10.3437 25.0094L10.5 0.00937502L7.50003 -0.00937502ZM7.34378 24.9907L7.3344 26.49L10.3343 26.5088L10.3437 25.0094L7.34378 24.9907Z' fill='#4E63CC'/>
+                                                        </svg>
+                                                    </p>
+                                                    <p><span>accendi</span> la luce salotto</p>
+                                                    <p class="automation_name"><i>Accendi luce mattina</i></p>
+                                                </div>
+                                                <div>
+                                                    <p style="color:green;">se sono in salotto</p>
+                                                    <p>
+                                                        <svg class="svg_conflict2" width='18' height='40' viewBox='0 0 18 40' fill='none' xmlns='http://www.w3.org/2000/svg'>
+                                                            <path d='M8.75 39.9991L17.5038 25.0535L0.183666 24.9453L8.75 39.9991ZM7.50003 -0.00937502L7.34378 24.9907L10.3437 25.0094L10.5 0.00937502L7.50003 -0.00937502ZM7.34378 24.9907L7.3344 26.49L10.3343 26.5088L10.3437 25.0094L7.34378 24.9907Z' fill='#4E63CC'/>
+                                                        </svg>
+                                                    </p>
+                                                    <p><span>spegni</span> la luce salotto</p>
+                                                    <p class="automation_name"><i>Spegni luce quando esco</i></p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="card-title">Come posso risolvere?</div>
+                                        <div class="accordion stay-open">
+                                            <div class="accordion-item">
+                                            <h2 class="accordion-header">
+                                                <button class="accordion-button" onclick="toggleStayOpen(this)">
+                                                Modifica l'automazione "Accendi aria condizionata quando è caldo"
+                                                </button>
+                                            </h2>
+                                            <div class="accordion-collapse active">
+                                                <div class="accordion-body">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault1">
+                                                        <label class="form-check-label" for="radioDefault1">
+                                                        Default radio
+                                                        </label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
+                                                        <label class="form-check-label" for="radioDefault2">
+                                                        Default radio
+                                                        </label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
+                                                        <label class="form-check-label" for="radioDefault2">
+                                                        Default radio
+                                                        </label>
+                                                    </div>
+                                                    
+                                                </div>
+                                            </div>
+                                            </div>
+                                        
+                                            <div class="accordion-item">
+                                            <h2 class="accordion-header">
+                                                <button class="accordion-button" onclick="toggleStayOpen(this)">
+                                                Modifica l'automazione "Spegni dispositivi rumore alto"
+                                                </button>
+                                            </h2>
+                                            <div class="accordion-collapse">
+                                                <div class="accordion-body">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault1">
+                                                        <label class="form-check-label" for="radioDefault1">
+                                                        Default radio
+                                                        </label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
+                                                        <label class="form-check-label" for="radioDefault2">
+                                                        Default radio
+                                                        </label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
+                                                        <label class="form-check-label" for="radioDefault2">
+                                                        Default radio
+                                                        </label>
+                                                    </div>
+                                                    
+                                                </div>
+                                            </div>
+                                            </div>
+                                        
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
+                                            <label class="form-check-label" for="radioDefault2">
+                                            Ignora il problema
+                                            </label>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                                <div class="card border-dark carousel__item not_active">
+                                    <div class="card-header">Conflitto 3</div>
+                                    <div class="card-body">
+                                        
+                                        <span class="card-text">
+                                        
+                                            Le automazioni "automazione 1" e "automazione 2" sono in conflitto quando sono le 09:00 e quando entro in cucina perché le azioni che eseguono sono incompatibili tra loro.
+                                        </span>
+                                        <div class="container_arrow">
+                                            <div class="container_actions">
+                                                <div>
+                                                    <p>Alle 09:00</p>
+                                                    <p>
+                                                        <svg class="svg_conflict2" width='18' height='40' viewBox='0 0 18 40' fill='none' xmlns='http://www.w3.org/2000/svg'>
+                                                            <path d='M8.75 39.9991L17.5038 25.0535L0.183666 24.9453L8.75 39.9991ZM7.50003 -0.00937502L7.34378 24.9907L10.3437 25.0094L10.5 0.00937502L7.50003 -0.00937502ZM7.34378 24.9907L7.3344 26.49L10.3343 26.5088L10.3437 25.0094L7.34378 24.9907Z' fill='#4E63CC'/>
+                                                        </svg>
+                                                    </p>
+                                                    <p><span>accendi</span> la luce salotto</p>
+                                                    <p class="automation_name"><i>Accendi luce mattina</i></p>
+                                                </div>
+                                                <div>
+                                                    <p>Quando entro in cucina</p>
+                                                    <p>
+                                                        <svg class="svg_conflict2" width='18' height='40' viewBox='0 0 18 40' fill='none' xmlns='http://www.w3.org/2000/svg'>
+                                                            <path d='M8.75 39.9991L17.5038 25.0535L0.183666 24.9453L8.75 39.9991ZM7.50003 -0.00937502L7.34378 24.9907L10.3437 25.0094L10.5 0.00937502L7.50003 -0.00937502ZM7.34378 24.9907L7.3344 26.49L10.3343 26.5088L10.3437 25.0094L7.34378 24.9907Z' fill='#4E63CC'/>
+                                                        </svg>
+                                                    </p>
+                                                    <p><span>spegni</span> la luce salotto</p>
+                                                    <p class="automation_name"><i>Spegni luce quando esco</i></p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="card-title">Come posso risolvere?</div>
+                                        <div class="accordion stay-open">
+                                            <div class="accordion-item">
+                                            <h2 class="accordion-header">
+                                                <button class="accordion-button" onclick="toggleStayOpen(this)">
+                                                Modifica l'automazione "Accendi aria condizionata quando è caldo"
+                                                </button>
+                                            </h2>
+                                            <div class="accordion-collapse active">
+                                                <div class="accordion-body">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault1">
+                                                        <label class="form-check-label" for="radioDefault1">
+                                                        Default radio
+                                                        </label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
+                                                        <label class="form-check-label" for="radioDefault2">
+                                                        Default radio
+                                                        </label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
+                                                        <label class="form-check-label" for="radioDefault2">
+                                                        Default radio
+                                                        </label>
+                                                    </div>
+                                                    
+                                                </div>
+                                            </div>
+                                            </div>
+                                        
+                                            <div class="accordion-item">
+                                            <h2 class="accordion-header">
+                                                <button class="accordion-button" onclick="toggleStayOpen(this)">
+                                                Modifica l'automazione "Spegni dispositivi rumore alto"
+                                                </button>
+                                            </h2>
+                                            <div class="accordion-collapse">
+                                                <div class="accordion-body">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault1">
+                                                        <label class="form-check-label" for="radioDefault1">
+                                                        Default radio
+                                                        </label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
+                                                        <label class="form-check-label" for="radioDefault2">
+                                                        Default radio
+                                                        </label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
+                                                        <label class="form-check-label" for="radioDefault2">
+                                                        Default radio
+                                                        </label>
+                                                    </div>
+                                                    
+                                                </div>
+                                            </div>
+                                            </div>
+                                        
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
+                                            <label class="form-check-label" for="radioDefault2">
+                                            Ignora il problema
+                                            </label>
+                                        </div>
+
+                                    </div>
+                                </div> 
+
+                                <div class="card border-dark carousel__item not_active">
+                                    <div class="card-header">Conflitto 4</div>
+                                    <div class="card-body">
+                                        
+                                        <span class="card-text">
+                                        
+                                            Le automazioni "automazione 1" e "automazione 2" sono in conflitto quando sono le 09:00 e se piove e quando entro in cucina e se è mattina  perché le azioni che eseguono sono incompatibili tra loro.
+                                        </span>
+                                        <div class="container_arrow">
+                                            <div class="container_actions">
+                                                <div>
+                                                    <p>Alle 09:00</p>
+                                                    <p>
+                                                        <svg class="svg_conflict2" width='18' height='40' viewBox='0 0 18 40' fill='none' xmlns='http://www.w3.org/2000/svg'>
+                                                            <path d='M8.75 39.9991L17.5038 25.0535L0.183666 24.9453L8.75 39.9991ZM7.50003 -0.00937502L7.34378 24.9907L10.3437 25.0094L10.5 0.00937502L7.50003 -0.00937502ZM7.34378 24.9907L7.3344 26.49L10.3343 26.5088L10.3437 25.0094L7.34378 24.9907Z' fill='#4E63CC'/>
+                                                        </svg>
+                                                    </p>
+                                                    <p>se piove</p>
+                                                    <p>
+                                                        <svg class="svg_conflict2" width='18' height='40' viewBox='0 0 18 40' fill='none' xmlns='http://www.w3.org/2000/svg'>
+                                                            <path d='M8.75 39.9991L17.5038 25.0535L0.183666 24.9453L8.75 39.9991ZM7.50003 -0.00937502L7.34378 24.9907L10.3437 25.0094L10.5 0.00937502L7.50003 -0.00937502ZM7.34378 24.9907L7.3344 26.49L10.3343 26.5088L10.3437 25.0094L7.34378 24.9907Z' fill='#4E63CC'/>
+                                                        </svg>
+                                                    </p>
+                                                    <p><span>accendi</span> la luce salotto</p>
+                                                    <p class="automation_name"><i>Accendi luce mattina</i></p>
+                                                </div>
+                                                <div>
+                                                    <p>Quando entro in cucina</p>
+                                                    <p>
+                                                        <svg class="svg_conflict2" width='18' height='40' viewBox='0 0 18 40' fill='none' xmlns='http://www.w3.org/2000/svg'>
+                                                            <path d='M8.75 39.9991L17.5038 25.0535L0.183666 24.9453L8.75 39.9991ZM7.50003 -0.00937502L7.34378 24.9907L10.3437 25.0094L10.5 0.00937502L7.50003 -0.00937502ZM7.34378 24.9907L7.3344 26.49L10.3343 26.5088L10.3437 25.0094L7.34378 24.9907Z' fill='#4E63CC'/>
+                                                        </svg>
+                                                    </p>
+                                                    <p>se è mattina</p>
+                                                    <p>
+                                                        <svg class="svg_conflict2" width='18' height='40' viewBox='0 0 18 40' fill='none' xmlns='http://www.w3.org/2000/svg'>
+                                                            <path d='M8.75 39.9991L17.5038 25.0535L0.183666 24.9453L8.75 39.9991ZM7.50003 -0.00937502L7.34378 24.9907L10.3437 25.0094L10.5 0.00937502L7.50003 -0.00937502ZM7.34378 24.9907L7.3344 26.49L10.3343 26.5088L10.3437 25.0094L7.34378 24.9907Z' fill='#4E63CC'/>
+                                                        </svg>
+                                                    </p>
+                                                    <p><span>spegni</span> la luce salotto</p>
+                                                    <p class="automation_name"><i>Spegni luce quando esco</i></p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="card-title">Come posso risolvere?</div>
+                                        <div class="accordion stay-open">
+                                            <div class="accordion-item">
+                                            <h2 class="accordion-header">
+                                                <button class="accordion-button" onclick="toggleStayOpen(this)">
+                                                Modifica l'automazione "Accendi aria condizionata quando è caldo"
+                                                </button>
+                                            </h2>
+                                            <div class="accordion-collapse active">
+                                                <div class="accordion-body">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault1">
+                                                        <label class="form-check-label" for="radioDefault1">
+                                                        Default radio
+                                                        </label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
+                                                        <label class="form-check-label" for="radioDefault2">
+                                                        Default radio
+                                                        </label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
+                                                        <label class="form-check-label" for="radioDefault2">
+                                                        Default radio
+                                                        </label>
+                                                    </div>
+                                                    
+                                                </div>
+                                            </div>
+                                            </div>
+                                        
+                                            <div class="accordion-item">
+                                            <h2 class="accordion-header">
+                                                <button class="accordion-button" onclick="toggleStayOpen(this)">
+                                                Modifica l'automazione "Spegni dispositivi rumore alto"
+                                                </button>
+                                            </h2>
+                                            <div class="accordion-collapse">
+                                                <div class="accordion-body">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault1">
+                                                        <label class="form-check-label" for="radioDefault1">
+                                                        Default radio
+                                                        </label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
+                                                        <label class="form-check-label" for="radioDefault2">
+                                                        Default radio
+                                                        </label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
+                                                        <label class="form-check-label" for="radioDefault2">
+                                                        Default radio
+                                                        </label>
+                                                    </div>
+                                                    
+                                                </div>
+                                            </div>
+                                            </div>
+                                        
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
+                                            <label class="form-check-label" for="radioDefault2">
+                                            Ignora il problema
+                                            </label>
+                                        </div>
+
+                                    </div>
+                                </div> 

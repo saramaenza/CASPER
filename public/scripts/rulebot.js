@@ -69,14 +69,19 @@ sse.addEventListener("message", async ({ data }) => {
     rulesList = await getRulesParam()
     printUserRule(rulesList)
   }
-  else if (message.action == "generate-problem-card") {
-    createConflictCard(
-      message.isActive,
-      message.headerText,
-      message.cardText,
-      message.containerArrowList,
-      message.recommendations
-    );
+  else if (message.action == "generate-conflict-card") {
+    //message.state = []
+    isActive = true;
+    message.state.forEach((conflict, index) => {
+      if (index > 0) {
+        isActive = false;
+      }
+      createConflictCard(
+        isActive,
+        "Conflitto "+index+1,
+        conflict
+      );
+    });
   }
   else if (message.action == "ping") {
     console.log("Keep alive");
@@ -737,23 +742,116 @@ function displayProblemDesc(el) {
 
 // ===================== Carousel ======================= //
 
-function createConflictCard(isActive, headerText, cardText, containerArrowList, recommendations) {
+function createConflictCard(isActive, headerText, conflictInfo) {
     //isActive = boolean (True dovrebbe essere solo la prima card generata)
-    //containerArrowList = list di stringhe
+    /*conflictInfo = {
+    "id_conflict": "17422966096088_1746629662875",
+    "rules": [
+      {
+        "id": "17422966096088",
+        "name": "Accendi aria condizionata quando \u00e8 caldo",
+        "description": "Event: quando \u00e8 caldo Condition: bla bla condizione Action: Accendi aria condizionata "
+      },
+      {
+        "id": "1746629662875",
+        "name": "Spengi aria condizionata quando \u00e8 caldo",
+        "description": "Event: bla bla evento condizione Action: bla bla azione "
+      }
+    ],
+    "possibleSolutions": {
+      "description": "Questo testo rappresenta una descrizione generale del conflitto e delle possibili soluzioni.",
+      "recommendations": {
+        "17422966096088": {
+          "alternatives": [
+            {
+              "structured": "Event: Temperature rises above 26\u00b0C (sensor.temperatura_salotto_temperature) Condition: Presenza Salotto is ON (binary_sensor.presenza_salotto) Action: Turn ON aria condizionata (fan.aria_condizionata).",
+              "natural_language": "When the living room temperature rises above 26\u00b0C and someone is present in the living room, turn on the air conditioner."
+            }
+          ]
+        },
+        "1746629662875": {
+          "alternatives": [
+            {
+              "structured": "Event: Temperature drops below 24\u00b0C (sensor.temperatura_salotto_temperature) Action: Turn OFF aria condizionata (fan.aria_condizionata).",
+              "natural_language": "When the living room temperature drops below 24\u00b0C, turn off the air conditioner."
+            }
+          ]
+        }
+      }
+    },
+    "type": "possible"
+  }*/
     //recommendations = {"alias_automazione1": ["opzione1", "opzione2"], "alias_automazione2": ["opzione3", "opzione4"]}
+    const regex = /^event(?:s|o|i)?:\s*(?<event>.*?)(?:\s*(?:condition(?:s)?|condizion(?:e|i)):\s*(?<condition>.*?))?\s*(?:action(?:s)?|azion(?:i|e)):\s*(?<action>.*)$/i;
     const svgArrow = () => {
         const svgNS = "http://www.w3.org/2000/svg";
         const svg = document.createElementNS(svgNS, "svg");
+        svg.setAttribute("class", "svg_conflict2"); // Aggiunta classe
         svg.setAttribute("width", "18");
         svg.setAttribute("height", "40");
         svg.setAttribute("viewBox", "0 0 18 40");
+        svg.setAttribute("fill", "none"); // Impostato fill a none per l'elemento svg
         const path = document.createElementNS(svgNS, "path");
-        path.setAttribute("d", "M9 39.9991L17.7538 25.0535L0.433666 24.9453L9 39.9991ZM7.75003 -0.00937502L7.73701 2.07396L10.7369 2.09271L10.75 0.00937502L7.75003 -0.00937502ZM7.71097 6.24063L7.68492 10.4073L10.6849 10.4261L10.7109 6.25938L7.71097 6.24063ZM7.65888 14.574L7.63284 18.7407L10.6328 18.7594L10.6588 14.5927L7.65888 14.574ZM7.6068 22.9073L7.59378 24.9907L10.5937 25.0094L10.6067 22.9261L7.6068 22.9073ZM7.59378 24.9907L7.58596 26.2406L10.5859 26.2593L10.5937 25.0094L7.59378 24.9907ZM7.57034 28.7404L7.55471 31.2403L10.5547 31.259L10.5703 28.7592L7.57034 28.7404ZM7.53909 33.7401L7.52347 36.24L10.5234 36.2587L10.539 33.7589L7.53909 33.7401Z");
-        path.setAttribute("fill", "#1F3BB3");
+        path.setAttribute("d", "M8.75 39.9991L17.5038 25.0535L0.183666 24.9453L8.75 39.9991ZM7.50003 -0.00937502L7.34378 24.9907L10.3437 25.0094L10.5 0.00937502L7.50003 -0.00937502ZM7.34378 24.9907L7.3344 26.49L10.3343 26.5088L10.3437 25.0094L7.34378 24.9907Z");
+        path.setAttribute("fill", "#4E63CC"); // Colore del path
         svg.appendChild(path);
         return svg;
     };
+    const createConflictArrowSVG = () => {
+      const svgNS = "http://www.w3.org/2000/svg";
+      const svg = document.createElementNS(svgNS, "svg");
+      svg.setAttribute("class", "svg_conflict");
+      svg.setAttribute("viewBox", "0 0 140 35");
+      svg.setAttribute("fill", "none"); // L'attributo fill sull'elemento svg radice è "none"
 
+      const path1 = document.createElementNS(svgNS, "path");
+      path1.setAttribute("d", "M6 35L11.7735 25H0.226497L6 35ZM6 15H5L5 25H6H7L7 15H6ZM6 25H5V26H6H7V25H6Z");
+      path1.setAttribute("fill", "#4E63CC");
+      svg.appendChild(path1);
+
+      const path2 = document.createElementNS(svgNS, "path");
+      path2.setAttribute("d", "M134 35L139.774 25H128.226L134 35ZM134 15H133V25H134H135V15H134ZM134 25H133V26H134H135V25H134Z");
+      path2.setAttribute("fill", "#4E63CC");
+      svg.appendChild(path2);
+
+      const line1 = document.createElementNS(svgNS, "line");
+      line1.setAttribute("x1", "4.99561");
+      line1.setAttribute("y1", "15");
+      line1.setAttribute("x2", "69.9956");
+      line1.setAttribute("y2", "15");
+      line1.setAttribute("stroke", "#4E63CC");
+      line1.setAttribute("stroke-width", "2");
+      svg.appendChild(line1);
+
+      const line2 = document.createElementNS(svgNS, "line");
+      line2.setAttribute("x1", "69.9956");
+      line2.setAttribute("y1", "15");
+      line2.setAttribute("x2", "134.996");
+      line2.setAttribute("y2", "15");
+      line2.setAttribute("stroke", "#4E63CC");
+      line2.setAttribute("stroke-width", "2");
+      svg.appendChild(line2);
+
+      const line3 = document.createElementNS(svgNS, "line");
+      line3.setAttribute("x1", "70");
+      line3.setAttribute("y1", "15");
+      line3.setAttribute("x2", "70");
+      line3.setAttribute("y2", "-5.96046e-08"); // o "0" se preferisci
+      line3.setAttribute("stroke", "#4E63CC");
+      line3.setAttribute("stroke-width", "2");
+      svg.appendChild(line3);
+
+      return svg;
+  };
+
+    const rule1 = conflictInfo['rules'][0]
+    const rule1_id = rule1['id']
+    const rule2 = conflictInfo['rules'][1]
+    const rule2_id = rule2['id']
+
+    const temp_mapping = new Map();
+    temp_mapping.set(rule1_id, rule1);
+    temp_mapping.set(rule2_id, rule2);
 
     const card = document.createElement("div");
     card.className = "card border-dark carousel__item";
@@ -773,21 +871,51 @@ function createConflictCard(isActive, headerText, cardText, containerArrowList, 
 
     const spanText = document.createElement("span");
     spanText.className = "card-text";
-    spanText.textContent = cardText;
+    spanText.textContent = conflictInfo["possibleSolutions"]["description"];
     body.appendChild(spanText);
 
     const container = document.createElement("div");
     container.className = "container_arrow";
 
-    containerArrowList.forEach((item, index) => {
+    const rule1_match = rule1['description'].match(regex);
+    const rule2_match = rule2['description'].match(regex);
+    console.log(rule1_match);
+    console.log(rule2_match);
+    if (rule1_match && rule1_match.groups && rule2_match && rule2_match.groups) {
+        const rule1 = rule1_match.groups;
+        const rule2 = rule2_match.groups;
         const p = document.createElement("p");
-        p.textContent = item;
+        p.textContent = rule1.event; //teoricamente dovrebbe essere uguale (almeno semanticamente) a rule2.event
         container.appendChild(p);
-        if (index < containerArrowList.length - 1) {
-            container.appendChild(svgArrow());
+        container.appendChild(createConflictArrowSVG()); //freccia biforcuta
+        const condition_action_container = document.createElement("div");
+        condition_action_container.className = "container_action";
+        const rule1_anonym_div = document.createElement("div");
+        if (rule1.condition) {
+          const condition = document.createElement("p");
+          condition.textContent = rule1.condition;
+          rule1_anonym_div.appendChild(condition);
+          rule1_anonym_div.appendChild(svgArrow());
         }
+        const action = document.createElement("p");
+        action.textContent = rule1.action;
+        rule1_anonym_div.appendChild(action);
+        condition_action_container.appendChild(rule1_anonym_div);
         
-    });
+        const rule2_anonym_div = document.createElement("div");
+        if (rule2.condition) {
+          const condition = document.createElement("p");
+          condition.textContent = rule2.condition;
+          rule2_anonym_div.appendChild(condition);
+          rule2_anonym_div.appendChild(svgArrow());
+        }
+        const action2 = document.createElement("p");
+        action2.textContent = rule2.action;
+        rule2_anonym_div.appendChild(action2);
+        condition_action_container.appendChild(rule2_anonym_div);
+        
+        container.appendChild(condition_action_container);
+    };
     body.appendChild(container);
 
     const title = document.createElement("p");
@@ -798,7 +926,8 @@ function createConflictCard(isActive, headerText, cardText, containerArrowList, 
     const accordion = document.createElement("div");
     accordion.className = "accordion stay-open";
     let index = 0;
-    for (let automationAlias in recommendations) {
+    const recommendations = conflictInfo["possibleSolutions"]["recommendations"];
+    for (let automationID in recommendations) {
         const item = document.createElement("div");
         item.className = "accordion-item";
 
@@ -808,7 +937,7 @@ function createConflictCard(isActive, headerText, cardText, containerArrowList, 
         const button = document.createElement("button");
         button.className = "accordion-button";
         button.setAttribute("onclick", "toggleStayOpen(this)");
-        button.textContent = `Modifica l'automazione  "${automationAlias}"`;
+        button.textContent = `Modifica l'automazione  "${temp_mapping.get(automationID)["name"]}"`;
 
         header.appendChild(button);
         item.appendChild(header);
@@ -820,7 +949,7 @@ function createConflictCard(isActive, headerText, cardText, containerArrowList, 
         const body = document.createElement("div");
         body.className = "accordion-body";
 
-        recommendations[automationAlias].forEach((labelText, i) => {
+        recommendations[automationID]["alternatives"].forEach((alternative, i) => {
             const formCheck = document.createElement("div");
             formCheck.className = "form-check";
 
@@ -833,7 +962,7 @@ function createConflictCard(isActive, headerText, cardText, containerArrowList, 
             const label = document.createElement("label");
             label.className = "form-check-label";
             label.setAttribute("for", input.id);
-            label.textContent = labelText;
+            label.textContent = alternative["natural_language"];
 
             formCheck.appendChild(input);
             formCheck.appendChild(label);
@@ -848,10 +977,10 @@ function createConflictCard(isActive, headerText, cardText, containerArrowList, 
 
     body.appendChild(accordion);
     card.appendChild(body);
-    mainContainer.appendChild(card);
+    carousel.appendChild(card);
+    carousel.click();
     return card;
 }
-
 
 function toggleStayOpen(button) {
   const collapse = button.parentElement.nextElementSibling;

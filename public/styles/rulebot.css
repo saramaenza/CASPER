@@ -340,6 +340,7 @@ body{
 
 .automation_name {
   font-size: 14px;
+  font-style: italic;
 }
 .container_actions {
   display: flex;

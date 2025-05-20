@@ -63,7 +63,7 @@ def format_device_list(devices):
                 if (len(device[2]) == 1):
                     formatted_string += f",{device[2][0]}"
                 elif (len(device[2]) > 1):
-                    formatted_string += f",{device[2].join(",")}"
+                    formatted_string += f",{",".join(device[2])}"
                 if device != devices[-1]:                  
                     formatted_string += "|"
         formatted_string += "!"

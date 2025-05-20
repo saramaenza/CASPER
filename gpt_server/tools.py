@@ -8,12 +8,12 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from typing_extensions import Annotated, TypedDict
 from pydantic import BaseModel, Field
 
-from models import gpt4
+from models import gpt4 as llm
 import prompts
 import responses
 import db_functions as _db
 import utils
-from problems.conflicts import detectAppliancesConflictsForLLM as detectConflicts
+from problems.new_conflicts import ConflictDetector
 
 
 url = os.environ["HASS_URL"]
@@ -78,8 +78,8 @@ def generate_automation(
     SystemMessage(formatted_prompt),
     HumanMessage(description),
     ]
-    structured_gpt4 = gpt4.with_structured_output(responses.GenerateAutomationResponse)
-    data = structured_gpt4.invoke(messages)
+    structured_response = llm.with_structured_output(responses.GenerateAutomationResponse)
+    data = structured_response.invoke(messages)
     try:
         if automation_id == '0':
             automations = _db.get_automations(user_id)
@@ -125,24 +125,30 @@ def conflict_check(
             automation = _db.get_automation(user_id, automation_id)
             if automation is None:
                 utils.update_chat_state(action="error-state", state="Non ho trovato l'automazione da controllare", session_id=session_id, user_id=user_id, id='conflict-check')
-                return f"L'automazione con ID {automation_id} non è presente nel sistema."
+                return f"The automation with ID {automation_id} do not exist."
             else:
                 #!TODO: logica di controllo conflitti per automazioni già esistenti
                 checks = {'conflict': 'Done', 'energy': 'To do'} #!!!BUG? puo essere incosistente se l'utente ha gia fatto un check energetico
                 _db.save_tmp_data(user_id, {'automation': automation, 'checks':checks }) #sostituisco i dati temporanei, se esistenti
                 utils.update_chat_state(action="confirm-state", state="Nessun problema trovato", session_id=session_id, user_id=user_id, id='conflict-check')
-                return f"Nessun conflitto trovato. Eventuali check da effettuare {checks}."
+                return f"No conflicts detected. Eventual remaining checks: {checks}."
         else:
             #ho trovato una tmp_data, quindi sono in fase di generazione di una nuova automazione
             #!TODO: logica di controllo conflitti per automazioni in fase di generazione
-            conflicts = detectConflicts(user_id, data['automation'])
+            detector = ConflictDetector(url, key, user_id)
+            conflicts = detector.detect_appliances_conflicts(data['automation'])
+            if len(conflicts) > 0:
+                utils.update_chat_state(action="confirm-state", state="Ho trovato dei problemi da risolvere", session_id=session_id, user_id=user_id, id='conflict-check')
+                utils.update_chat_state(action="generate-conflict-card", state = conflicts, session_id=session_id, user_id=user_id, id='problem-card')
+                return f"Conflicts detected: {conflicts}. Eventual remaining checks after conflict resolution: {data['checks']}\n These information are shown in a problem card in the left part of the interface, only say to the user to check it."
+            else:
+                utils.update_chat_state(action="confirm-state", state="Nessun problema trovato", session_id=session_id, user_id=user_id, id='conflict-check')
             data['checks']['conflict'] = 'Done'
             _db.save_tmp_data(user_id, data) #sostituisco i dati temporanei, se esistenti
-            utils.update_chat_state(action="confirm-state", state="Nessun problema trovato", session_id=session_id, user_id=user_id, id='conflict-check')
-            return f"Nessun conflitto trovato. Eventuali check rimasti: {data['checks']}"
+            return f"No conflicts detected. Eventual remaining checks: {data['checks']}"
     except Exception as e:
         utils.update_chat_state(action="error-state", state="Errore durante il controllo dei conflitti", session_id=session_id, user_id=user_id, id='conflict-check')
-        return f"Errore durante il controllo dei conflitti: {e}"
+        return f"Error during the execution of conflict detection: {e}"
 
 @tool()
 def energy_check(
