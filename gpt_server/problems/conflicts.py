@@ -3,7 +3,7 @@ import requests
 from requests import get, post
 import re
 import ast
-import db_functions as _db
+
 
 #url HA ufficio
 base_url = "http://luna.isti.cnr.it:8123"
@@ -34,8 +34,8 @@ with open("casper.all.json", "r") as file:
     #automations_post = json.load(file)
 
 
-all_rules = [all_rules_all["automation_data"][13]["config"]]
-automations_post = all_rules_all["automation_data"][14]["config"]
+all_rules = all_rules_all['automation_data']
+automations_post = all_rules_all["automation_data"][16]["config"]
 
 
 infoConflictArrayLLM = []   #contiene le coppie di automazioni in conflitto tra loro
@@ -449,8 +449,8 @@ def process_triggers_and_conditions(rules, idAutomation1, idAutomation2, automat
 
 ########### MAIN PROBLEM CHECKING FUNCTION #########
 import time
-def detectAppliancesConflictsForLLM(user_id, rule1):
-    rules = _db.get_automations(user_id) #[{"id": automation_id_int, "config": {"id", "alias", "description", "triggers"...}, ...]
+def detectAppliancesConflictsForLLM(rules, rule1):
+    #rules = _db.get_automations(user_id) #[{"id": automation_id_int, "config": {"id", "alias", "description", "triggers"...}, ...]
     infoConflictArrayLLM.clear()
 
     ruleName1 = rule1.get("alias", None) #None potrebbe tornare errore nella linea successiva
@@ -462,6 +462,7 @@ def detectAppliancesConflictsForLLM(user_id, rule1):
     
     for action1 in actions1:
         for rule2 in rules:
+            rule2 = rule2['config']
             ruleName2 = rule2.get("alias", None)
             #entityRuleName2 = rule2["entity_id"]
             entityRuleName2 = "automation." + ruleName2.replace(" ", "_")
@@ -493,6 +494,6 @@ def detectAppliancesConflictsForLLM(user_id, rule1):
     return infoConflictArrayLLM
 
 user_id = "6487f4a2089f04476b4d4d8c" #ID utente di test
-infoConflictArrayLLM = detectAppliancesConflictsForLLM(user_id, automations_post)
+infoConflictArrayLLM = detectAppliancesConflictsForLLM(all_rules, automations_post)
 
 print("Info Conflict Array LLM: ", infoConflictArrayLLM)

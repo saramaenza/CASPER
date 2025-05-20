@@ -401,6 +401,60 @@
         ],
         "id": "15"
       }
-    }
+    },
+    {
+        "id": "1742296609609",
+        "config":{
+           "id": "1742296609609",
+        "alias": "Accendi aria condizionata quando è caldo",
+        "description": "",
+        "triggers": [
+          {
+            "trigger": "numeric_state",
+            "entity_id": [
+              "sensor.temperatura_casa_temperature"
+            ],
+            "above": 26
+          }
+        ],
+        "conditions": [],
+        "actions": [
+          {
+            "type": "turn_on",
+            "device_id": "280e80f05bac59e20d7b901d6d483dfb",
+            "entity_id": "1e833b3d059eb1a6b67b2a26aa64bf18",
+            "domain": "fan"
+          }
+        ],
+        "mode": "single"
+        }
+      },
+     {
+        "id": "17429",
+        "config":{
+           "id": "17429",
+        "alias": "Spegni aria condizionata quando è caldo",
+        "description": "",
+        "triggers": [
+          {
+            "trigger": "numeric_state",
+            "entity_id": [
+              "sensor.temperatura_casa_temperature"
+            ],
+            "above": 26
+          }
+        ],
+        "conditions": [],
+        "actions": [
+          {
+            "type": "turn_off",
+            "device_id": "280e80f05bac59e20d7b901d6d483dfb",
+            "entity_id": "1e833b3d059eb1a6b67b2a26aa64bf18",
+            "domain": "fan"
+          }
+        ],
+        "mode": "single"
+        }
+      }
   ]
 }

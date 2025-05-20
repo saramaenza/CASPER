@@ -1,0 +1,354 @@
+- id: '1742296609609'
+  alias: Accendi aria condizionata quando è caldo
+  description: ''
+  triggers:
+  - trigger: numeric_state
+    entity_id:
+    - sensor.temperatura_casa_temperature
+    above: 26
+  conditions: []
+  actions:
+  - type: turn_on
+    device_id: 280e80f05bac59e20d7b901d6d483dfb
+    entity_id: 1e833b3d059eb1a6b67b2a26aa64bf18
+    domain: fan
+  mode: single
+- id: '1742297001655'
+  alias: Purificatore acceso alta umidità
+  description: ''
+  triggers:
+  - trigger: numeric_state
+    entity_id:
+    - sensor.umidita_salotto_humidity
+    above: 64.9
+  conditions: []
+  actions:
+  - type: turn_on
+    device_id: fe8c1a3e82b6d5e012030fcaab7a8560
+    entity_id: 75b979f2072975499abfb202179febb7
+    domain: fan
+  mode: single
+- id: '1742297057431'
+  alias: Forno a mezzogiorno
+  description: ''
+  triggers:
+  - trigger: time
+    at: 00:00:00
+  conditions: []
+  actions:
+  - type: turn_on
+    device_id: 33b7bbd28a9d46677e30a67eaebb3cef
+    entity_id: af8782fadca3d1df734f7e16b59de9c8
+    domain: switch
+  mode: single
+- id: '1742297104112'
+  alias: Luce camera mattina
+  description: ''
+  triggers:
+  - trigger: time
+    at: 08:30:00
+  conditions: []
+  actions:
+  - type: turn_on
+    device_id: 6bbe9438e486969949c5312525e4564a
+    entity_id: bf3d2a1da646b0ad9c4a502a01c7fffd
+    domain: light
+  mode: single
+- id: '1742297367576'
+  alias: Spegni dispositivi rumore alto
+  description: ''
+  triggers:
+  - trigger: numeric_state
+    entity_id:
+    - sensor.rumore_salotto_sound_pressure
+    above: 39.9
+  conditions:
+  - condition: time
+    after: '22:30:00'
+  actions:
+  - type: turn_off
+    device_id: 3de374e80ab95337ad95afc121311965
+    entity_id: d966b7c7a42479a5bea2664934fb4ad8
+    domain: switch
+  - type: turn_off
+    device_id: fe8c1a3e82b6d5e012030fcaab7a8560
+    entity_id: 75b979f2072975499abfb202179febb7
+    domain: fan
+  mode: single
+- id: '1742297623466'
+  alias: Spegni luce nessuno è in casa
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - binary_sensor.presenza_casa_presence
+    to: 'off'
+  conditions: []
+  actions:
+  - type: turn_off
+    device_id: 6bbe9438e486969949c5312525e4564a
+    entity_id: bf3d2a1da646b0ad9c4a502a01c7fffd
+    domain: light
+  - type: turn_off
+    device_id: 6bbe9438e486969949c5312525e4564a
+    entity_id: bf3d2a1da646b0ad9c4a502a01c7fffd
+    domain: light
+  - type: turn_off
+    device_id: 6acf2a2a00e69f2a22775de7df0a5cbe
+    entity_id: fa0f6696d0e6ddff12c1cedf2e447330
+    domain: light
+  - type: turn_off
+    device_id: f9e2f24b1cec1212725cee161f5702ac
+    entity_id: 7d6ced8196a01b1e7a4310f3349da05d
+    domain: light
+  mode: single
+- id: '1742811926491'
+  alias: Notifica termine lavastoviglie
+  description: ''
+  triggers:
+  - type: turned_off
+    device_id: 883378e20edd52aa320016174c8923b0
+    entity_id: 363afe59417f75cf8351e81525a01c02
+    domain: switch
+    trigger: device
+  conditions: []
+  actions:
+  - action: notify.notify
+    metadata: {}
+    data:
+      target: Alexa
+      domain: media_player
+  mode: single
+- id: '1746629662875'
+  alias: Spengi aria condizionata quando è caldo
+  description: ''
+  triggers:
+  - type: temperature
+    device_id: a24cf7f1a05a48da6fa9a6a352edb738
+    entity_id: c903fca897d3ca52a02c7be8e37271ab
+    domain: sensor
+    trigger: device
+    above: 26
+  conditions: []
+  actions:
+  - type: turn_off
+    device_id: 280e80f05bac59e20d7b901d6d483dfb
+    entity_id: 1e833b3d059eb1a6b67b2a26aa64bf18
+    domain: fan
+  mode: single
+- id: '1'
+  alias: Spegni Luce Cucina al Forno Spento
+  description: Spegne la luce della cucina quando il forno viene spento.
+  triggers:
+  - platform: state
+    entity_id: switch.forno
+    to: 'off'
+  conditions: []
+  actions:
+  - target:
+      entity_id: light.luce_cucina
+    action: light.turn_off
+- id: '2'
+  alias: Accendi luce cucina spegnendo forno
+  description: Accensione automatica della luce della cucina al momento dello spegnimento
+    del forno.
+  triggers:
+  - platform: state
+    entity_id: switch.forno
+    to: 'off'
+  actions:
+  - target:
+      entity_id: light.luce_cucina
+    action: light.turn_on
+- id: '3'
+  alias: Accensione Luce Portone durante Pioggia con Assenza in Casa
+  description: Accende la luce del portone d'ingresso di colore blu quando non si
+    rileva presenza in casa e c'è pioggia.
+  triggers:
+  - platform: state
+    entity_id: binary_sensor.presenza_casa_presence
+    to: 'off'
+  conditions:
+  - condition: state
+    entity_id: weather.openweathermap
+    state: rain
+  actions:
+  - data:
+      entity_id: light.luce_portone_d_ingresso
+      color_name: blue
+    action: light.turn_on
+- id: '4'
+  alias: Spegnimento luce portone d'ingresso quando assente e soleggiato
+  description: Spegne la luce del portone d'ingresso se non c'è presenza in casa e
+    il meteo indica sole.
+  triggers:
+  - platform: state
+    entity_id: binary_sensor.presenza_casa_presence
+    to: 'off'
+  conditions:
+  - condition: state
+    entity_id: weather.openweathermap
+    state: sunny
+  actions:
+  - target:
+      entity_id:
+      - light.luce_portone_d_ingresso
+    action: light.turn_off
+- id: '5'
+  alias: Spegni TV in Camera con Presenza e Luce Accesa
+  description: Automazione per spegnere la TV della camera da letto quando viene rilevata
+    presenza e la luce è accesa.
+  triggers:
+  - platform: state
+    entity_id: binary_sensor.presenza_camera_da_letto_presence
+    to: 'on'
+  conditions:
+  - condition: state
+    entity_id: light.luce_camera_letto
+    state: 'on'
+  actions:
+  - target:
+      entity_id: switch.tv_camera_da_letto
+    action: switch.turn_off
+- id: '6'
+  alias: Presenza Camera da letto e Luce accesa attiva TV
+  description: Questo è un'automazione che accende la TV quando c'è presenza nella
+    camera da letto e la luce nella stanza è già accesa.
+  triggers:
+  - platform: state
+    entity_id: binary_sensor.presenza_camera_da_letto_presence
+    to: 'on'
+  conditions:
+  - condition: state
+    entity_id: light.luce_camera_letto
+    state: 'on'
+  actions:
+  - target:
+      entity_id: switch.tv_camera_da_letto
+    action: switch.turn_on
+- id: '7'
+  alias: Accendi luce cucina con movimento
+  description: Automazione che accende la luce della cucina quando viene rilevato
+    movimento.
+  triggers:
+  - platform: state
+    entity_id: binary_sensor.presenza_cucina_presence
+    to: 'on'
+  conditions: []
+  actions:
+  - target:
+      entity_id: light.luce_cucina
+    action: light.turn_on
+- id: '8'
+  alias: Accensione automatica luce cucina notte
+  description: Questa automazione accende la luce in cucina con luminosità ridotta
+    durante la notte quando il sensore rileva movimento.
+  triggers:
+  - platform: state
+    entity_id: binary_sensor.presenza_cucina_presence
+    to: 'on'
+  conditions:
+  - condition: time
+    after: '22:00:00'
+    before: 05:00:00
+  actions:
+  - data:
+      entity_id: light.luce_cucina
+      brightness_pct: 35
+    action: light.turn_on
+- id: '9'
+  alias: Attivazione purificatore salotto per qualità aria bassa
+  description: Attiva automaticamente il purificatore del salotto quando la qualità
+    dell'aria della casa è bassa.
+  triggers:
+  - platform: state
+    entity_id: sensor.qualita_casa_aqi
+    to: bassa
+  conditions: []
+  actions:
+  - data: {}
+    target:
+      entity_id: fan.purificatore_salotto
+    action: fan.turn_on
+- id: '10'
+  alias: Spegni Purificatore Camera quando Simone esce
+  description: Spegni il purificatore in camera da letto quando non è rilevata la
+    presenza in casa.
+  triggers:
+  - platform: state
+    entity_id: binary_sensor.presenza_casa_presence
+    to: 'off'
+  conditions: []
+  actions:
+  - target:
+      entity_id: fan.purificatore_camera_da_letto
+    action: fan.turn_off
+- id: '11'
+  alias: Air Quality Exceeds Threshold - Activate Purifier
+  description: Activates the living room air purifier when air quality exceeds 100.
+  triggers:
+  - platform: numeric_state
+    entity_id: sensor.qualita_casa_aqi
+    above: 100
+  conditions: []
+  actions:
+  - target:
+      entity_id: fan.purificatore_salotto
+    action: fan.turn_on
+- id: '12'
+  alias: Disattiva purificatore all'uscita di casa
+  description: Questa automazione spegne il purificatore del salotto quando l'utente
+    esce di casa, senza valutare condizioni aggiuntive.
+  triggers:
+  - platform: state
+    entity_id: binary_sensor.presenza_casa_presence
+    to: 'off'
+  conditions: []
+  actions:
+  - target:
+      entity_id: fan.purificatore_salotto
+    action: fan.turn_off
+- id: '13'
+  alias: Accendi luce cucina quando presente
+  description: Accende la luce in cucina al 35% luminanza quando viene rilevata presenza
+    nell'area cucina.
+  triggers:
+  - platform: state
+    entity_id: binary_sensor.presenza_cucina_presence
+    to: 'on'
+  conditions: []
+  actions:
+  - data:
+      entity_id: light.luce_cucina
+      brightness_pct: 35
+    action: light.turn_on
+- id: '14'
+  alias: Spegni luci se casa è vuota
+  description: Spegni tutte le luci quando non c'è nessuno in casa.
+  triggers:
+  - platform: state
+    entity_id: binary_sensor.presenza_casa_presence
+    to: 'off'
+  conditions: []
+  actions:
+  - target:
+      entity_id:
+      - light.luce_cucina
+      - light.luce_bagno
+      - light.luce_camera_letto
+      - light.luce_comodino
+      - light.luce_salotto
+      - light.luce_portone_d_ingresso
+    action: light.turn_off
+- id: '15'
+  alias: Accensione Luce Salotto alle 17:00
+  description: Questa automazione accende la luce del salotto ogni giorno alle ore
+    17:00.
+  triggers:
+  - platform: time
+    at: '17:00:00'
+  conditions: []
+  actions:
+  - target:
+      entity_id: light.luce_salotto
+    action: light.turn_on

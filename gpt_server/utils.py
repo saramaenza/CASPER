@@ -39,31 +39,40 @@ def format_device_list(devices):
     Output:
     !Generico:Sun Prossima alba,sensor.sun_next_dawn, unit:, options:, mode:, effects:, color_mode:, min:, max:|Sun Prossima alba2,sensor.sun_next_dawn2!Generico2:Sun Prossima alba2,sensor.sun_next_dawn2!
     """
-    device_info_names = ['unit', 'options', 'mode', 'effects', 'colors', 'min', 'max']
-    device_info_list = {}
-    device_list = {}
-    for device in devices:
-        room = device['a']
-        if room not in device_list:
-            device_list[room] = []
-        if device['e'] not in device_info_list:
-            device_info_list[device['e']] = []
-        for name in device_info_names:
-            if name in device and device[name] is not None:
-                device_info_list[device['e']].append(f"{name}:{device[name]}")
-
-        device_list[room].append([device['f'], device['e'], device_info_list[device['e']]])
-
-    formatted_string = ""
-    for room, devices in device_list.items():
-        formatted_string += f"!{room}:"
+    try:
+        device_info_names = ['unit', 'options', 'mode', 'effects', 'colors', 'min', 'max']
+        device_info_list = {}
+        device_list = {}
         for device in devices:
-            if device != devices[-1]:
-                formatted_string += f"{device[0].strip()},{device[1]},{device[2].join(",")}|"
-            else:
-                formatted_string += f"{device[0].strip()},{device[1]},{device[2].join(",")}"
-    formatted_string += "!"
-    return formatted_string.strip()
+            room = device['a']
+            if room not in device_list:
+                device_list[room] = []
+            if device['e'] not in device_info_list:
+                device_info_list[device['e']] = []
+            for name in device_info_names:
+                if name in device and device[name] is not None:
+                    device_info_list[device['e']].append(f"{name}:{device[name]}")
+
+            device_list[room].append([device['f'], device['e'], device_info_list[device['e']]])
+
+        formatted_string = ""
+        for room, devices in device_list.items():
+            formatted_string += f"!{room}:"
+            for device in devices:
+                formatted_string += f"{device[0].strip()},{device[1]}"
+                if (len(device[2]) == 1):
+                    formatted_string += f",{device[2][0]}"
+                elif (len(device[2]) > 1):
+                    formatted_string += f",{",".join(device[2])}"
+                if device != devices[-1]:                  
+                    formatted_string += "|"
+        formatted_string += "!"
+        return formatted_string.strip()
+    except Exception as e:
+        print("--> Utils.py Format Device List Error <--")
+        print(e)
+        print("----------------")
+        return None
 
 def update_chat_state(action:str, state: str, session_id: str, user_id: str, id:str = ""):
     """
@@ -73,7 +82,7 @@ def update_chat_state(action:str, state: str, session_id: str, user_id: str, id:
     action: error-state, state: "", id: 5 --> segnala un errore nello stato con id
     action: send-message, state: "Messaggio intermedio del bot", id Non serve --> invia un messaggio come se fosse rulebot nella chat user id session id
     action: update-automation-list state: "", id: "" --> aggiorna la lista delle automazioni
-    action: generate-problem-card, state: List[isActive, headerText, cardText, containerArrowList, recommendations], id: "" --> genera un problema card
+    action: generate-conflict-card, state: Dict[conflict_info], id: "" --> genera una card per CONFLITTI
     """
     print(f"Update Chat State: {action} - {state} - {session_id} - {user_id} - {id}")
     try:
