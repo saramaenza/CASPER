@@ -1,12 +1,12 @@
 from pymongo import MongoClient
 import pickle
 from datetime import datetime
-from utils import format_device_list
+from .utils import format_device_list
 from bson.objectid import ObjectId
 
 # Connessione globale al database
 client = MongoClient("mongodb://localhost:27017/")
-db = client["casper"]
+db = client["casper"]  # Sostituisci con il tuo nome del database
 
 def set_db(db_name):
     global db
@@ -65,6 +65,7 @@ def remove_state(user_id, session_id):
         print("----------------")
 
 def get_automations(user_id):
+    print(f"Get Automations: {user_id}")
     try:
         collection = db["automations"]
         automations = collection.find_one({"user_id": user_id})

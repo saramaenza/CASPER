@@ -1,0 +1,80 @@
+{
+  "list_of_domains": {  
+    "media_player": {
+      "possibleValues": [                        
+        {
+          "value": "state",
+          "increase_variable": ["sound_pressure"]
+        }
+      ]
+    },
+    "cover": {
+      "possibleValues": [                        
+        {
+          "value": "open",
+          "increase_variable": ["illuminance"]
+        },
+        {
+          "value": "close",
+          "decrease_variable": ["illuminance"]
+        }
+      ]
+    },  
+    "window": {
+      "possibleValues": [                        
+        {
+          "value": "open",
+          "increase_variable": ["temperature", "humidity", "aqi", "sound_pressure"],
+          "decrease_variable": ["temperature", "humidity", "aqi", "sound_pressure"]
+        }
+      ]
+    },  
+    "heater": {
+      "possibleValues": [                        
+        {
+          "value": "turn_on",
+          "increase_variable": ["temperature", "sound_pressure", "energy"],
+          "decrease_variable": ["humidity"]
+        }
+      ]
+    },
+    "light": {
+      "possibleValues": [                        
+        {
+          "value": "turn_on",
+          "increase_variable": ["illuminance", "energy"]
+        },
+        {
+          "value": "turn_off",
+          "decrease_variable": ["illuminance"]
+        }
+      ]
+    },
+    "fan": {
+      "possibleValues": [                        
+        {
+          "value": "turn_on",
+          "increase_variable": ["energy", "sound_pressure", "aqi"],
+          "decrease_variable": []
+        }
+      ]
+    },
+    "purifier": {
+      "possibleValues": [                        
+        {
+          "value": "turn_on",
+          "increase_variable": ["aqi", "energy", "sound_pressure"],
+          "decrease_variable": []
+        }
+      ]
+    },
+    "switch": {
+      "possibleValues": [                        
+        {
+          "value": "turn_on",
+          "increase_variable": ["energy"]
+        }
+      ]
+    }
+  }
+}
