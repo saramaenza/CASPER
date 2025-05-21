@@ -318,17 +318,21 @@ async function printUserDevices(devicesList) {
   const devices = devicesList['selected'];
   const devicesContainer = document.querySelector('#devices-list-container');
   devicesContainer.innerHTML = '';
+  let icon = domainMap['default'];
   let cleanList = {};
   if (devicesList != true && devices != undefined) { //organizzo per stanze "a", salvo il nome dell entita "f"
     devices.forEach(element => {
+      const deviceClass = element['dc'] || null;
+      const deviceDomain = element['t'] || null;
+      icon = classMap[deviceClass] || domainMap[deviceDomain] || domainMap['default'];
       if (cleanList.hasOwnProperty(element['a'])) {
-        cleanList[element['a']].push(element['f']);
+        cleanList[element['a']].push([element['f'], icon]);
       }else {
-        cleanList[element['a']] = [element['f']];
+        cleanList[element['a']] = [[element['f'], icon]];
       }
     })
-    console.log(cleanList);
-  }else{ return "Nessun dispositivo associato a questo account"; }
+
+  } else { return "Nessun dispositivo associato a questo account"; }
   // Crea e aggiungi il titolo
   //const title = document.createElement('h3');
   //title.innerText = 'Conflitti e Catene';
@@ -370,8 +374,13 @@ async function printUserDevices(devicesList) {
     devicesList.classList.add('devices-list');
     cleanList[key].forEach((device) => {
       let deviceElement = document.createElement('div');
+      let deviceText = document.createElement('span');
+      let iconElement = document.createElement('i');
+      iconElement.classList.add('bx', device[1]);
       deviceElement.classList.add('device-element');
-      deviceElement.innerText = device;
+      deviceText.textContent = device[0];
+      deviceElement.appendChild(iconElement);
+      deviceElement.appendChild(deviceText);
       devicesList.appendChild(deviceElement);
     });
 

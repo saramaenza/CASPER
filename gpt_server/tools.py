@@ -1,4 +1,4 @@
-from typing import List, Tuple, Any
+from typing import List
 import requests
 import json
 import os
@@ -6,18 +6,19 @@ from datetime import datetime
 from langchain_core.tools import InjectedToolArg, tool
 from langchain_core.messages import HumanMessage, SystemMessage
 from typing_extensions import Annotated, TypedDict
-from pydantic import BaseModel, Field
 
 from models import gpt4 as llm
 import prompts
 import responses
 import db_functions as _db
 import utils
-from problems.new_conflicts import ConflictDetector
-
+from gpt_server.problems.conflicts import ConflictDetector, ChainDetector
+from ha_client import HomeAssistantClient
 
 url = os.environ["HASS_URL"]
 key = os.environ["HASS_API_KEY"]
+
+ha_client = HomeAssistantClient(url, key)
 
 class Command(TypedDict):
     endpoint: str

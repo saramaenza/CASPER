@@ -6,7 +6,7 @@ async function getEntities(baseUrl, token) {
         "Content-Type": "application/json"
     };
     const template = [
-        "{% set entities = states | map(attribute='entity_id') | list %}",
+           "{% set entities = states | map(attribute='entity_id') | list %}",
         "{% set ns = namespace(entities_list = []) %}",
         "{% for entity in entities %}",
         "{% set state = states[entity] %}",
@@ -25,6 +25,7 @@ async function getEntities(baseUrl, token) {
         "  't': domain,",
         "  'd': device_name,",
         "  'df': device_friendly,",
+        "  'dc': attrs.device_class if 'device_class' in attrs else None,",
         "  'desc': description,",
         "  'unit': 'ppm (CO2)' if 'unit_of_measurement' in attrs and attrs.unit_of_measurement == 'ppm' else attrs.unit_of_measurement if 'unit_of_measurement' in attrs and attrs.unit_of_measurement else None,",
         "  'options': attrs.options if 'options' in attrs and attrs.options|length else None,",
@@ -32,7 +33,7 @@ async function getEntities(baseUrl, token) {
         "  'effects': attrs.effect_list if 'effect_list' in attrs and attrs.effect_list|length else None,",
         "  'colors': attrs.supported_color_modes if 'supported_color_modes' in attrs and attrs.supported_color_modes|length else None,",
         "  'min': attrs.min if 'min' in attrs else None,",
-        "  'max': attrs.max if 'max' in attrs else None",
+        "  'max': attrs.max if 'max' in attrs else None,",
         "}] %}",
         "{% endif %}",
         "{% endfor %}",
