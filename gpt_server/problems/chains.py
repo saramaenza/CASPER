@@ -1,74 +1,20 @@
 import json
 import requests
-from requests import get, post
+# from requests import get, post # Rimosso perché HomeAssistantClient gestisce le richieste
 import re
-import ast
-from .. import db_functions as _db
 from typing import List, Dict, Any, Tuple
 from collections import OrderedDict
 
-class HomeAssistantClient:
-    def __init__(self, base_url: str, token: str):
-        self.base_url = base_url
-        self.headers = {
-            "Authorization": "Bearer " + token,
-            "content-type": "application/json",
-        }
-
-    def _check_response(self, response: requests.Response) -> str:
-        if response.status_code == 200:
-            return response.text
-        else:
-            response.raise_for_status()
-
-    def _make_get_request(self, url_path: str) -> str:
-        response = get(self.base_url + url_path, headers=self.headers)
-        return self._check_response(response)
-
-    def _make_post_request(self, url_path: str, data: Dict[str, Any]) -> str:
-        response = post(self.base_url + url_path, headers=self.headers, data=json.dumps(data))
-        return self._check_response(response)
-
-    def get_all_states(self) -> str: # Returns raw JSON string
-        return self._make_get_request("/api/states")
-
-    def render_template(self, template: str) -> str:
-        data = {"template": template}
-        return self._make_post_request("/api/template", data)
-
-    def get_device_id_from_entity_id(self, entity_id: str) -> str:
-        template = '{{ device_id("' + entity_id + '") }}'
-        return self.render_template(template)
-
-    def get_device_class_by_entity_id(self, entity_id: str) -> str:
-        # This template relies on the 'states' object being available in the HA template environment
-        template = '{% for sensor in states %}{% if sensor.entity_id == "' + entity_id + '" %}{{ sensor.attributes.device_class }}{% endif %}{% endfor %}'
-        return self.render_template(template)
-
-    def get_entities_by_area(self, area: str) -> str: # Returns raw JSON string list of entities
-        template = '{{ area_entities("' + area + '") }}'
-        return self.render_template(template)
-
-    def get_entities_by_domain_and_area(self, area: str, domain: str) -> List[str]:
-        # Assuming area is a single string. If it can be a list, this needs adjustment.
-        # area_str = ' '.join(area) if isinstance(area, list) else area # Original had ' '.join(area)
-        entities_by_area_str = self.get_entities_by_area(area)
-        try:
-            entities_by_area = ast.literal_eval(entities_by_area_str)
-            if not isinstance(entities_by_area, list):
-                # Log or handle cases where template doesn't return a list string
-                return []
-        except (ValueError, SyntaxError):
-            # Log or handle cases where ast.literal_eval fails
-            return []
-        return [item for item in entities_by_area if isinstance(item, str) and item.startswith(domain)]
-
+# Importa HomeAssistantClient dal nuovo file
+from ..ha_client import HomeAssistantClient
 
 class ChainsDetector:
-    def __init__(self, ha_client: HomeAssistantClient, list_devices_variables_path: str, db_module: Any):
+    def __init__(self, ha_client: HomeAssistantClient, list_devices_variables_path: str, db_module: Any, user_id: str = ""):
+        
         self.ha_client = ha_client
         self.db = db_module
         self.list_devices_variables = self._load_devices_variables(list_devices_variables_path)
+        self.user_id = user_id
         # self.all_ha_states = self._initialize_states() # Removed global states, fetch when needed or pass if required by many methods
 
     # def _initialize_states(self) -> List[Dict[str, Any]]: # Changed from global
@@ -99,7 +45,7 @@ class ChainsDetector:
         type_event = e.get('type')
         service = e.get("service")
         if type_event is None and service:
-            type_event = re.sub(r'.*?\.', '', service)
+            type_event = re.sub(r'.*?\\.', '', service)
         if type_event is None:
             action_val = e.get("action") # Renamed from 'action' to avoid conflict
             if action_val is not None:
@@ -127,7 +73,7 @@ class ChainsDetector:
         target = action.get("target", {})
         device_id = action.get("device_id") or target.get("device_id") or \
                     action.get("entity_id") or target.get("entity_id")
-        return re.sub(r'[\'\[\]]', '', str(device_id)) if device_id else None
+        return re.sub(r'[\'\\\[\\\]]', '', str(device_id)) if device_id else None
 
     def process_action(self, action: Dict[str, Any]) -> Tuple[str | None, str | None, bool, str | None]:
         if isinstance(action, str): # Should not happen with typed automations
@@ -182,7 +128,7 @@ class ChainsDetector:
 
     def process_direct_chain(self, rule_chain: List[Dict[str, Any]], rule1: Dict[str, Any], rule2: Dict[str, Any],
                              action1_details: Dict[str, Any], # Contains device_action1, type_action1 etc.
-                             automation1_description: str, rule1_name: str, id_automation1: str,
+                             rule1_name: str, id_automation1: str,
                              rule2_entity_id: str): # domain1 is part of action1_details if needed
 
         device_action1 = action1_details['device_action']
@@ -199,25 +145,14 @@ class ChainsDetector:
 
             # Original code took device_id from trigger, then entity_id if device_id was None.
             # Let's try to get entity_id first as it's more common for state triggers.
+            # This part might need refinement based on what device_action1 actually holds.
             trigger_entity_id = trigger2_item.get('entity_id')
             device_trigger2 = None
             if trigger_entity_id:
-                # We need to compare device_action1 (can be a device_id) with something from trigger2.
-                # If device_action1 is an entity_id, we compare directly.
-                # If device_action1 is a device_id, we need device_id of trigger_entity_id.
-                # For now, let's assume device_action1 is comparable to trigger_entity_id or its device_id.
-                # This part might need refinement based on what device_action1 actually holds.
-                # The original compared device_action1 (from getID) with trigger2[0]['entity_id'] or trigger2[0]['device_id']
-                # Let's assume for now device_action1 is an entity_id for direct comparison,
-                # or that it's a device_id and trigger2_item also has a device_id.
-                
-                # Simplified: if action targets an entity_id, and trigger is for that entity_id
                 if isinstance(device_action1, str) and device_action1 == trigger_entity_id:
-                     device_trigger2 = trigger_entity_id # or self.ha_client.get_device_id_from_entity_id(trigger_entity_id)
+                     device_trigger2 = trigger_entity_id
                 elif 'device_id' in trigger2_item:
                      device_trigger2 = trigger2_item['device_id']
-                # If device_action1 is a list (from area), this comparison is more complex.
-                # Original code: device_trigger2 = trigger2[0].get("device_id") or trigger2[0]['entity_id']
 
             if not device_trigger2 and 'device_id' in trigger2_item: # Fallback to device_id if entity_id not matched
                  device_trigger2 = trigger2_item.get("device_id")
@@ -225,12 +160,8 @@ class ChainsDetector:
             if not device_trigger2 and trigger_entity_id: # If action was by entity, trigger might be by entity
                 device_trigger2 = trigger_entity_id
 
-
             type_trigger2 = self.get_event_type(trigger2_item)
 
-            # Comparison logic:
-            # device_action1 can be a single ID (str) or a list of IDs (if from area).
-            # device_trigger2 is likely a single ID (str).
             is_match = False
             if isinstance(device_action1, list):
                 if device_trigger2 in device_action1:
@@ -254,12 +185,11 @@ class ChainsDetector:
                         "possibleSolutions": solution_info,
                         "type_of_chain": "direct"
                     })
-                    # If a match is found with one trigger, we can break or continue if multiple triggers can match
                     break # Assuming one match per rule2 is sufficient for "direct chain"
 
     def process_indirect_chain(self, rule_chain: List[Dict[str, Any]], rule1: Dict[str, Any], rule2: Dict[str, Any],
                                action1_details: Dict[str, Any],
-                               automation1_description: str, rule1_name: str, id_automation1: str,
+                                rule1_name: str, id_automation1: str,
                                rule2_entity_id: str):
         
         type_action1 = action1_details['type_action']
@@ -285,14 +215,11 @@ class ChainsDetector:
                     if not entity_trigger2:
                         continue
 
-                    # process_trigger expects entity_id string or list of strings
-                    # entity_trigger2 is likely a single string here
                     _, device_class_trigger2 = self.process_trigger(entity_trigger2)
 
                     if not device_class_trigger2: # If no device_class, cannot match variable
                         continue
                     
-                    # The variable is something like "temperature", "humidity" (a device_class)
                     if variable == device_class_trigger2:
                         solution_info = "" # Placeholder
                         rule_name2 = rule2.get("alias")
@@ -310,27 +237,22 @@ class ChainsDetector:
                                 "variable": variable,
                                 "type_of_chain": "indirect"
                             })
-                            # Found a chain, can break from inner loops if one match is enough
-                            # Or continue to find all possible indirect links via different variables/triggers
-                            # For now, let's assume one match is enough for this rule2
                             return # Exit after finding the first indirect chain for this rule2
 
 
     def _process_rule_chain_iteration(self, all_existing_rules: List[Dict[str, Any]],
-                                   rule1_config: Dict[str, Any], automation1_description: str,
+                                   rule1_config: Dict[str, Any],
                                    chain_processing_function: callable) -> List[Dict[str, Any]]:
+
         rule_chain_output = []
         
-        # rule1_config is the automation_post from the original call
         rule1_alias = rule1_config.get("alias")
         if not rule1_alias:
             print("Rule 1 has no alias, skipping.")
             return [] # Or handle error appropriately
 
         entity_rule_name1 = "automation." + rule1_alias.replace(" ", "_")
-        #print(f"Entity Rule Name 1: {entity_rule_name1}")
         rule_name1 = rule1_alias
-        #print(f"Rule Name 1: {rule_name1}")
         id_automation1 = rule1_config.get("id")
         if id_automation1 is None:
             print("Rule 1 has no ID, skipping.")
@@ -351,37 +273,31 @@ class ChainsDetector:
                 'domain': domain1
             }
 
-            for rule2_wrapper in all_existing_rules: # rule2_wrapper is like {"config": {...}, "user_id": ...}
+            for rule2_wrapper in all_existing_rules:
                 rule2_config = rule2_wrapper.get("config")
                 if not rule2_config or not isinstance(rule2_config, dict):
                     continue
 
                 rule2_alias = rule2_config.get("alias")
-                if not rule2_alias: continue # Skip rule2 if no alias
+                if not rule2_alias: continue
 
                 rule2_entity_id = "automation." + rule2_alias.replace(" ", "_")
                 
-                if entity_rule_name1 == rule2_entity_id: # Don't compare a rule to itself
+                if entity_rule_name1 == rule2_entity_id:
                     continue
                 
-                # print(f"Comparing with Rule 2: {rule2_alias} (Entity ID: {rule2_entity_id})")
                 chain_processing_function(
                     rule_chain_output, rule1_config, rule2_config, action1_details,
-                    automation1_description, rule_name1, id_automation1, rule2_entity_id
+                    rule_name1, id_automation1, rule2_entity_id
                 )
         
         print("Detected chains:", rule_chain_output)
         return rule_chain_output
 
-    def detect_chains(self, user_id_for_db: str, automation_post_config: Dict[str, Any],
-                      automation_post_description: str, chain_type: str = "indirect") \
+    def detect_chains(self, user_id: str, automation_post_config: Dict[str, Any], chain_type: str = "indirect") \
                       -> List[Dict[str, Any]]:
         
-        all_rules_from_db = self.db.get_automations(user_id_for_db) # Assumes _db.get_automations structure
-        
-        # The 'entities' argument from original detect_direct_rule_chain_LLM is not used here.
-        # If it was meant to be all_ha_states, it should be fetched if needed by chain_processing_function.
-        # For now, neither direct nor indirect chain processing functions use it directly.
+        all_rules_from_db = self.db.get_automations(user_id)
 
         processing_function = self.process_indirect_chain
         if chain_type == "direct":
@@ -392,7 +308,6 @@ class ChainsDetector:
         return self._process_rule_chain_iteration(
             all_existing_rules=all_rules_from_db,
             rule1_config=automation_post_config,
-            automation1_description=automation_post_description,
             chain_processing_function=processing_function
         )
 
@@ -405,18 +320,17 @@ if __name__ == "__main__":
     DB_USER_ID = "682c59206a47b8e0ef343796" # Example
 
     # Instantiate the client and detector
-    ha_client = HomeAssistantClient(base_url=HA_BASE_URL, token=HA_TOKEN)
+    ha_client = HomeAssistantClient(base_url=HA_BASE_URL, token=HA_TOKEN) # Modificato per usare il client importato
     # The _db module needs to be accessible here. For a standalone script, you might need to mock it
     # or ensure the script is run in an environment where `from .. import db_functions as _db` works.
     # For this example, I'll assume _db is available.
     try:
-        from .. import db_functionssss as _db_module
+        from .. import db_functions as _db_module # Corretto l'import per coerenza
     except ImportError:
         # Mock _db if running standalone and .. import fails
         class MockDb:
             def get_automations(self, user_id):
                 print(f"MockDb: Called get_automations for user {user_id}")
-                # Return example data similar to what _db.get_automations would return
                 return [
                     {"config": {
                         "id": "2",
@@ -451,11 +365,10 @@ if __name__ == "__main__":
                               list_devices_variables_path=LIST_DEVICES_PATH,
                               db_module=_db_module)
 
-    # Example automation_post (the new/modified automation)
     current_automation_config = {
         "alias": "Accendi la lampadina Sara quando piove fuori casa",
         "description": "Evento: quando fuori casa piove (weather.forecast_casa). Azione: accendi Lampadina_Sara (light.lampadina_sara1).",
-        "trigger": [ # Changed from "trigger" to "triggers" for consistency, assuming actions/triggers are lists
+        "trigger": [ 
           {
             "platform": "state",
             "entity_id": "weather.forecast_casa",
@@ -463,7 +376,7 @@ if __name__ == "__main__":
           }
         ],
         "condition": [],
-        "actions": [ # Changed from "action" to "actions"
+        "actions": [ 
           {
             "service": "light.turn_on",
             "target": {
@@ -477,25 +390,14 @@ if __name__ == "__main__":
 
     print("\\n--- Detecting Direct Chains ---")
     direct_chains = detector.detect_chains(
-        user_id_for_db=DB_USER_ID,
+        user_id=DB_USER_ID,
         automation_post_config=current_automation_config,
-        automation_post_description=current_automation_description,
         chain_type="direct"
     )
-    # print("Found direct chains:", json.dumps(direct_chains, indent=2))
 
     print("\\n--- Detecting Indirect Chains ---")
-    # The original call in the script was detect_direct_rule_chain_LLM but it called process_indirect_chain.
-    # Now we explicitly call with chain_type="indirect"
     indirect_chains = detector.detect_chains(
-        user_id_for_db=DB_USER_ID,
+        user_id=DB_USER_ID,
         automation_post_config=current_automation_config,
-        automation_post_description=current_automation_description,
         chain_type="indirect"
     )
-    # print("Found indirect chains:", json.dumps(indirect_chains, indent=2))
-
-    # Example of using find_automation_entity_id (if you have all_states data)
-    # all_states = json.loads(ha_client.get_all_states()) # Fetch all states
-    # entity_id = ChainsDetector.find_automation_entity_id(all_states, "some_automation_id_from_attributes")
-    # print(f"Found entity_id for automation 'some_automation_id_from_attributes': {entity_id}")
