@@ -1041,6 +1041,170 @@ function createConflictCard(isActive, headerText, conflictInfo) {
     return card;
 }
 
+function createChainCard(isActive, headerText, chainInfo) {
+    //recommendations = {"alias_automazione1": ["opzione1", "opzione2"], "alias_automazione2": ["opzione3", "opzione4"]}
+    const regex = /^event(?:s|o|i)?:\s*(?<event>.*?)(?:\s*(?:condition(?:s)?|condizion(?:e|i)):\s*(?<condition>.*?))?\s*(?:action(?:s)?|azion(?:i|e)):\s*(?<action>.*)$/i;
+
+    const rule1 = chainInfo['rules'][0]
+    const rule1_id = rule1['id']
+    const rule1_name = rule1['name']
+    const rule2 = chainInfo['rules'][1]
+    const rule2_id = rule2['id']
+    const rule2_name = rule2['name']
+    const type_of_chain = chainInfo["type_of_chain"]
+    
+    const svgArrow = () => {
+        const svgNS = "http://www.w3.org/2000/svg";
+        const svg = document.createElementNS(svgNS, "svg");
+        svg.setAttribute("width", "18");
+        svg.setAttribute("height", "40");
+        svg.setAttribute("viewBox", "0 0 18 40");
+        svg.setAttribute("fill", "none");
+        const path = document.createElementNS(svgNS, "path");
+        if (type_of_chain === "direct") {
+            svg.setAttribute("class", "svg_conflict2");
+            path.setAttribute("d", "M8.75 39.9991L17.5038 25.0535L0.183666 24.9453L8.75 39.9991ZM7.50003 -0.00937502L7.34378 24.9907L10.3437 25.0094L10.5 0.00937502L7.50003 -0.00937502ZM7.34378 24.9907L7.3344 26.49L10.3343 26.5088L10.3437 25.0094L7.34378 24.9907Z");
+        } else {
+            svg.setAttribute("class", "svg_chain");
+            path.setAttribute("d", "M9 39.9991L17.7538 25.0535L0.433666 24.9453L9 39.9991ZM7.75003 -0.00937502L7.73701 2.07396L10.7369 2.09271L10.75 0.00937502L7.75003 -0.00937502ZM7.71097 6.24063L7.68492 10.4073L10.6849 10.4261L10.7109 6.25938L7.71097 6.24063ZM7.65888 14.574L7.63284 18.7407L10.6328 18.7594L10.6588 14.5927L7.65888 14.574ZM7.6068 22.9073L7.59378 24.9907L10.5937 25.0094L10.6067 22.9261L7.6068 22.9073ZM7.59378 24.9907L7.58596 26.2406L10.5859 26.2593L10.5937 25.0094L7.59378 24.9907ZM7.57034 28.7404L7.55471 31.2403L10.5547 31.259L10.5703 28.7592L7.57034 28.7404ZM7.53909 33.7401L7.52347 36.24L10.5234 36.2587L10.539 33.7589L7.53909 33.7401ZM9 39.9991L17.7538 25.0535L0.433666 24.9453L9 39.9991ZM7.75003 -0.00937502L7.73701 2.07396L10.7369 2.09271L10.75 0.00937502L7.75003 -0.00937502ZM7.71097 6.24063L7.68492 10.4073L10.6849 10.4261L10.7109 6.25938L7.71097 6.24063ZM7.65888 14.574L7.63284 18.7407L10.6328 18.7594L10.6588 14.5927L7.65888 14.574ZM7.6068 22.9073L7.59378 24.9907L10.5937 25.0094L10.6067 22.9261L7.6068 22.9073ZM7.59378 24.9907L7.58596 26.2406L10.5859 26.2593L10.5937 25.0094L7.59378 24.9907ZM7.57034 28.7404L7.55471 31.2403L10.5547 31.259L10.5703 28.7592L7.57034 28.7404ZM7.53909 33.7401L7.52347 36.24L10.5234 36.2587L10.539 33.7589L7.53909 33.7401Z");
+        }
+        path.setAttribute("fill", "#4E63CC");
+        svg.appendChild(path);
+        return svg;
+    };
+
+    const temp_mapping = new Map();
+    temp_mapping.set(rule1_id, rule1);
+    temp_mapping.set(rule2_id, rule2);
+
+    const card = document.createElement("div");
+    card.className = "card border-dark carousel__item";
+    if (isActive) {
+        card.classList.add("active");
+    }else {
+        card.classList.add("not_active");
+    }
+
+    const header = document.createElement("div");
+    header.className = "card-header";
+    header.textContent = headerText;
+    card.appendChild(header);
+
+    const body = document.createElement("div");
+    body.className = "card-body";
+
+    const spanText = document.createElement("span");
+    spanText.className = "card-text";
+    spanText.textContent = chainInfo["possibleSolutions"]["description"];
+    body.appendChild(spanText);
+
+    const container = document.createElement("div");
+    container.className = "container_arrow";
+
+    const rule1_match = rule1['description'].match(regex);
+    const rule2_match = rule2['description'].match(regex);
+
+    if (rule1_match && rule1_match.groups && rule2_match && rule2_match.groups) {
+        const rule1 = rule1_match.groups;
+        const rule2 = rule2_match.groups;
+        const p = document.createElement("p");
+        p.innerHTML = `${rule1.event}${rule1.condition ? " " + rule1.condition : ""}, <b>${rule1.action}</b> </br> <i>${rule1_name}</i>`; //teoricamente dovrebbe essere uguale (almeno semanticamente) a rule2.event
+        container.appendChild(p);
+       
+        const condition_action_container = document.createElement("div");
+        condition_action_container.className = "container_action";
+        const rule1_anonym_div = document.createElement("div");
+        
+        rule1_anonym_div.appendChild(svgArrow());
+
+        if(type_of_chain === "indirect") { 
+          const chain_variable = chainInfo["chain_variable"]
+          const chain_variable_p = document.createElement("p");
+          chain_variable_p.className = "chain_variable";
+          chain_variable_p.innerHTML = `<i>${chain_variable}</i>`;
+          rule1_anonym_div.appendChild(chain_variable_p);
+          condition_action_container.appendChild(rule1_anonym_div);
+
+          rule1_anonym_div.appendChild(svgArrow());
+        }
+        
+        const action = document.createElement("p");
+        action.innerHTML = `<b>${rule2.event}</b>${rule2.condition ? " " + rule2.condition : ""}, ${rule2.action} </br> <i>${rule2_name}</i>`;
+        rule1_anonym_div.appendChild(action);
+        condition_action_container.appendChild(rule1_anonym_div);
+        
+        const rule2_anonym_div = document.createElement("div");
+
+        condition_action_container.appendChild(rule2_anonym_div);
+        
+        container.appendChild(condition_action_container);
+    };
+    body.appendChild(container);
+
+    const title = document.createElement("p");
+    title.className = "card-title";
+    title.textContent = "Come posso risolvere?";
+    body.appendChild(title);
+
+    const accordion = document.createElement("div");
+    accordion.className = "accordion stay-open";
+    let index = 0;
+    const recommendations = chainInfo["possibleSolutions"]["recommendations"];
+    for (let automationID in recommendations) {
+        const item = document.createElement("div");
+        item.className = "accordion-item";
+
+        const header = document.createElement("h2");
+        header.className = "accordion-header";
+
+        const button = document.createElement("button");
+        button.className = "accordion-button";
+        button.setAttribute("onclick", "toggleStayOpen(this)");
+        button.textContent = `Modifica l'automazione  "${temp_mapping.get(automationID)["name"]}"`;
+
+        header.appendChild(button);
+        item.appendChild(header);
+
+        const collapse = document.createElement("div");
+        collapse.className = "accordion-collapse";
+        if (index === 0) collapse.classList.add("active");
+
+        const body = document.createElement("div");
+        body.className = "accordion-body";
+
+        recommendations[automationID]["alternatives"].forEach((alternative, i) => {
+            const formCheck = document.createElement("div");
+            formCheck.className = "form-check";
+
+            const input = document.createElement("input");
+            input.className = "form-check-input";
+            input.type = "radio";
+            input.name = "radioDefault";
+            input.id = `radioDefault${index}-${i}`;
+
+            const label = document.createElement("label");
+            label.className = "form-check-label";
+            label.setAttribute("for", input.id);
+            label.textContent = alternative["natural_language"];
+
+            formCheck.appendChild(input);
+            formCheck.appendChild(label);
+            body.appendChild(formCheck);
+        });
+
+        collapse.appendChild(body);
+        item.appendChild(collapse);
+        accordion.appendChild(item);
+        index++;
+    };
+
+    body.appendChild(accordion);
+    card.appendChild(body);
+    carousel.appendChild(card);
+    carousel.click();
+    return card;
+}
+
 function toggleStayOpen(button) {
   const collapse = button.parentElement.nextElementSibling;
   const isOpen = collapse.classList.contains('show');
