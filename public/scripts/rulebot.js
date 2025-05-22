@@ -14,7 +14,7 @@ const getRuleList = `${base_link}/get_rule_list`; // chiamata POST per ricevere 
 const getDevices = `${base_link}/get_config`; // chiamata POST per ricevere la lista delle regole
 const sendMessage = `${base_link}/send_message`; // chiamata POST per ricevere la lista delle regole
 const changeRule = `${base_link}/changeRule`; // chiamata POST per aggiornare le regole dopo il cancellamento
-const getProblems = `${base_link}/get_problems`; // chiamata POST per ricevere la lista dei problemi
+const getProblemList = `${base_link}/get_problems`; // chiamata GET per ricevere la lista dei problemi
 const getGoals = `${base_link}/get_goals`; // chiamata POST per ricevere la lista dei goal
 const ping = `${base_link}/get_chat_state`; // chiamata POST per ricevere la lista dei goal
 const downButton = document.querySelector("#download");
@@ -69,19 +69,10 @@ sse.addEventListener("message", async ({ data }) => {
     rulesList = await getRulesParam()
     printUserRule(rulesList)
   }
-  else if (message.action == "generate-conflict-card") {
+  else if (message.action == "update-problems") {
     //message.state = []
-    isActive = true;
-    message.state.forEach((conflict, index) => {
-      if (index > 0) {
-        isActive = false;
-      }
-      createConflictCard(
-        isActive,
-        "Conflitto "+index+1,
-        conflict
-      );
-    });
+    let problemsList = await getProblems()
+    printUserProblems(problemsList);
   }
   else if (message.action == "ping") {
     console.log("Keep alive");
@@ -240,6 +231,27 @@ async function deleteAutomation(rule_id) {
   function getRulesParam() {
     return new Promise((resolve, reject) => {
       fetch(getRuleList, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({"user_id": userId})
+      })
+      .then(response => response.json())
+      .then(data => {
+        resolve(data); // Risolve la promessa con i dati desiderati
+      })
+      .catch(error => {
+        console.log(error);
+        reject(error); // Reietta la promessa in caso di errore
+      });
+    });
+  }
+
+   function getProblems() {
+    return new Promise((resolve, reject) => {
+      fetch(getProblemList, {
         method: 'POST',
         headers: {
           'Accept': 'application/json',
@@ -801,7 +813,7 @@ function displayProblemDesc(el) {
 
 // ===================== Carousel ======================= //
 
-createConflictCard(
+/*createConflictCard(
   true,
   "Conflitto",
   {
@@ -841,7 +853,28 @@ createConflictCard(
     },
     "type": "possible"
   }
-);
+);*/
+function printUserProblems(problemsList) {
+  for (const [index, problem] of problemsList.entries()){
+    if (problems['type'] == 'conflict'){
+      createConflictCard(
+        index == 0,
+        `Conflitto ${problem['id']}`,
+        problem
+      )
+    }
+    else if (problems['type'].split('-')[0] == 'chain'){
+      createChainCard(
+        index == 0,
+        `Catena ${problem['id']}`,
+        problem
+      )
+    }else{
+      //TODO: aggiungere i problemi di tipo "energy"
+      console.log("Nessun problema associato a questo account");
+    }
+  }   
+}
 
 //TODO: aggiungere a conflicts.py il tipo di conflitto (se ha evento uguale senza condizioni, evento uguale con condizioni ecc.)
 // stesso evento, no condizioni, azioni diverse --> same_event_no_conditions
@@ -1124,7 +1157,7 @@ function createChainCard(isActive, headerText, chainInfo) {
     const rule2 = chainInfo['rules'][1]
     const rule2_id = rule2['id']
     const rule2_name = rule2['name']
-    const type_of_chain = chainInfo["type_of_chain"]
+    const type_of_chain = chainInfo["type"].split("-")[0]; //direct, indirect, etc.
     
     const svgArrow = () => {
         const svgNS = "http://www.w3.org/2000/svg";
