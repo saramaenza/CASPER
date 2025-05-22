@@ -115,6 +115,68 @@ def get_user_name(user_id):
         print("----------------")
         return None
 
+def get_problem(user_id, problem_id=None):
+    """
+    Restituisce la lista dei problemi per l'utente specificato.
+    Eventualmente anche il problema specifico.
+    """
+    try:
+        collection = db["problems"]
+        problems = collection.find_one({"user_id": user_id})
+        if problems is not None:
+            if problem_id is not None:
+                for problem in problems['problems']:
+                    if problem['id'] == problem_id:
+                        return problem
+            else:
+                return problems['problems']
+        else:
+            return None
+        return problems['problems'] if problems else []
+    except Exception as e:
+        print("--> Get Problem Error <--")
+        print(user_id)
+        print(e)
+        print("----------------")
+        return None
+
+
+def post_problem(user_id, input_problem):
+    """
+    Aggiunge un problema alla lista dei problemi per l'utente specificato.
+    input_problem(s): list -> [dict -> {'id': str, 'type': str...}, {...}]
+    input_roblem e sempre una lista anche se contiene un solo problema.
+    """
+    try:
+        collection = db["problems"]
+        problems = collection.find_one({"user_id": user_id})
+        if problems is not None:
+            p_len = len(problems['problems'])
+            for index in range(len(input_problem)):
+                input_problem[index]['id'] = str(p_len + index + 1)
+            problems['problems'].extend(input_problem)
+            collection.update_one(
+                {"_id": problems["_id"]},
+                {"$set": {"problems": problems['problems'], "last_update": datetime.now()}}
+            )
+        else:
+            for index in range(len(input_problem)):
+                input_problem[index]['id'] = str(index + 1)
+            collection.insert_one({
+                "user_id": user_id,
+                "problems": input_problem,
+                "created": datetime.now(),
+                "last_update": datetime.now()
+            })
+            #ritorna solamente i problemi appena inseriti
+        return input_problem or None
+    except Exception as e:
+        print("--> Post Problem Error <--")
+        print(user_id)
+        print(e)
+        print("----------------")
+        return e
+
 def save_tmp_data(user_id, data):
     """
     Salva i dati temporanei per l'utente e la sessione specificati 

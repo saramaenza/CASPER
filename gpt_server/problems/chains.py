@@ -167,16 +167,14 @@ class ChainsDetector:
             
             if is_match and self.check_operator(type_action1, type_trigger2):
                 solution_info = "" # Placeholder for call_find_solution_direct_chain
-                id_chain = len(rule_chain) + 1
+                
                 rule_name2 = rule2.get("alias")
                 id_automation2 = rule2.get("id")
                 unique_id_chain = str(id_automation1) + "_" + str(id_automation2)
 
                 if not self.is_chain_present(rule_chain, unique_id_chain):
                     rule_chain.append({
-                        "type": "chain",
-                        "type_of_chain": "direct",
-                        "id": id_chain,
+                        "type": "direct-chain",
                         "unique_id": unique_id_chain,
                         "rules": [
                             {
@@ -232,13 +230,9 @@ class ChainsDetector:
                         rule_name2 = rule2.get("alias")
                         id_automation2 = rule2.get("id")
                         unique_id_chain = str(id_automation1) + "_" + str(id_automation2)
-                        id_chain = len(rule_chain) + 1
-
                         if not self.is_chain_present(rule_chain, unique_id_chain):
                             rule_chain.append({
-                                "type": "chain",
-                                "type_of_chain": "indirect",
-                                "id": id_chain,
+                                "type": "indirect-chain",
                                 "unique_id": unique_id_chain,
                                 "chain_variable": variable, 
                                 "rules": [
@@ -312,10 +306,10 @@ class ChainsDetector:
         print("Detected chains:", rule_chain_output)
         return rule_chain_output
 
-    def detect_chains(self, user_id: str, automation_post_config: Dict[str, Any], chain_type: str = "indirect") \
+    def detect_chains(self, automation_post_config: Dict[str, Any], chain_type: str = "indirect") \
                       -> List[Dict[str, Any]]:
         
-        all_rules_from_db = self.db.get_automations(user_id)
+        all_rules_from_db = self.db.get_automations(self.user_id)
 
         processing_function = self.process_indirect_chain
         if chain_type == "direct":
@@ -381,7 +375,9 @@ if __name__ == "__main__":
 
     detector = ChainsDetector(ha_client=ha_client,
                               list_devices_variables_path=LIST_DEVICES_PATH,
-                              db_module=_db_module)
+                              db_module=_db_module,
+                              user_id=DB_USER_ID
+                              )
 
     current_automation_config = {
         "alias": "Accendi la lampadina Sara quando piove fuori casa",
@@ -408,14 +404,12 @@ if __name__ == "__main__":
 
     print("\\n--- Detecting Direct Chains ---")
     direct_chains = detector.detect_chains(
-        user_id=DB_USER_ID,
         automation_post_config=current_automation_config,
         chain_type="direct"
     )
 
     print("\\n--- Detecting Indirect Chains ---")
     indirect_chains = detector.detect_chains(
-        user_id=DB_USER_ID,
         automation_post_config=current_automation_config,
         chain_type="indirect"
     )

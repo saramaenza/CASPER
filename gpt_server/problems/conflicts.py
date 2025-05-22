@@ -89,13 +89,11 @@ class ConflictDetector:
                          idAutomation1: str, idAutomation2: str):
         if type_of_front_end == "llm":
             solution_info = self._call_find_solution_llm(idAutomation1, idAutomation2, ruleName1, ruleName2, automation1_description, automation2_description) 
-            id_conflict = len(self.conflicts) + 1 # Questo ID potrebbe non essere univoco se i conflitti vengono rimossi
             unique_id_conflict = str(idAutomation1)+"_"+str(idAutomation2)
             if not self._is_conflict_present(unique_id_conflict): # Controllo sull'ID univoco
                 self.conflicts.append({
                     "type": "conflict",
                     "confidence": type_of_conflict,
-                    "id": id_conflict, # Considerare un UUID o un meccanismo di ID più robusto
                     "unique_id": unique_id_conflict,
                     "rules": [
                         {
