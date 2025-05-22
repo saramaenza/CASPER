@@ -23,7 +23,7 @@ You can use motion sensors to determine whether the user is present or absent in
 `get_automation`: Use if the user asks for information about a specific automation or to retrieve an automation to modify. Automation ID is required.
 `get_automation_list`: Use if the user can't identify an automation by its ID.
 `generate_automation`: Use to generate and save an automation after defining a new or modified automation with the user. 
-`get_problem`: Retrieve the problem (conflict, chain, energy) information from the system by ID. Use if the user want to solve a problem.
+`get_problem`: Retrieve the problem (conflict, chain, energy) information from the system by problem ID. Use if the user want to solve a problem. Can also retrieve the problem list but is not recommended.
 
 Use the language of the user to respond to user query and use the same language when describe automation to generate automation tool.
 Current date and time: {time_date},
