@@ -801,6 +801,54 @@ function displayProblemDesc(el) {
 
 // ===================== Carousel ======================= //
 
+createConflictCard(
+  true,
+  "Conflitto",
+  {
+    "id_conflict": "17422966096088_1746629662875",
+    "rules": [
+      {
+        "id": "17422966096088",
+        "name": "Accendi aria condizionata quando è caldo",
+        "description": "Event: quando è caldo Condition: se piove Action: accendi aria condizionata "
+      },
+      {
+        "id": "1746629662875",
+        "name": "Spengi aria condizionata quando è caldo",
+        "description": "Event: quando è caldo Condition: se piove Action: spegni aria condizionata "
+      }
+    ],
+    "possibleSolutions": {
+      "description": "Questo testo rappresenta una descrizione generale del conflitto e delle possibili soluzioni.",
+      "recommendations": {
+        "17422966096088": {
+          "alternatives": [
+            {
+              "structured": "Event: Temperature rises above 26°C (sensor.temperatura_salotto_temperature) Condition: Presenza Salotto is ON (binary_sensor.presenza_salotto) Action: Turn ON aria condizionata (fan.aria_condizionata).",
+              "natural_language": "When the living room temperature rises above 26°C and someone is present in the living room, turn on the air conditioner."
+            }
+          ]
+        },
+        "1746629662875": {
+          "alternatives": [
+            {
+              "structured": "Event: Temperature drops below 24°C (sensor.temperatura_salotto_temperature) Action: Turn OFF aria condizionata (fan.aria_condizionata).",
+              "natural_language": "When the living room temperature drops below 24°C, turn off the air conditioner."
+            }
+          ]
+        }
+      }
+    },
+    "type": "possible"
+  }
+);
+
+//TODO: aggiungere a conflicts.py il tipo di conflitto (se ha evento uguale senza condizioni, evento uguale con condizioni ecc.)
+// stesso evento, no condizioni, azioni diverse --> same_event_no_conditions
+// stesso evento, stesse condizioni, azioni diverse --> same_event_same_conditions
+// stesso evento, condizioni diverse ma sovrapponibili --> same_event_different_conditions
+// diversi eventi, no condizioni, azioni diverse --> different_event_no_conditions
+// diversi eventi, condizioni sovrapponibili, azioni diverse --> different_event_with_conditions
 function createConflictCard(isActive, headerText, conflictInfo) {
     //isActive = boolean (True dovrebbe essere solo la prima card generata)
     /*conflictInfo = {
@@ -860,53 +908,47 @@ function createConflictCard(isActive, headerText, conflictInfo) {
       const svgNS = "http://www.w3.org/2000/svg";
       const svg = document.createElementNS(svgNS, "svg");
       svg.setAttribute("class", "svg_conflict");
-      svg.setAttribute("viewBox", "0 0 140 35");
+      svg.setAttribute("viewBox", "0 0 717 160");
       svg.setAttribute("fill", "none"); // L'attributo fill sull'elemento svg radice è "none"
 
       const path1 = document.createElementNS(svgNS, "path");
-      path1.setAttribute("d", "M6 35L11.7735 25H0.226497L6 35ZM6 15H5L5 25H6H7L7 15H6ZM6 25H5V26H6H7V25H6Z");
+      path1.setAttribute("d", "M21 160L41.2073 125H0.79274L21 160ZM21 75H17.5L17.5 117.5H21H24.5L24.5 75H21ZM21 117.5H17.5V128.5H21H24.5V117.5H21Z");
       path1.setAttribute("fill", "#4E63CC");
       svg.appendChild(path1);
 
       const path2 = document.createElementNS(svgNS, "path");
-      path2.setAttribute("d", "M134 35L139.774 25H128.226L134 35ZM134 15H133V25H134H135V15H134ZM134 25H133V26H134H135V25H134Z");
+      path2.setAttribute("d", "M696 160L716.207 125H675.793L696 160ZM696 75H692.5V117.5H696H699.5V75H696ZM696 117.5H692.5V128.5H696H699.5V117.5H696Z");
       path2.setAttribute("fill", "#4E63CC");
       svg.appendChild(path2);
 
       const line1 = document.createElementNS(svgNS, "line");
-      line1.setAttribute("x1", "4.99561");
-      line1.setAttribute("y1", "15");
-      line1.setAttribute("x2", "69.9956");
-      line1.setAttribute("y2", "15");
+      line1.setAttribute("x1", "17.5");
+      line1.setAttribute("y1", "71.579");
+      line1.setAttribute("x2", "699.5");
+      line1.setAttribute("y2", "71.579");
       line1.setAttribute("stroke", "#4E63CC");
-      line1.setAttribute("stroke-width", "2");
+      line1.setAttribute("stroke-width", "7");
       svg.appendChild(line1);
 
       const line2 = document.createElementNS(svgNS, "line");
-      line2.setAttribute("x1", "69.9956");
-      line2.setAttribute("y1", "15");
-      line2.setAttribute("x2", "134.996");
-      line2.setAttribute("y2", "15");
+      line2.setAttribute("x1", "358.5");
+      line2.setAttribute("y1", "70");
+      line2.setAttribute("x2", "358.5");
+      line2.setAttribute("y2", "-3.45707e-06");
       line2.setAttribute("stroke", "#4E63CC");
-      line2.setAttribute("stroke-width", "2");
+      line2.setAttribute("stroke-width", "7");
       svg.appendChild(line2);
-
-      const line3 = document.createElementNS(svgNS, "line");
-      line3.setAttribute("x1", "70");
-      line3.setAttribute("y1", "15");
-      line3.setAttribute("x2", "70");
-      line3.setAttribute("y2", "-5.96046e-08"); // o "0" se preferisci
-      line3.setAttribute("stroke", "#4E63CC");
-      line3.setAttribute("stroke-width", "2");
-      svg.appendChild(line3);
 
       return svg;
   };
 
     const rule1 = conflictInfo['rules'][0]
     const rule1_id = rule1['id']
+    const rule1_name = rule1['name']
     const rule2 = conflictInfo['rules'][1]
     const rule2_id = rule2['id']
+    const rule2_name = rule2['name']
+    const type_of_conflict = "same_event_no_conditions";
 
     const temp_mapping = new Map();
     temp_mapping.set(rule1_id, rule1);
@@ -938,39 +980,234 @@ function createConflictCard(isActive, headerText, conflictInfo) {
 
     const rule1_match = rule1['description'].match(regex);
     const rule2_match = rule2['description'].match(regex);
-    console.log(rule1_match);
-    console.log(rule2_match);
+
     if (rule1_match && rule1_match.groups && rule2_match && rule2_match.groups) {
         const rule1 = rule1_match.groups;
         const rule2 = rule2_match.groups;
         const p = document.createElement("p");
         p.textContent = rule1.event; //teoricamente dovrebbe essere uguale (almeno semanticamente) a rule2.event
         container.appendChild(p);
+        if(type_of_conflict === "same_event_same_conditions") { 
+          container.appendChild(svgArrow()); //freccia semplice
+          const p2 = document.createElement("p");
+          p2.textContent = rule1.condition; //teoricamente dovrebbe essere uguale (almeno semanticamente) a rule2.condition
+          container.appendChild(p2);
+        }
         container.appendChild(createConflictArrowSVG()); //freccia biforcuta
+        const conflict_rappresentation_container = document.createElement("table");
+        conflict_rappresentation_container.className = "conflict_rappresentation_container no_mt";
+        if(type_of_conflict === "same_event_different_conditions") { 
+          //TODO: sistema i nomi dei tr/td
+          const tr0 = document.createElement("tr");
+          const td_0 = document.createElement("td");
+          const td_1 = document.createElement("td");
+          const td_2 = document.createElement("td");
+          td_0.style.color = "green";
+          td_0.innerHTML = `${rule1.condition}`;
+          td_2.style.color = "green";
+          td_2.innerHTML = `${rule2.condition}`;
+          conflict_rappresentation_container.appendChild(tr0);
+          tr0.appendChild(td_0);
+          tr0.appendChild(td_1);
+          tr0.appendChild(td_2);
+
+          const tr01 = document.createElement("tr");
+          const td_00 = document.createElement("td");
+          const td_01 = document.createElement("td");
+          const td_02 = document.createElement("td");
+          td_00.appendChild(svgArrow());
+          td_02.appendChild(svgArrow());
+          conflict_rappresentation_container.appendChild(tr01);
+          tr01.appendChild(td_00);
+          tr01.appendChild(td_01);
+          tr01.appendChild(td_02);
+        }
+        const tr1 = document.createElement("tr");
+        const td1 = document.createElement("td");
+        const td2 = document.createElement("td");
+        const td3 = document.createElement("td");
+        const actionWords1 = (rule1.action).trim().split(/\s+/);
+        const firstWord1 = actionWords1[0] || "";
+        const restOfPhrase1 = actionWords1.slice(1).join(" ");
+        td1.innerHTML =  `<span>${firstWord1}</span> ${restOfPhrase1} </br> <i>${rule1_name}</i>`;
+        td2.className = "cell_img_conf";
+        td1.style.width = "44%";
+        td3.style.width = "44%";
+        const img1 = document.createElement("img");
+        img1.src = "img/conflict2.png";
+        td2.appendChild(img1);
+        const actionWords2 = (rule2.action).trim().split(/\s+/);
+        const firstWord2 = actionWords2[0] || "";
+        const restOfPhrase2 = actionWords2.slice(1).join(" ");
+        td3.innerHTML =  `<span>${firstWord2}</span> ${restOfPhrase2} </br> <i>${rule2_name}</i>`;
+        conflict_rappresentation_container.appendChild(tr1);
+        tr1.appendChild(td1);
+        tr1.appendChild(td2);
+        tr1.appendChild(td3);
+        body.appendChild(conflict_rappresentation_container);
+        
+        container.appendChild(conflict_rappresentation_container);
+    };
+    body.appendChild(container);
+
+    const title = document.createElement("p");
+    title.className = "card-title";
+    title.textContent = "Come posso risolvere?";
+    body.appendChild(title);
+
+    const accordion = document.createElement("div");
+    accordion.className = "accordion stay-open";
+    let index = 0;
+    const recommendations = conflictInfo["possibleSolutions"]["recommendations"];
+    for (let automationID in recommendations) {
+        const item = document.createElement("div");
+        item.className = "accordion-item";
+
+        const header = document.createElement("h2");
+        header.className = "accordion-header";
+
+        const button = document.createElement("button");
+        button.className = "accordion-button";
+        button.setAttribute("onclick", "toggleStayOpen(this)");
+        button.textContent = `Modifica l'automazione  "${temp_mapping.get(automationID)["name"]}"`;
+
+        header.appendChild(button);
+        item.appendChild(header);
+
+        const collapse = document.createElement("div");
+        collapse.className = "accordion-collapse";
+        if (index === 0) collapse.classList.add("active");
+
+        const body = document.createElement("div");
+        body.className = "accordion-body";
+
+        recommendations[automationID]["alternatives"].forEach((alternative, i) => {
+            const formCheck = document.createElement("div");
+            formCheck.className = "form-check";
+
+            const input = document.createElement("input");
+            input.className = "form-check-input";
+            input.type = "radio";
+            input.name = "radioDefault";
+            input.id = `radioDefault${index}-${i}`;
+
+            const label = document.createElement("label");
+            label.className = "form-check-label";
+            label.setAttribute("for", input.id);
+            label.textContent = alternative["natural_language"];
+
+            formCheck.appendChild(input);
+            formCheck.appendChild(label);
+            body.appendChild(formCheck);
+        });
+
+        collapse.appendChild(body);
+        item.appendChild(collapse);
+        accordion.appendChild(item);
+        index++;
+    };
+
+    body.appendChild(accordion);
+    card.appendChild(body);
+    carousel.appendChild(card);
+    carousel.click();
+    return card;
+}
+
+function createChainCard(isActive, headerText, chainInfo) {
+    //recommendations = {"alias_automazione1": ["opzione1", "opzione2"], "alias_automazione2": ["opzione3", "opzione4"]}
+    const regex = /^event(?:s|o|i)?:\s*(?<event>.*?)(?:\s*(?:condition(?:s)?|condizion(?:e|i)):\s*(?<condition>.*?))?\s*(?:action(?:s)?|azion(?:i|e)):\s*(?<action>.*)$/i;
+
+    const rule1 = chainInfo['rules'][0]
+    const rule1_id = rule1['id']
+    const rule1_name = rule1['name']
+    const rule2 = chainInfo['rules'][1]
+    const rule2_id = rule2['id']
+    const rule2_name = rule2['name']
+    const type_of_chain = chainInfo["type_of_chain"]
+    
+    const svgArrow = () => {
+        const svgNS = "http://www.w3.org/2000/svg";
+        const svg = document.createElementNS(svgNS, "svg");
+        svg.setAttribute("width", "18");
+        svg.setAttribute("height", "40");
+        svg.setAttribute("viewBox", "0 0 18 40");
+        svg.setAttribute("fill", "none");
+        const path = document.createElementNS(svgNS, "path");
+        if (type_of_chain === "direct") {
+            svg.setAttribute("class", "svg_conflict2");
+            path.setAttribute("d", "M8.75 39.9991L17.5038 25.0535L0.183666 24.9453L8.75 39.9991ZM7.50003 -0.00937502L7.34378 24.9907L10.3437 25.0094L10.5 0.00937502L7.50003 -0.00937502ZM7.34378 24.9907L7.3344 26.49L10.3343 26.5088L10.3437 25.0094L7.34378 24.9907Z");
+        } else {
+            svg.setAttribute("class", "svg_chain");
+            path.setAttribute("d", "M9 39.9991L17.7538 25.0535L0.433666 24.9453L9 39.9991ZM7.75003 -0.00937502L7.73701 2.07396L10.7369 2.09271L10.75 0.00937502L7.75003 -0.00937502ZM7.71097 6.24063L7.68492 10.4073L10.6849 10.4261L10.7109 6.25938L7.71097 6.24063ZM7.65888 14.574L7.63284 18.7407L10.6328 18.7594L10.6588 14.5927L7.65888 14.574ZM7.6068 22.9073L7.59378 24.9907L10.5937 25.0094L10.6067 22.9261L7.6068 22.9073ZM7.59378 24.9907L7.58596 26.2406L10.5859 26.2593L10.5937 25.0094L7.59378 24.9907ZM7.57034 28.7404L7.55471 31.2403L10.5547 31.259L10.5703 28.7592L7.57034 28.7404ZM7.53909 33.7401L7.52347 36.24L10.5234 36.2587L10.539 33.7589L7.53909 33.7401ZM9 39.9991L17.7538 25.0535L0.433666 24.9453L9 39.9991ZM7.75003 -0.00937502L7.73701 2.07396L10.7369 2.09271L10.75 0.00937502L7.75003 -0.00937502ZM7.71097 6.24063L7.68492 10.4073L10.6849 10.4261L10.7109 6.25938L7.71097 6.24063ZM7.65888 14.574L7.63284 18.7407L10.6328 18.7594L10.6588 14.5927L7.65888 14.574ZM7.6068 22.9073L7.59378 24.9907L10.5937 25.0094L10.6067 22.9261L7.6068 22.9073ZM7.59378 24.9907L7.58596 26.2406L10.5859 26.2593L10.5937 25.0094L7.59378 24.9907ZM7.57034 28.7404L7.55471 31.2403L10.5547 31.259L10.5703 28.7592L7.57034 28.7404ZM7.53909 33.7401L7.52347 36.24L10.5234 36.2587L10.539 33.7589L7.53909 33.7401Z");
+        }
+        path.setAttribute("fill", "#4E63CC");
+        svg.appendChild(path);
+        return svg;
+    };
+
+    const temp_mapping = new Map();
+    temp_mapping.set(rule1_id, rule1);
+    temp_mapping.set(rule2_id, rule2);
+
+    const card = document.createElement("div");
+    card.className = "card border-dark carousel__item";
+    if (isActive) {
+        card.classList.add("active");
+    }else {
+        card.classList.add("not_active");
+    }
+
+    const header = document.createElement("div");
+    header.className = "card-header";
+    header.textContent = headerText;
+    card.appendChild(header);
+
+    const body = document.createElement("div");
+    body.className = "card-body";
+
+    const spanText = document.createElement("span");
+    spanText.className = "card-text";
+    spanText.textContent = chainInfo["possibleSolutions"]["description"];
+    body.appendChild(spanText);
+
+    const container = document.createElement("div");
+    container.className = "container_arrow";
+
+    const rule1_match = rule1['description'].match(regex);
+    const rule2_match = rule2['description'].match(regex);
+
+    if (rule1_match && rule1_match.groups && rule2_match && rule2_match.groups) {
+        const rule1 = rule1_match.groups;
+        const rule2 = rule2_match.groups;
+        const p = document.createElement("p");
+        p.innerHTML = `${rule1.event}${rule1.condition ? " " + rule1.condition : ""}, <b>${rule1.action}</b> </br> <i>${rule1_name}</i>`; //teoricamente dovrebbe essere uguale (almeno semanticamente) a rule2.event
+        container.appendChild(p);
+       
         const condition_action_container = document.createElement("div");
         condition_action_container.className = "container_action";
         const rule1_anonym_div = document.createElement("div");
-        if (rule1.condition) {
-          const condition = document.createElement("p");
-          condition.textContent = rule1.condition;
-          rule1_anonym_div.appendChild(condition);
+        
+        rule1_anonym_div.appendChild(svgArrow());
+
+        if(type_of_chain === "indirect") { 
+          const chain_variable = chainInfo["chain_variable"]
+          const chain_variable_p = document.createElement("p");
+          chain_variable_p.className = "chain_variable";
+          chain_variable_p.innerHTML = `<i>${chain_variable}</i>`;
+          rule1_anonym_div.appendChild(chain_variable_p);
+          condition_action_container.appendChild(rule1_anonym_div);
+
           rule1_anonym_div.appendChild(svgArrow());
         }
+        
         const action = document.createElement("p");
-        action.textContent = rule1.action;
+        action.innerHTML = `<b>${rule2.event}</b>${rule2.condition ? " " + rule2.condition : ""}, ${rule2.action} </br> <i>${rule2_name}</i>`;
         rule1_anonym_div.appendChild(action);
         condition_action_container.appendChild(rule1_anonym_div);
         
         const rule2_anonym_div = document.createElement("div");
-        if (rule2.condition) {
-          const condition = document.createElement("p");
-          condition.textContent = rule2.condition;
-          rule2_anonym_div.appendChild(condition);
-          rule2_anonym_div.appendChild(svgArrow());
-        }
-        const action2 = document.createElement("p");
-        action2.textContent = rule2.action;
-        rule2_anonym_div.appendChild(action2);
+
         condition_action_container.appendChild(rule2_anonym_div);
         
         container.appendChild(condition_action_container);
@@ -985,7 +1222,7 @@ function createConflictCard(isActive, headerText, conflictInfo) {
     const accordion = document.createElement("div");
     accordion.className = "accordion stay-open";
     let index = 0;
-    const recommendations = conflictInfo["possibleSolutions"]["recommendations"];
+    const recommendations = chainInfo["possibleSolutions"]["recommendations"];
     for (let automationID in recommendations) {
         const item = document.createElement("div");
         item.className = "accordion-item";
