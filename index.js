@@ -24,7 +24,7 @@ const uuid = require('uuid');
 const bcrypt = require('bcryptjs')
 const cookieParser = require('cookie-parser')
 const jwt = require('jsonwebtoken')
-const {setServerConfig, createUser, getUser, verifyToken, isLogged, createGoogleUser, userInfo, verifyEmail, getConflicts, getAutomations, getGoals, restoreProblem, getConfiguration, saveConfiguration,  saveSelectedConfiguration, saveAutomations, saveAutomation, deleteRule } = require('./db_methods.cjs');
+const {setServerConfig, createUser, getUser, verifyToken, isLogged, createGoogleUser, userInfo, verifyEmail, getProblems, getAutomations, getConfiguration, saveConfiguration,  saveSelectedConfiguration, saveAutomations, saveAutomation, deleteRule } = require('./db_methods.cjs');
 const JWT_SECRET = 'sdjkfh8923yhjdksbfma@#*(&@*!^#&@bhjb2qiuhesdbhjdsfg839ujkdhfjk'
 // =======================================
 const { getEntities, getAutomationsHA, postAutomationHA } = require('./utils.cjs');
@@ -377,21 +377,10 @@ app.use('/get_rule_list', verifyToken, async (req, res) =>{
 app.get('/get_problems', verifyToken, async (req, res) => {
   try {
     let user_id = req.query.id;
-    const data = await getConflicts(user_id);
+    const data = await getProblems(user_id);
     res.json(data);
   } catch (error) {
     console.log('/get_problems error:');
-    console.log(error);
-  }
-});
-
-app.get('/get_goals', verifyToken, async (req, res) => {
-  try {
-    let user_id = req.query.id;
-    const data = await getGoals(user_id);
-    res.json(data);
-  } catch (error) {
-    console.log('/get_goals error:');
     console.log(error);
   }
 });
@@ -424,24 +413,6 @@ app.post('/post_chat_state', async (req, res) =>{
 }) 
 // Mappa per gestire i canali per sessione
 
-
-app.post('/restore_problem', verifyToken, async (req, res) => {
-  try {
-    let problemId = req.body.problemId;
-    let userId = req.body.userId;
-    // Logic to restore the problem
-    const result = await restoreProblem(problemId, userId);
-    if (result) {
-      res.json({ success: true });
-    } else {
-      res.json({ success: false });
-    }
-  } catch (error) {
-    console.log('/restore_problem error:');
-    console.log(error);
-    res.json({ success: false });
-  }
-});
 
 //------ E-mail sender function ---------
 const sendEmail = (destinatario) => {
