@@ -1,6 +1,4 @@
 import json
-import requests
-# from requests import get, post # Rimosso perché HomeAssistantClient gestisce le richieste
 import re
 from typing import List, Dict, Any, Tuple
 from collections import OrderedDict
@@ -9,11 +7,10 @@ from collections import OrderedDict
 from ..ha_client import HomeAssistantClient
 
 class ChainsDetector:
-    def __init__(self, ha_client: HomeAssistantClient, list_devices_variables_path: str, db_module: Any, user_id: str = ""):
-        
+    def __init__(self, ha_client: HomeAssistantClient, db_module: Any, user_id: str = ""):
         self.ha_client = ha_client
         self.db = db_module
-        self.list_devices_variables = self._load_devices_variables(list_devices_variables_path)
+        self.list_devices_variables = self._load_devices_variables()
         self.user_id = user_id
         # self.all_ha_states = self._initialize_states() # Removed global states, fetch when needed or pass if required by many methods
 
@@ -25,10 +22,9 @@ class ChainsDetector:
     #         # Log error or raise
     #         return []
 
-    def _load_devices_variables(self, path: str) -> Dict[str, Any]:
-        # GIOVE
+    def _load_devices_variables(self) -> Dict[str, Any]:
         # with open('C:\\LaboratorySite\\www\\demo\\explaintap\\main\\list_devices_variables.json', 'r') as file:
-        with open(path, 'r') as file:
+        with open('list_devices_variables.json', 'r') as file:
             return json.load(file)
 
     # Search for the entity ID of the automation based on the ID of the automation's 'attributes' element
@@ -171,19 +167,30 @@ class ChainsDetector:
             
             if is_match and self.check_operator(type_action1, type_trigger2):
                 solution_info = "" # Placeholder for call_find_solution_direct_chain
+                id_chain = len(rule_chain) + 1
                 rule_name2 = rule2.get("alias")
                 id_automation2 = rule2.get("id")
-                id_chain = str(id_automation1) + "_" + str(id_automation2)
+                unique_id_chain = str(id_automation1) + "_" + str(id_automation2)
 
-                if not self.is_chain_present(rule_chain, id_chain):
+                if not self.is_chain_present(rule_chain, unique_id_chain):
                     rule_chain.append({
-                        "id_chain": id_chain,
-                        "rule_id": id_automation1,
-                        "rule_name": rule1_name,
-                        "possible_triggered_rule_id": id_automation2,
-                        "triggered_rule_name": rule_name2,
+                        "type": "chain",
+                        "type_of_chain": "direct",
+                        "id": id_chain,
+                        "unique_id": unique_id_chain,
+                        "rules": [
+                            {
+                                "id": id_automation1,
+                                "name": rule1_name,
+                                "description": rule1.get("description"),
+                            },
+                            {
+                                "id": id_automation2,
+                                "name": rule_name2,
+                                "description": rule2.get("description"),
+                            }
+                        ],
                         "possibleSolutions": solution_info,
-                        "type_of_chain": "direct"
                     })
                     break # Assuming one match per rule2 is sufficient for "direct chain"
 
@@ -224,18 +231,29 @@ class ChainsDetector:
                         solution_info = "" # Placeholder
                         rule_name2 = rule2.get("alias")
                         id_automation2 = rule2.get("id")
-                        id_chain = str(id_automation1) + "_" + str(id_automation2)
+                        unique_id_chain = str(id_automation1) + "_" + str(id_automation2)
+                        id_chain = len(rule_chain) + 1
 
-                        if not self.is_chain_present(rule_chain, id_chain):
+                        if not self.is_chain_present(rule_chain, unique_id_chain):
                             rule_chain.append({
-                                "id_chain": id_chain,
-                                "rule_id": id_automation1,
-                                "rule_name": rule1_name,
-                                "possible_triggered_rule_id": id_automation2,
-                                "triggered_rule_name": rule_name2,
-                                "possibleSolutions": solution_info,
-                                "variable": variable,
-                                "type_of_chain": "indirect"
+                                "type": "chain",
+                                "type_of_chain": "indirect",
+                                "id": id_chain,
+                                "unique_id": unique_id_chain,
+                                "chain_variable": variable, 
+                                "rules": [
+                                    {
+                                        "id": id_automation1,
+                                        "name": rule1_name,
+                                        "description": rule1.get("description"),
+                                    },
+                                    {
+                                        "id": id_automation2,
+                                        "name": rule_name2,
+                                        "description": rule2.get("description"),
+                                    }
+                                ],
+                                "possibleSolutions": solution_info
                             })
                             return # Exit after finding the first indirect chain for this rule2
 
