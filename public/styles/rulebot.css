@@ -174,10 +174,11 @@ body{
   padding: 8px;
   margin-bottom: 4px;
   color: #2F4156;
-  cursor: pointer;
   display: flex;
+  cursor: pointer;
   justify-content: space-between;
   align-items: center;
+  padding-left: 10px;
 }
 
 .solved-tag{
@@ -193,7 +194,7 @@ body{
 }
 
 .rule-head:hover{
-    background-color: #e0ecf54d;
+    background-color: #efefef;
 }
 .rule-element {
   background-color: rgba(255, 255, 255, 1);
@@ -203,13 +204,16 @@ body{
   border-radius: 5px;
   overflow: hidden;
   opacity: 0; /* Inizia con il contenuto nascosto */
-  transition: max-height 0.5s ease-in-out, padding 0.5s ease-in-out, opacity 0.6s ease-in-out;
+  transition: max-height 0.4s ease-in-out, padding 0.4s ease-in-out, opacity 0.4s ease-in-out;
 }
 
 .rule-element.open {
   max-height: 1000px; /* Imposta un valore massimo sufficiente */
-  padding: 1em; /* Aggiungi il padding durante l'apertura */
   opacity: 1; /* Mostra il contenuto */
+}
+
+.rule-description, .buttons-container{
+  padding: 1em; 
 }
 
 .rule-button{
@@ -327,8 +331,8 @@ body{
 .conflict_rappresentation_container {
   width: 100%; 
   border-collapse: collapse; 
-  margin-top: 1rem; 
-  margin-bottom: 1rem;
+  margin-top: 1.5rem; 
+  margin-bottom: 1.5rem;
 }
 
 td {
@@ -338,6 +342,17 @@ td {
 }
 .cell_img_conf {
   width: 10%;
+}
+
+.conflict_rappresentation_container img {
+  width: 100%; 
+  height: auto; 
+  margin: 0 auto;
+}
+
+.img_conf {
+  width: 50%; 
+  height: auto; 
 }
 
 .container_arrow {
@@ -350,8 +365,12 @@ td {
   margin-top: 0.5rem;
 }
 .svg_conflict {
-  width: 40%; 
+  width: 59%; 
   height: auto;
+}
+
+.no_mt {
+  margin-top: 0;
 }
 
 .automation_name {
@@ -582,7 +601,7 @@ td {
   font-weight: bold;
   background-color: #2F4156;
 }
-.selector-selected .circle-number {
+.selector-selected  {
   font-weight: normal !important;
 }
 
@@ -595,7 +614,7 @@ td {
   font-weight: bold;
   background-color: #2F4156;
 }
-.selector-unselected:hover .circle-number {
+.selector-unselected:hover {
   font-weight: normal !important;
 }
 .circle-number {
@@ -604,12 +623,13 @@ td {
   align-items: center;
   width: 20px;      
   height: 20px;
-  background: #4E63CC; 
-  color: #fff;     
+  background: #e3b70f; 
+  color: black;     
   border-radius: 50%; 
   box-shadow: 0 2px 6px rgba(0,0,0,0.08);
   margin-left: 5px;
   font-size: 14px;
+  font-weight: 600;
 }
 .leftbar-selected{
   display: block;
@@ -671,13 +691,93 @@ td {
   border-top: 1px solid white;
 }
 
-.deleteButton{
-padding: 5px;
-border: 1px solid #464f6c;
-border-radius: 5px;
+.deleteButton {
+  padding: 5px;
+  border: 1px solid #dee2e6;
+  border-radius: 5px;
+  font-family: 'Nunito', sans-serif;
+  cursor: pointer !important;
 }
+.deleteButton {
+  background: #ff00006e;
+}
+
 .deleteButton:hover {
-  background: #ff000094;
+  background: #ff0000a2;
+}
+
+/* Modern switch */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 46px;
+  height: 24px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+  border-radius: 24px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+.switch input:checked + .slider {
+  background-color: #2F4156;
+}
+
+.switch input:checked + .slider:before {
+  transform: translateX(22px);
+}
+
+.id_badge {
+  background: #efefef;
+  color: black;
+  border-radius: 4px;
+  width: 180px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 10px;
+  border: 1px solid #dee2e6;
+}
+
+.buttons-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  justify-content: flex-start;
+  align-items: center; 
+  cursor: pointer;
+}
+
+.rule-content-wrapper {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+  width: 100%;
 }
 
   .infoMsgContainer {

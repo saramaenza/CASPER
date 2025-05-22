@@ -274,36 +274,74 @@ async function printUserRule(rules) {
         ruleHead.setAttribute('ruleid', element['id']);
         let ruleName = document.createElement('span');
         ruleName.classList.add('rule-name');
-        ruleName.innerText = `${element['alias']} (ID: ${element['id']})`;
+        ruleName.innerText = `${element['alias']}`;
 
         let ruleElement = document.createElement('div');
-        ruleElement.classList.add('rule-element', 'closed');
+        ruleElement.classList.add('rule-element', 'closed', 'rule-content-wrapper');
         ruleElement.setAttribute('descid', element['id']);
-        ruleElement.innerHTML = element['description'] || 'Questa automazione non ha una descrizione';
+  
+        let ruleDescription = document.createElement('div');
+        ruleDescription.classList.add('rule-description');
+        ruleDescription.innerHTML = element['description'] || 'Questa automazione non ha una descrizione';
+        /*
+        const icon = document.createElement('i');
+        icon.classList.add('bx', 'bxs-trash', 'deleteButton');
+        icon.id = element['id'];*/
+
+        const idBadge = document.createElement('div');
+        idBadge.textContent = `ID ${element['id']}`;
+        idBadge.classList.add('id_badge');
+
+        const buttonsContainer = document.createElement('div');
+        buttonsContainer.classList.add('buttons-container');
+
+        // Crea un contenitore per lo switch
+        const switchContainer = document.createElement('label');
+        switchContainer.className = 'switch';
+
+        // Crea l'input checkbox
+        const switchInput = document.createElement('input');
+        switchInput.type = 'checkbox';
+
+        // Crea lo slider
+        const switchSlider = document.createElement('span');
+        switchSlider.className = 'slider';
+
+        // Assembla lo switch
+        switchContainer.appendChild(switchInput);
+        switchContainer.appendChild(switchSlider);
 
         const icon = document.createElement('i');
         icon.classList.add('bx', 'bxs-trash', 'deleteButton');
         icon.id = element['id'];
+        buttonsContainer.appendChild(icon);
+
+        buttonsContainer.appendChild(switchContainer);
 
         ruleHead.appendChild(ruleName);
-        ruleHead.appendChild(icon);
+        ruleHead.appendChild(idBadge);
+        //ruleHead.appendChild(icon);
         rule.appendChild(ruleHead);
         rule.appendChild(ruleElement);
+        ruleElement.appendChild(ruleDescription);
+        ruleElement.appendChild(buttonsContainer);
         rulesContainer.appendChild(rule);
 
         // Aggiungi l'event listener per l'apertura del contenuto
         ruleHead.addEventListener('click', (event) => {
-          if (
-            event.target.classList.contains('rule-head') ||
-            event.target.classList.contains('rule-name')
-          ) {
-            displayDesc(ruleHead);
-          } else if (event.target.classList.contains('deleteButton')) {
-            if (confirm("Sei sicuro di voler eliminare l'automazione?")) {
-              deleteAutomation(ruleHead.getAttribute('ruleid'));
+            if (
+              event.target.classList.contains('rule-head') ||
+              event.target.classList.contains('rule-name') ||
+              event.target.classList.contains('id_badge') // aggiunto qui
+            ) {
+              displayDesc(ruleHead);
+            } else if (event.target.classList.contains('deleteButton')) {
+              if (confirm("Sei sicuro di voler eliminare l'automazione?")) {
+                deleteAutomation(ruleHead.getAttribute('ruleid'));
+              }
+              //deleteRule(ruleHead.getAttribute('ruleid'), rulesList);
             }
-            //deleteRule(ruleHead.getAttribute('ruleid'), rulesList);
-          }
+         
         });
       }, index * 100); // Ritardo di 500ms tra ogni regola
     });
