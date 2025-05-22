@@ -801,6 +801,54 @@ function displayProblemDesc(el) {
 
 // ===================== Carousel ======================= //
 
+createConflictCard(
+  true,
+  "Conflitto",
+  {
+    "id_conflict": "17422966096088_1746629662875",
+    "rules": [
+      {
+        "id": "17422966096088",
+        "name": "Accendi aria condizionata quando è caldo",
+        "description": "Event: quando è caldo Condition: se piove Action: accendi aria condizionata "
+      },
+      {
+        "id": "1746629662875",
+        "name": "Spengi aria condizionata quando è caldo",
+        "description": "Event: quando è caldo Condition: se piove Action: spegni aria condizionata "
+      }
+    ],
+    "possibleSolutions": {
+      "description": "Questo testo rappresenta una descrizione generale del conflitto e delle possibili soluzioni.",
+      "recommendations": {
+        "17422966096088": {
+          "alternatives": [
+            {
+              "structured": "Event: Temperature rises above 26°C (sensor.temperatura_salotto_temperature) Condition: Presenza Salotto is ON (binary_sensor.presenza_salotto) Action: Turn ON aria condizionata (fan.aria_condizionata).",
+              "natural_language": "When the living room temperature rises above 26°C and someone is present in the living room, turn on the air conditioner."
+            }
+          ]
+        },
+        "1746629662875": {
+          "alternatives": [
+            {
+              "structured": "Event: Temperature drops below 24°C (sensor.temperatura_salotto_temperature) Action: Turn OFF aria condizionata (fan.aria_condizionata).",
+              "natural_language": "When the living room temperature drops below 24°C, turn off the air conditioner."
+            }
+          ]
+        }
+      }
+    },
+    "type": "possible"
+  }
+);
+
+//TODO: aggiungere a conflicts.py il tipo di conflitto (se ha evento uguale senza condizioni, evento uguale con condizioni ecc.)
+// stesso evento, no condizioni, azioni diverse --> same_event_no_conditions
+// stesso evento, stesse condizioni, azioni diverse --> same_event_same_conditions
+// stesso evento, condizioni diverse ma sovrapponibili --> same_event_different_conditions
+// diversi eventi, no condizioni, azioni diverse --> different_event_no_conditions
+// diversi eventi, condizioni sovrapponibili, azioni diverse --> different_event_with_conditions
 function createConflictCard(isActive, headerText, conflictInfo) {
     //isActive = boolean (True dovrebbe essere solo la prima card generata)
     /*conflictInfo = {
@@ -860,53 +908,47 @@ function createConflictCard(isActive, headerText, conflictInfo) {
       const svgNS = "http://www.w3.org/2000/svg";
       const svg = document.createElementNS(svgNS, "svg");
       svg.setAttribute("class", "svg_conflict");
-      svg.setAttribute("viewBox", "0 0 140 35");
+      svg.setAttribute("viewBox", "0 0 717 160");
       svg.setAttribute("fill", "none"); // L'attributo fill sull'elemento svg radice è "none"
 
       const path1 = document.createElementNS(svgNS, "path");
-      path1.setAttribute("d", "M6 35L11.7735 25H0.226497L6 35ZM6 15H5L5 25H6H7L7 15H6ZM6 25H5V26H6H7V25H6Z");
+      path1.setAttribute("d", "M21 160L41.2073 125H0.79274L21 160ZM21 75H17.5L17.5 117.5H21H24.5L24.5 75H21ZM21 117.5H17.5V128.5H21H24.5V117.5H21Z");
       path1.setAttribute("fill", "#4E63CC");
       svg.appendChild(path1);
 
       const path2 = document.createElementNS(svgNS, "path");
-      path2.setAttribute("d", "M134 35L139.774 25H128.226L134 35ZM134 15H133V25H134H135V15H134ZM134 25H133V26H134H135V25H134Z");
+      path2.setAttribute("d", "M696 160L716.207 125H675.793L696 160ZM696 75H692.5V117.5H696H699.5V75H696ZM696 117.5H692.5V128.5H696H699.5V117.5H696Z");
       path2.setAttribute("fill", "#4E63CC");
       svg.appendChild(path2);
 
       const line1 = document.createElementNS(svgNS, "line");
-      line1.setAttribute("x1", "4.99561");
-      line1.setAttribute("y1", "15");
-      line1.setAttribute("x2", "69.9956");
-      line1.setAttribute("y2", "15");
+      line1.setAttribute("x1", "17.5");
+      line1.setAttribute("y1", "71.579");
+      line1.setAttribute("x2", "699.5");
+      line1.setAttribute("y2", "71.579");
       line1.setAttribute("stroke", "#4E63CC");
-      line1.setAttribute("stroke-width", "2");
+      line1.setAttribute("stroke-width", "7");
       svg.appendChild(line1);
 
       const line2 = document.createElementNS(svgNS, "line");
-      line2.setAttribute("x1", "69.9956");
-      line2.setAttribute("y1", "15");
-      line2.setAttribute("x2", "134.996");
-      line2.setAttribute("y2", "15");
+      line2.setAttribute("x1", "358.5");
+      line2.setAttribute("y1", "70");
+      line2.setAttribute("x2", "358.5");
+      line2.setAttribute("y2", "-3.45707e-06");
       line2.setAttribute("stroke", "#4E63CC");
-      line2.setAttribute("stroke-width", "2");
+      line2.setAttribute("stroke-width", "7");
       svg.appendChild(line2);
-
-      const line3 = document.createElementNS(svgNS, "line");
-      line3.setAttribute("x1", "70");
-      line3.setAttribute("y1", "15");
-      line3.setAttribute("x2", "70");
-      line3.setAttribute("y2", "-5.96046e-08"); // o "0" se preferisci
-      line3.setAttribute("stroke", "#4E63CC");
-      line3.setAttribute("stroke-width", "2");
-      svg.appendChild(line3);
 
       return svg;
   };
 
     const rule1 = conflictInfo['rules'][0]
     const rule1_id = rule1['id']
+    const rule1_name = rule1['name']
     const rule2 = conflictInfo['rules'][1]
     const rule2_id = rule2['id']
+    const rule2_name = rule2['name']
+    const type_of_conflict = "same_event_no_conditions";
 
     const temp_mapping = new Map();
     temp_mapping.set(rule1_id, rule1);
@@ -938,42 +980,73 @@ function createConflictCard(isActive, headerText, conflictInfo) {
 
     const rule1_match = rule1['description'].match(regex);
     const rule2_match = rule2['description'].match(regex);
-    console.log(rule1_match);
-    console.log(rule2_match);
+
     if (rule1_match && rule1_match.groups && rule2_match && rule2_match.groups) {
         const rule1 = rule1_match.groups;
         const rule2 = rule2_match.groups;
         const p = document.createElement("p");
         p.textContent = rule1.event; //teoricamente dovrebbe essere uguale (almeno semanticamente) a rule2.event
         container.appendChild(p);
+        if(type_of_conflict === "same_event_same_conditions") { 
+          container.appendChild(svgArrow()); //freccia semplice
+          const p2 = document.createElement("p");
+          p2.textContent = rule1.condition; //teoricamente dovrebbe essere uguale (almeno semanticamente) a rule2.condition
+          container.appendChild(p2);
+        }
         container.appendChild(createConflictArrowSVG()); //freccia biforcuta
-        const condition_action_container = document.createElement("div");
-        condition_action_container.className = "container_action";
-        const rule1_anonym_div = document.createElement("div");
-        if (rule1.condition) {
-          const condition = document.createElement("p");
-          condition.textContent = rule1.condition;
-          rule1_anonym_div.appendChild(condition);
-          rule1_anonym_div.appendChild(svgArrow());
+        const conflict_rappresentation_container = document.createElement("table");
+        conflict_rappresentation_container.className = "conflict_rappresentation_container no_mt";
+        if(type_of_conflict === "same_event_different_conditions") { 
+          //TODO: sistema i nomi dei tr/td
+          const tr0 = document.createElement("tr");
+          const td_0 = document.createElement("td");
+          const td_1 = document.createElement("td");
+          const td_2 = document.createElement("td");
+          td_0.style.color = "green";
+          td_0.innerHTML = `${rule1.condition}`;
+          td_2.style.color = "green";
+          td_2.innerHTML = `${rule2.condition}`;
+          conflict_rappresentation_container.appendChild(tr0);
+          tr0.appendChild(td_0);
+          tr0.appendChild(td_1);
+          tr0.appendChild(td_2);
+
+          const tr01 = document.createElement("tr");
+          const td_00 = document.createElement("td");
+          const td_01 = document.createElement("td");
+          const td_02 = document.createElement("td");
+          td_00.appendChild(svgArrow());
+          td_02.appendChild(svgArrow());
+          conflict_rappresentation_container.appendChild(tr01);
+          tr01.appendChild(td_00);
+          tr01.appendChild(td_01);
+          tr01.appendChild(td_02);
         }
-        const action = document.createElement("p");
-        action.textContent = rule1.action;
-        rule1_anonym_div.appendChild(action);
-        condition_action_container.appendChild(rule1_anonym_div);
+        const tr1 = document.createElement("tr");
+        const td1 = document.createElement("td");
+        const td2 = document.createElement("td");
+        const td3 = document.createElement("td");
+        const actionWords1 = (rule1.action).trim().split(/\s+/);
+        const firstWord1 = actionWords1[0] || "";
+        const restOfPhrase1 = actionWords1.slice(1).join(" ");
+        td1.innerHTML =  `<span>${firstWord1}</span> ${restOfPhrase1} </br> <i>${rule1_name}</i>`;
+        td2.className = "cell_img_conf";
+        td1.style.width = "44%";
+        td3.style.width = "44%";
+        const img1 = document.createElement("img");
+        img1.src = "img/conflict2.png";
+        td2.appendChild(img1);
+        const actionWords2 = (rule2.action).trim().split(/\s+/);
+        const firstWord2 = actionWords2[0] || "";
+        const restOfPhrase2 = actionWords2.slice(1).join(" ");
+        td3.innerHTML =  `<span>${firstWord2}</span> ${restOfPhrase2} </br> <i>${rule2_name}</i>`;
+        conflict_rappresentation_container.appendChild(tr1);
+        tr1.appendChild(td1);
+        tr1.appendChild(td2);
+        tr1.appendChild(td3);
+        body.appendChild(conflict_rappresentation_container);
         
-        const rule2_anonym_div = document.createElement("div");
-        if (rule2.condition) {
-          const condition = document.createElement("p");
-          condition.textContent = rule2.condition;
-          rule2_anonym_div.appendChild(condition);
-          rule2_anonym_div.appendChild(svgArrow());
-        }
-        const action2 = document.createElement("p");
-        action2.textContent = rule2.action;
-        rule2_anonym_div.appendChild(action2);
-        condition_action_container.appendChild(rule2_anonym_div);
-        
-        container.appendChild(condition_action_container);
+        container.appendChild(conflict_rappresentation_container);
     };
     body.appendChild(container);
 
