@@ -307,6 +307,18 @@ async function printUserRule(rules) {
         const switchSlider = document.createElement('span');
         switchSlider.className = 'slider';
 
+        // Crea il tooltip
+        switchContainer.title = "Attiva";
+
+        // Aggiorna il tooltip quando cambia lo stato dello switch
+        switchInput.addEventListener('change', function() {
+          if (switchInput.checked) {
+            switchContainer.title = "Disattiva";
+          } else {
+            switchContainer.title = "Attiva";
+          }
+        });
+
         // Assembla lo switch
         switchContainer.appendChild(switchInput);
         switchContainer.appendChild(switchSlider);
