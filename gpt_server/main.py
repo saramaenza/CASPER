@@ -25,7 +25,7 @@ _db.set_db(data['db_name'])
 
 memory = MemorySaver()
 llm = gpt4
-tools = [_tools.do_instant_actions, _tools.generate_automation, _tools.get_automation, _tools.get_automation_list, _tools.conflict_check, _tools.energy_check, _tools.save_automation]
+tools = [_tools.do_instant_actions, _tools.generate_automation, _tools.get_automation, _tools.get_automation_list, _tools.get_problem] #_tools.conflict_check, _tools.energy_check, _tools.save_automation
 llm_tools = llm.bind_tools(tools)
 app = Flask(__name__)
 
