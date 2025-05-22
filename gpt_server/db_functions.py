@@ -118,7 +118,7 @@ def get_user_name(user_id):
 def get_problem(user_id, problem_id=None):
     """
     Restituisce la lista dei problemi per l'utente specificato.
-    Eventualmente anche il problema specifico.
+    Eventualmente anche il problema specificato per ID o tutti i problemi.
     """
     try:
         collection = db["problems"]
@@ -129,10 +129,9 @@ def get_problem(user_id, problem_id=None):
                     if problem['id'] == problem_id:
                         return problem
             else:
-                return problems['problems']
+                return problems['problems'] if problems else []
         else:
-            return None
-        return problems['problems'] if problems else []
+            return []
     except Exception as e:
         print("--> Get Problem Error <--")
         print(user_id)

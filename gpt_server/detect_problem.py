@@ -33,10 +33,10 @@ def problem_detector(user_id, session_id, automation_id):
             return "No problems detected."
         problems_w_id = _db.post_problem(user_id, all_problems)
         if not problems_w_id:
-            return "Error: Unable to save detected problems."
+            return "Detected {len(problems_w_id)+1} problems but Error: Unable to save detected problems to DB."
         else:
             utils.update_chat_state("update-problems", "", session_id, user_id, "")
-            return f"Detected {len(problems_w_id)+1}. Problem cards with details are available in the user interface under the Problems section."
+            return f"Detected {len(problems_w_id)+1} problems. Problem cards with details are available in the user interface under the Problems section."
        
     except Exception as e:
         return f"Error: {e}"

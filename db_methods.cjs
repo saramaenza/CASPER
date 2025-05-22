@@ -166,59 +166,16 @@ const userInfo = async (req) =>{ //ritorna tutte le informazioni dell'utente
     }
 }
 
-const fakeInit = async (userId) => {
-    try{
-        await saveConfiguration(userId, fake_config, fake_auth);
-        await saveSelectedConfiguration(userId, fake_selected);
-        await saveAutomations(userId, fake_automations);
-    }catch (err){
-        console.log('error in initUserData')
-        console.log(err)
-        return err
-    }
-}
 
-/*const initUserData = async (userId) =>{
-    const client = new MongoClient(uri);
-    try{
-        const database = client.db(dbName);
-        const conflicts = database.collection('conflicts');
-        const automations = database.collection('automations');
-        const goals = database.collection('goals');
-        //read JSON file and insert data into db
-        
-        let conflicts_data = fs.readFileSync(path.join(__dirname, 'gpt_server', 'data', 'conflict.json'));
-        let automations_data = fs.readFileSync(path.join(__dirname, 'gpt_server', 'data', 'automation.json'));
-        let goal_data = fs.readFileSync(path.join(__dirname, 'gpt_server', 'data', 'goal_conflict.json'));
-        //mongo entry for conflicts and userid
-        let conflicts_entry = JSON.parse(conflicts_data);
-        await conflicts.insertOne({'user_id':userId, 'conflict_data': conflicts_entry});
-        //mongo entry for automations and userid
-        let automations_entry = JSON.parse(automations_data);
-        await automations.insertOne({'user_id':userId, 'automation_data': automations_entry});
-
-        let goal_entry = JSON.parse(goal_data);
-        await goals.insertOne({'user_id':userId, 'goal_data': goal_entry});
-        return 1;
-    }catch (err){
-        console.log('error in initUserData')
-        console.log(err)
-        return err
-    } finally {
-        await client.close();
-    }
-}*/
-
-
-const getConflicts = async (userId) => {
+const getProblems = async (userId) => {
     const client = new MongoClient(uri);
     try {
         const database = client.db(dbName);
-        const conflicts = database.collection('conflicts');
+        const conflicts = database.collection('problems');
         const userConflicts = await conflicts.findOne({ 'user_id': userId });
-        return userConflicts['conflict_data'];
+        return userConflicts['problems'];
     } catch (err) {
-        console.log('error in getConflictsByUserId');
+        console.log('error in getProblems');
         console.log(err);
         return err;
     } finally {
@@ -244,84 +201,6 @@ const getAutomations=async (userId) => {
     }
 };
 
-const getGoals = async (userId) => {
-    const client = new MongoClient(uri);
-    try {
-        const database = client.db(dbName);
-        const goals = database.collection('goals');
-        const userGoals = await goals.findOne({ 'user_id': userId });
-        return userGoals['goal_data'];
-    } catch (err) {
-        console.log('error in getGoalsByUserId');
-        console.log(err);
-        return err;
-    } finally {
-        await client.close();
-    }
-};
-
-const restoreProblem = async (problemId, userId) => {
-
-    let goals = await getGoals(userId);
-    let conflicts = await getConflicts(userId);
-    
-    /* let goal = goals.find(g => g.id == problemId);
-    let conflict = conflicts.find(c => c.id == problemId); */
-    let found = null;
-    if (goals) {
-        let new_list = [];
-        goals.forEach(element => {
-            if (element.id == problemId) {
-                element.solved = false;
-                new_list.push(element);
-                found = true;
-            }else{
-                new_list.push(element);
-            }
-        });
-        if (found) {
-            const client = new MongoClient(uri);
-            try {
-                const database = client.db(dbName);
-                const goals = database.collection('goals');
-                await goals.replaceOne({ 'user_id': userId }, { 'user_id': userId, 'goal_data': new_list } );
-            } catch (err) {
-                console.log('error in restoreProblem goals');
-                console.log(err);
-                return err;
-            } finally {
-                await client.close();
-            }
-        }
-    }
-    if (conflicts && !found) {
-        let new_list = [];
-        conflicts.forEach(element => {
-            if (element.id == problemId) {
-                element.solved = false;
-                new_list.push(element);
-                found = true;
-            }else{
-                new_list.push(element);
-            }
-        });
-        if (found) {
-            const client = new MongoClient(uri);
-            try {
-                const database = client.db(dbName);
-                const conflicts = database.collection('conflicts');
-                await conflicts.replaceOne({ 'user_id': userId }, { 'user_id': userId, 'conflict_data': new_list } );
-            } catch (err) {
-                console.log('error in restoreProblem conflicts');
-                console.log(err);
-                return err;
-            } finally {
-                await client.close();
-            }
-        }
-    }
-    return found;
-}
 
 const saveConfiguration = async (userId, data, auth) => {
     const client = new MongoClient(uri);
