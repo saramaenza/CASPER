@@ -15,7 +15,7 @@ const domainMap = {
     "input_boolean": "bx-toggle-on", // o bx-toggle-off
     "input_button": "bx-checkbox-checked",
     "input_datetime": "bx-calendar-edit",
-    "input_number": "bx-dialpad-alt",
+    "input_number": "bx-trip",
     "input_select": "bx-chevron-down-square",
     "input_text": "bx-text",
     "lock": "bx-lock-alt", // o bx-lock-open-alt
@@ -36,7 +36,7 @@ const domainMap = {
     "counter": "bx-calculator",
     "image_processing": "bx-image-alt",
     "notify": "bx-bell",
-    "number": "bx-dialpad-alt",
+    "number": "bx-trip",
     "persistent_notification": "bx-bell-plus",
     "plant": "bx-leaf",
     "proximity": "bx-target-lock",
@@ -61,14 +61,14 @@ const classMap = {
     "light": "bx-sun", // Per sensore di luce ambientale
     "lock": "bx-lock-open-alt", // Stato sbloccato per un sensore
     "moisture": "bx-water",
-    "motion": "bx-run",
+    "motion": "bx-running",
     "moving": "bx-move",
     "occupancy": "bx-user-check",
     "opening": "bx-expand-arrows-alt",
     "plug": "bx-plug-connect",
     "power": "bx-power-off", // Inteso come presenza di alimentazione
     "presence": "bx-street-view",
-    "problem": "bx-error-circle",
+    "problem": "bx-alert-triangle",
     "running": "bx-play-circle", // Per processi o dispositivi in esecuzione
     "safety": "bx-shield-quarter",
     "smoke": "bx-bonfire", // Approssimazione
@@ -89,10 +89,10 @@ const classMap = {
     "date": "bx-calendar-event",
     "distance": "bx-ruler",
     "duration": "bx-timer",
-    "energy": "bxs-zap", // Energia elettrica
+    "energy": "bx-bolt", // Energia elettrica
     "frequency": "bx-pulse",
-    "gas": "bxs-gas-pump", // Per misuratori di gas
-    "humidity": "bx-droplet",
+    "gas": "bx-smoke-alarm", // Per misuratori di gas
+    "humidity": "bx-water-drop",
     "illuminance": "bx-sun",
     "irradiance": "bx-sun", // Simile a illuminance
     "moisture": "bx-water", // Per sensori di umidità del suolo, etc.
@@ -101,9 +101,9 @@ const classMap = {
     "nitrogen_monoxide": "bx-cloud",
     "nitrous_oxide": "bx-cloud",
     "ozone": "bx-cloud",
-    "pm1": "bx-line-chart", // Particolato
-    "pm10": "bx-line-chart",
-    "pm25": "bx-line-chart",
+    "pm1": "bx-wind", // Particolato
+    "pm10": "bx-wind",
+    "pm25": "bx-wind",
     "power_factor": "bx-slider-alt",
     "power": "bx-plug-connect", // Potenza elettrica
     "precipitation": "bx-cloud-drizzle",
@@ -115,7 +115,7 @@ const classMap = {
     "speed": "bx-tachometer", // Velocità del vento, etc.
     "sulphur_dioxide": "bx-cloud",
     "temperature": "bxs-thermometer",
-    "timestamp": "bx-time-five",
+    "timestamp": "bx-clock-4",
     "volatile_organic_compounds": "bx-wind", // VOCs
     "voltage": "bx-line-chart-down", // Tensione
     "volume": "bxs-drink", // Volume di liquidi

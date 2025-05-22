@@ -289,7 +289,10 @@ body{
 }
 
 .device-element{
-  margin-left: 2px;
+  display: flex;
+  align-items: center;
+  gap: 6px; 
+  margin-bottom: 1px;
 }
   
 .card-body, .devices-list {
