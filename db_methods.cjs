@@ -10,10 +10,9 @@ let dbName = "";
 const setServerConfig = (server) => {
     dbName = server.db_name;
 }
-
+const client = new MongoClient(uri);
 //crea nuovo utente e lo mette nel db
 const createUser = async (name,surname,pass,email) =>{
-	const client = new MongoClient(uri);
     try{
         const database = client.db(dbName);
         const users = database.collection('users');
@@ -38,9 +37,6 @@ const createUser = async (name,surname,pass,email) =>{
     } catch (err){
 		console.log(err)
         return err
-    } finally {
-        // Ensures that the client will close when you finish/error
-        await client.close();
     }
 }
 
@@ -69,8 +65,6 @@ const createGoogleUser = async (payload, fullInfo) =>{
         }
     } catch (err){
         return err
-    } finally {
-        await client.close();
     }
 }
 
@@ -95,8 +89,6 @@ const getUser = async (emailToCheck) => {
         return user;
     }catch (err){
         return err
-    } finally {
-        await client.close();
     }
 }
 
@@ -115,8 +107,6 @@ const verifyEmail = async (email) => {
     } catch (err) {
         console.error(err);
         return 0
-    } finally {
-        await client.close();
     }
 };
 
@@ -161,8 +151,6 @@ const userInfo = async (req) =>{ //ritorna tutte le informazioni dell'utente
         return user;
     }catch (err){
         return err
-    } finally {
-        await client.close();
     }
 }
 
@@ -178,8 +166,6 @@ const getProblems = async (userId) => {
         console.log('error in getProblems');
         console.log(err);
         return err;
-    } finally {
-        await client.close();
     }
 };
 
@@ -196,8 +182,6 @@ const getAutomations=async (userId) => {
         console.log(err);
         return []        
         //return err;
-    } finally {
-        await client.close();
     }
 };
 
@@ -217,8 +201,6 @@ const saveConfiguration = async (userId, data, auth) => {
         console.log('error in saveConfiguration db_methods');
         console.log(err);
         return err;
-    } finally {
-        await client.close();
     }
 }
 
@@ -238,8 +220,6 @@ const getConfiguration = async (userId) => {
         console.log('error in getConfiguration db_methods');
         console.log(err);
         return err;
-    } finally {
-        await client.close();
     }
 }
 
@@ -273,8 +253,6 @@ const saveSelectedConfiguration = async (userId, data) => {
         console.log('error in saveSelectedConfiguration db_methods');
         console.log(err);
         return err;
-    } finally {
-        await client.close();
     }
 }
 
@@ -303,8 +281,6 @@ const saveAutomations = async (userId, automationsData) => {
         console.log('error in saveAutomations');
         console.log(err);
         return false;
-    } finally {
-        await client.close();
     }
 };
 
@@ -347,8 +323,6 @@ const saveAutomation = async (userId, automationId, config) => {
     } catch (err) {
         console.log('Errore in saveHAAutomation:', err);
         return false;
-    } finally {
-        await client.close();
     }
 };
 
@@ -374,11 +348,15 @@ const deleteRule = async (userId, ruleId) => {
     } catch (err) {
         console.log('Errore in deleteHAAutomation:', err);
         return false;
-    } finally {
-        await client.close();
     }
 }
 
+async function closeDatabaseConnection() {
+    if (client && client.topology && client.topology.isConnected()) {
+        await client.close();
+        console.log("Connessione a MongoDB chiusa.");
+    }
+}
 
 // const getHAAutomation = async (userId, automationId) => {
 //     const client = new MongoClient(uri);
@@ -423,6 +401,7 @@ module.exports = {
     saveAutomations,
     saveAutomation,
     getConfiguration,
-    deleteRule
+    deleteRule,
+    closeDatabaseConnection,
 };
 

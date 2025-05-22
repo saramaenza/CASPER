@@ -451,3 +451,8 @@ const sendEmail = (destinatario) => {
   });
 }
 //---------------------------------------
+process.on('SIGINT', async () => {
+    console.log("Ricevuto SIGINT. Chiusura dell'applicazione...");
+    await closeDatabaseConnection();
+    process.exit(0);
+});
