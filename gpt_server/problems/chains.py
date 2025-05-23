@@ -2,16 +2,14 @@ import json
 import re
 from typing import List, Dict, Any, Tuple
 from collections import OrderedDict
-
+from list_devices_variables import list_devices
 # Importa HomeAssistantClient dal nuovo file
-from ..ha_client import HomeAssistantClient
+from ha_client import HomeAssistantClient
 
 class ChainsDetector:
-    def __init__(self, ha_client: HomeAssistantClient, db_module: Any, user_id: str = ""):
+    def __init__(self, ha_client: HomeAssistantClient):
         self.ha_client = ha_client
-        self.db = db_module
-        self.list_devices_variables = self._load_devices_variables()
-        self.user_id = user_id
+        self.list_devices_variables = list_devices
         # self.all_ha_states = self._initialize_states() # Removed global states, fetch when needed or pass if required by many methods
 
     # def _initialize_states(self) -> List[Dict[str, Any]]: # Changed from global
@@ -306,10 +304,8 @@ class ChainsDetector:
         print("Detected chains:", rule_chain_output)
         return rule_chain_output
 
-    def detect_chains(self, automation_post_config: Dict[str, Any], chain_type: str = "indirect") \
+    def detect_chains(self, all_rules: List, automation_post_config: Dict[str, Any], chain_type: str = "indirect") \
                       -> List[Dict[str, Any]]:
-        
-        all_rules_from_db = self.db.get_automations(self.user_id)
 
         processing_function = self.process_indirect_chain
         if chain_type == "direct":
@@ -318,7 +314,7 @@ class ChainsDetector:
             raise ValueError(f"Unknown chain_type: {chain_type}. Must be 'direct' or 'indirect'.")
 
         return self._process_rule_chain_iteration(
-            all_existing_rules=all_rules_from_db,
+            all_existing_rules=all_rules,
             rule1_config=automation_post_config,
             chain_processing_function=processing_function
         )
@@ -329,7 +325,7 @@ if __name__ == "__main__":
     HA_BASE_URL = "http://luna.isti.cnr.it:8123" # Example
     HA_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiI2ODdmNGEyMDg5ZjA0NDc2YjQ2ZGExNWM3ZTYwNTRjYyIsImlhdCI6MTcxMTA5ODc4MywiZXhwIjoyMDI2NDU4NzgzfQ.lsqxXXhaSBa5BuoXbmho_XsEkq2xeCAeXL4lu7c2LMk" # Example
     LIST_DEVICES_PATH = 'C:/Users/andre/Programmazione/CASPER ENV/CASPER/gpt_server/problems/list_devices_variables.json' # Example
-    DB_USER_ID = "682c59206a47b8e0ef343796" # Example
+
 
     # Instantiate the client and detector
     ha_client = HomeAssistantClient(base_url=HA_BASE_URL, token=HA_TOKEN) # Modificato per usare il client importato

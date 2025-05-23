@@ -756,7 +756,7 @@ td {
 }
 
 .switch input:checked + .slider {
-  background-color: #2F4156;
+  background-color: #61af4e;
 }
 
 .switch input:checked + .slider:before {

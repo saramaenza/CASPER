@@ -1,4 +1,4 @@
-{
+list_devices = {
   "list_of_domains": {  
     "media_player": {
       "possibleValues": [                        

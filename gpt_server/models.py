@@ -1,6 +1,11 @@
 import os
 from langchain_openai import AzureChatOpenAI
 
+from dotenv import load_dotenv
+from datetime import datetime
+load_dotenv()
+
+
 gpt4 = AzureChatOpenAI(
     azure_endpoint=os.environ["AZURE_OPENAI_ENDPOINT"],
     azure_deployment=os.environ["AZURE_OPENAI_DEPLOYMENT_NAME"],

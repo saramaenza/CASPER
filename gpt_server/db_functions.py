@@ -1,7 +1,7 @@
 from pymongo import MongoClient
 import pickle
 from datetime import datetime
-from .utils import format_device_list
+from utils import format_device_list
 from bson.objectid import ObjectId
 
 # Connessione globale al database

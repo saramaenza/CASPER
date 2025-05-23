@@ -2,7 +2,7 @@ import os
 import time
 import db_functions as _db
 import utils
-from problems.conflicts import ConflictDetector
+from problems.conflicts import detectConflicts
 from problems.chains import ChainsDetector
 from ha_client import HomeAssistantClient
 
@@ -16,15 +16,16 @@ def problem_detector(user_id, session_id, automation_id):
     """
     try:
         start = time.time()
-        data = _db.get_automation(user_id, automation_id)
+        data = _db.get_automations(user_id)
+        new_automation = _db.get_automation(user_id, automation_id)
         if not data:
             return "Error: Automation not found."
-        conflict_detector = ConflictDetector(ha_client, _db, user_id)
-        chain_detector = ChainsDetector(ha_client, _db, user_id)
 
-        direct_chains = chain_detector.detect_chains(data, "direct")
-        indirect_chains = chain_detector.detect_chains(data, "indirect")
-        conflicts = conflict_detector.detect_appliances_conflicts(data)
+        chain_detector = ChainsDetector(ha_client)
+
+        direct_chains = chain_detector.detect_chains(data, new_automation, "direct")
+        indirect_chains = chain_detector.detect_chains(data, new_automation, "indirect")
+        conflicts = detectConflicts(data, new_automation)
 
         all_problems = direct_chains + indirect_chains + conflicts
         end = time.time()

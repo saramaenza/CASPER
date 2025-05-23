@@ -295,10 +295,7 @@ async function printUserRule(rules) {
         let ruleDescription = document.createElement('div');
         ruleDescription.classList.add('rule-description');
         ruleDescription.innerHTML = element['description'] || 'Questa automazione non ha una descrizione';
-        /*
-        const icon = document.createElement('i');
-        icon.classList.add('bx', 'bxs-trash', 'deleteButton');
-        icon.id = element['id'];*/
+        
 
         const idBadge = document.createElement('div');
         idBadge.textContent = `ID ${element['id']}`;
@@ -335,10 +332,10 @@ async function printUserRule(rules) {
         switchContainer.appendChild(switchInput);
         switchContainer.appendChild(switchSlider);
 
-        const icon = document.createElement('i');
-        icon.classList.add('bx', 'bxs-trash', 'deleteButton');
-        icon.id = element['id'];
-        buttonsContainer.appendChild(icon);
+        const deleteButton = document.createElement('i');
+        deleteButton.classList.add('bx', 'bxs-trash', 'deleteButton');
+        deleteButton.id = element['id'];
+        buttonsContainer.appendChild(deleteButton);
 
         buttonsContainer.appendChild(switchContainer);
 
@@ -359,13 +356,18 @@ async function printUserRule(rules) {
               event.target.classList.contains('id_badge') // aggiunto qui
             ) {
               displayDesc(ruleHead);
-            } else if (event.target.classList.contains('deleteButton')) {
-              if (confirm("Sei sicuro di voler eliminare l'automazione?")) {
-                deleteAutomation(ruleHead.getAttribute('ruleid'));
-              }
-              //deleteRule(ruleHead.getAttribute('ruleid'), rulesList);
             }
+        });
+        deleteButton.addEventListener('click', async (event) => {
+          event.stopPropagation(); // Impedisce la propagazione dell'evento al genitore
+          const ruleId = deleteButton.getAttribute('id');
+          const ruleName = "ID:"+ruleId+" - " +deleteButton.parentElement.parentElement.parentElement.querySelector('.rule-name').innerText;
          
+          const confirmation = confirm(`Sei sicuro di voler eliminare la regola "${ruleName}"?`);
+          if (confirmation) {
+            await deleteAutomation(ruleId);
+            deleteRule(ruleId, rules);
+          }
         });
       }, index * 100); // Ritardo di 500ms tra ogni regola
     });
@@ -463,7 +465,7 @@ async function deleteRule(id, obj){
       }
     }
     obj.splice(tmp, 1);
-    document.querySelector(`div [ruleid='${id}']`).parentNode.remove();
+    document.querySelector(`div [ruleid='${id}']`).remove();
     //document.getElementById(`${id}`).parentElement.remove();
     let newsize = Object.keys(obj).length;
     for (let i = 0; i<newsize; i++){
@@ -579,7 +581,7 @@ function addChatState(state, id){
   stateText.id = 'text-'+id;
   box.classList.add('chat-state');
   box.id = id;
-  icon.classList.add('bx', 'bxs-analyse', 'bx-spin');
+  icon.classList.add('bx', 'bxs-analyze', 'bx-spin');
   box.appendChild(icon);
   box.appendChild(stateText);
   if (document.querySelector('.isTyping') != null)
@@ -597,7 +599,7 @@ function confirmChatState(state, id){
     const box = document.querySelector(`#${id}>.bx`);
     const div = document.querySelector(`#${id}`);
     const text = document.querySelector(`#text-${id}`);
-    box.classList.remove('bxs-analyse', 'bx-spin');
+    box.classList.remove('bxs-analyze', 'bx-spin');
     box.classList.add('bx-check');
     text.textContent = state;
     div.id = '';
@@ -610,7 +612,7 @@ function errorChatState(state, id){
     const box = document.querySelector(`#${id}>.bx`);
     const div = document.querySelector(`#${id}`);
     const text = document.querySelector(`#text-${id}`);
-    box.classList.remove('bxs-analyse', 'bx-spin');
+    box.classList.remove('bxs-analyze', 'bx-spin');
     box.classList.add('bx-x');
     text.textContent = state;
     div.id = '';
