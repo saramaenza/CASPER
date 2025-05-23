@@ -85,30 +85,30 @@ class ConflictDetector:
                          domainTrigger1: str | None, domainTrigger2: str | None, nameApplianceAction1: str, nameApplianceAction2: str, 
                          condition1: Any, condition2: Any, device_class1: str | None, 
                          automation1_description: str, automation2_description: str, 
-                         type_of_conflict: str, type_of_front_end: str, 
+                         type_of_conflict: str, 
                          idAutomation1: str, idAutomation2: str):
-        if type_of_front_end == "llm":
-            solution_info = self._call_find_solution_llm(idAutomation1, idAutomation2, ruleName1, ruleName2, automation1_description, automation2_description) 
-            unique_id_conflict = str(idAutomation1)+"_"+str(idAutomation2)
-            if not self._is_conflict_present(unique_id_conflict): # Controllo sull'ID univoco
-                self.conflicts.append({
-                    "type": "conflict",
-                    "confidence": type_of_conflict,
-                    "unique_id": unique_id_conflict,
-                    "rules": [
-                        {
-                            "id": idAutomation1,
-                            "name": ruleName1,
-                            "description": automation1_description,
-                        },
-                        {
-                            "id": idAutomation2,
-                            "name": ruleName2,
-                            "description": automation2_description,
-                        }
-                    ],
-                    "possibleSolutions": solution_info, # Assicurarsi che solution_info sia nel formato atteso
-                })
+        
+        solution_info = self._call_find_solution_llm(idAutomation1, idAutomation2, ruleName1, ruleName2, automation1_description, automation2_description) 
+        unique_id_conflict = str(idAutomation1)+"_"+str(idAutomation2)
+        if not self._is_conflict_present(unique_id_conflict): # Controllo sull'ID univoco
+            self.conflicts.append({
+                "type": "conflict",
+                "confidence": type_of_conflict,
+                "unique_id": unique_id_conflict,
+                "rules": [
+                    {
+                        "id": idAutomation1,
+                        "name": ruleName1,
+                        "description": automation1_description,
+                    },
+                    {
+                        "id": idAutomation2,
+                        "name": ruleName2,
+                        "description": automation2_description,
+                    }
+                ],
+                "possibleSolutions": solution_info, # Assicurarsi che solution_info sia nel formato atteso
+            })
 
     def _getEventType(self, e: Dict[str, Any]) -> str | None:
         type_val = e.get('type')
@@ -180,7 +180,7 @@ class ConflictDetector:
         area_id = action.get("target", {}).get("area_id")
         return device_id, area_id, data_attrs, domain
 
-    def _process_action_conflict(self, action1: Dict[str, Any], action2: Dict[str, Any], ruleName1: str, ruleName2: str, entityRuleName1: str, entityRuleName2: str, domainTrigger1: str | None, domainTrigger2: str | None, condition1: Any, condition2: Any, type_of_conflict: str, type_of_front_end: str, idAutomation1: str, idAutomation2: str, automation1_description: str, automation2_description: str):
+    def _process_action_conflict(self, action1: Dict[str, Any], action2: Dict[str, Any], ruleName1: str, ruleName2: str, entityRuleName1: str, entityRuleName2: str, domainTrigger1: str | None, domainTrigger2: str | None, condition1: Any, condition2: Any, type_of_conflict: str, idAutomation1: str, idAutomation2: str, automation1_description: str, automation2_description: str):
         device_id1, area1, attr1_data, domain1 = self._process_action(action1) # attr1_data è il dizionario 'data'
         device_id2, area2, attr2_data, domain2 = self._process_action(action2) # attr2_data è il dizionario 'data'
 
@@ -213,7 +213,7 @@ class ConflictDetector:
 
         # La logica di attr1 e attr2 deve usare attr1_data e attr2_data
         if self._checkOperatorsAppliances(self._getEventType(action1), self._getEventType(action2)) and not attr1_data and not attr2_data:
-            self._append_conflict(ruleName1, ruleName2, self._getEventType(action1), self._getEventType(action2), None, None, None, None, "", "", infoPlatform1, infoPlatform2, domainTrigger1, domainTrigger2, deviceNameAction1, deviceNameAction1, condition1, condition2, self._getDeviceClass(deviceNameAction1), automation1_description, automation2_description, type_of_conflict, type_of_front_end, idAutomation1, idAutomation2)
+            self._append_conflict(ruleName1, ruleName2, self._getEventType(action1), self._getEventType(action2), None, None, None, None, "", "", infoPlatform1, infoPlatform2, domainTrigger1, domainTrigger2, deviceNameAction1, deviceNameAction1, condition1, condition2, self._getDeviceClass(deviceNameAction1), automation1_description, automation2_description, type_of_conflict, idAutomation1, idAutomation2)
         elif attr1_data or attr2_data:
             dataAttr = attr1_data if attr1_data else attr2_data # Sceglie uno dei due se l'altro è vuoto
             for data_key in dataAttr: # Itera sulle chiavi del dizionario 'data'
@@ -222,12 +222,12 @@ class ConflictDetector:
                 valueAttribute1 = attr1_data.get(data_key, None) if attr1_data else None
                 valueAttribute2 = attr2_data.get(data_key, None) if attr2_data else None
                 if valueAttribute1 is not None and valueAttribute2 is not None and valueAttribute1 != valueAttribute2:
-                    self._append_conflict(ruleName1, ruleName2, self._getEventType(action1), self._getEventType(action2), valueAttribute1, valueAttribute2, nameAttribute1, nameAttribute2, deviceNameAction1, deviceNameAction1, infoPlatform1, infoPlatform2, domainTrigger1, domainTrigger2, deviceNameAction1, deviceNameAction1, condition1, condition2, self._getDeviceClass(deviceNameAction1), automation1_description, automation2_description, type_of_conflict, type_of_front_end, idAutomation1, idAutomation2)
+                    self._append_conflict(ruleName1, ruleName2, self._getEventType(action1), self._getEventType(action2), valueAttribute1, valueAttribute2, nameAttribute1, nameAttribute2, deviceNameAction1, deviceNameAction1, infoPlatform1, infoPlatform2, domainTrigger1, domainTrigger2, deviceNameAction1, deviceNameAction1, condition1, condition2, self._getDeviceClass(deviceNameAction1), automation1_description, automation2_description, type_of_conflict, idAutomation1, idAutomation2)
                 elif (valueAttribute1 is not None and valueAttribute2 is None) or (valueAttribute1 is None and valueAttribute2 is not None):
                     # La funzione _check_element_exists andrebbe adattata o la sua logica integrata qui
                     # if not self._check_element_exists(...): # Questa funzione andrebbe rivista
                     if self._checkOperatorsAppliances(self._getEventType(action1), self._getEventType(action2)):
-                        self._append_conflict(ruleName1, ruleName2, self._getEventType(action1), self._getEventType(action2), None, None, None, None, deviceNameAction1, deviceNameAction1, infoPlatform1, infoPlatform2, domainTrigger1, domainTrigger2, deviceNameAction1, deviceNameAction1, condition1, condition2, self._getDeviceClass(deviceNameAction1), automation1_description, automation2_description, type_of_conflict, type_of_front_end, idAutomation1, idAutomation2)
+                        self._append_conflict(ruleName1, ruleName2, self._getEventType(action1), self._getEventType(action2), None, None, None, None, deviceNameAction1, deviceNameAction1, infoPlatform1, infoPlatform2, domainTrigger1, domainTrigger2, deviceNameAction1, deviceNameAction1, condition1, condition2, self._getDeviceClass(deviceNameAction1), automation1_description, automation2_description, type_of_conflict, idAutomation1, idAutomation2)
 
     def _checkOperatorsAppliances(self, type1: str, type2: str) -> bool:
         if (type1 == "turn_on"):
@@ -463,7 +463,6 @@ class ConflictDetector:
                                                  "placeholder_entityRuleName1", "placeholder_entityRuleName2", 
                                                  domainTrigger1, domainTrigger2, 
                                                  processed_condition1, processed_condition2, 
-                                                 type_of_conflict, "llm", 
                                                  str(idAutomation1), str(idAutomation2), 
                                                  automation1_description, automation2_description)
         
