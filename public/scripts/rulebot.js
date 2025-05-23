@@ -812,8 +812,8 @@ function displayProblemDesc(el) {
 
 
 // ===================== Carousel ======================= //
-
-/*createConflictCard(
+/*
+createConflictCard(
   true,
   "Conflitto",
   {
@@ -827,7 +827,7 @@ function displayProblemDesc(el) {
       {
         "id": "1746629662875",
         "name": "Spengi aria condizionata quando è caldo",
-        "description": "Event: quando è caldo Condition: se piove Action: spegni aria condizionata "
+        "description": "Event: quando sono le 9 Condition: se piove Action: spegni aria condizionata "
       }
     ],
     "possibleSolutions": {
@@ -854,6 +854,7 @@ function displayProblemDesc(el) {
     "type": "possible"
   }
 );*/
+
 function printUserProblems(problemsList) {
   for (const [index, problem] of problemsList.entries()){
     if (problems['type'] == 'conflict'){
@@ -981,7 +982,7 @@ function createConflictCard(isActive, headerText, conflictInfo) {
     const rule2 = conflictInfo['rules'][1]
     const rule2_id = rule2['id']
     const rule2_name = rule2['name']
-    const type_of_conflict = "same_event_no_conditions";
+    const type_of_conflict = "different_event_with_conditions";
 
     const temp_mapping = new Map();
     temp_mapping.set(rule1_id, rule1);
@@ -1017,33 +1018,66 @@ function createConflictCard(isActive, headerText, conflictInfo) {
     if (rule1_match && rule1_match.groups && rule2_match && rule2_match.groups) {
         const rule1 = rule1_match.groups;
         const rule2 = rule2_match.groups;
-        const p = document.createElement("p");
-        p.textContent = rule1.event; //teoricamente dovrebbe essere uguale (almeno semanticamente) a rule2.event
-        container.appendChild(p);
-        if(type_of_conflict === "same_event_same_conditions") { 
-          container.appendChild(svgArrow()); //freccia semplice
-          const p2 = document.createElement("p");
-          p2.textContent = rule1.condition; //teoricamente dovrebbe essere uguale (almeno semanticamente) a rule2.condition
-          container.appendChild(p2);
-        }
-        container.appendChild(createConflictArrowSVG()); //freccia biforcuta
+
         const conflict_rappresentation_container = document.createElement("table");
         conflict_rappresentation_container.className = "conflict_rappresentation_container no_mt";
-        if(type_of_conflict === "same_event_different_conditions") { 
 
-          const conditionRow = document.createElement("tr");
-          const leftConditionCell = document.createElement("td");
-          const centerConditionCell = document.createElement("td");
-          const rightConditionCell = document.createElement("td");
-          leftConditionCell.style.color = "green";
-          leftConditionCell.innerHTML = `${rule1.condition}`;
-          rightConditionCell.style.color = "green";
-          rightConditionCell.innerHTML = `${rule2.condition}`;
-          conflict_rappresentation_container.appendChild(tr0);
-          conditionRow.appendChild(leftConditionCell);
-          conditionRow.appendChild(centerConditionCell);
-          conditionRow.appendChild(rightConditionCell);
+        //costruzione del grafico per conflitti tra automazioni con lo stesso evento
+        if (type_of_conflict.includes("same_event")) {
+          const p = document.createElement("p");
+          p.textContent = rule1.event; //teoricamente dovrebbe essere uguale (almeno semanticamente) a rule2.event
+          container.appendChild(p);
+          if(type_of_conflict === "same_event_same_conditions") { 
+            container.appendChild(svgArrow()); //freccia semplice
+            const p2 = document.createElement("p");
+            p2.textContent = rule1.condition; //teoricamente dovrebbe essere uguale (almeno semanticamente) a rule2.condition
+            container.appendChild(p2);
+          }
+          container.appendChild(createConflictArrowSVG()); //freccia biforcuta
 
+          if(type_of_conflict === "same_event_different_conditions") { 
+            //riga condizioni
+            const conditionRow = document.createElement("tr");
+            const leftConditionCell = document.createElement("td");
+            const centerConditionCell = document.createElement("td");
+            const rightConditionCell = document.createElement("td");
+            leftConditionCell.style.color = "green";
+            leftConditionCell.innerHTML = `${rule1.condition}`;
+            rightConditionCell.style.color = "green";
+            rightConditionCell.innerHTML = `${rule2.condition}`;
+            conflict_rappresentation_container.appendChild(conditionRow);
+            conditionRow.appendChild(leftConditionCell);
+            conditionRow.appendChild(centerConditionCell);
+            conditionRow.appendChild(rightConditionCell);
+
+            //riga freccia
+            const arrowRow = document.createElement("tr");
+            const leftArrowCell = document.createElement("td");
+            const centerArrowCell = document.createElement("td");
+            const rightArrowCell = document.createElement("td");
+            leftArrowCell.appendChild(svgArrow());
+            rightArrowCell.appendChild(svgArrow());
+            conflict_rappresentation_container.appendChild(arrowRow);
+            arrowRow.appendChild(leftArrowCell);
+            arrowRow.appendChild(centerArrowCell);
+            arrowRow.appendChild(rightArrowCell);
+          }
+        } 
+        //costruzione del grafico per conflitti tra automazioni con eventi diversi
+        else {
+          //riga evento
+          const eventRow = document.createElement("tr");
+          const leftEventCell = document.createElement("td");
+          const centerEventCell = document.createElement("td");
+          const rightEventCell = document.createElement("td");
+          leftEventCell.innerHTML = `${rule1.event}`;
+          rightEventCell.innerHTML = `${rule2.event}`;
+          conflict_rappresentation_container.appendChild(eventRow);
+          eventRow.appendChild(leftEventCell);
+          eventRow.appendChild(centerEventCell);
+          eventRow.appendChild(rightEventCell);
+
+          //riga freccia
           const arrowRow = document.createElement("tr");
           const leftArrowCell = document.createElement("td");
           const centerArrowCell = document.createElement("td");
@@ -1054,7 +1088,35 @@ function createConflictCard(isActive, headerText, conflictInfo) {
           arrowRow.appendChild(leftArrowCell);
           arrowRow.appendChild(centerArrowCell);
           arrowRow.appendChild(rightArrowCell);
+
+          if(type_of_conflict === "different_event_with_conditions") {
+            //riga condizioni
+            const conditionRow = document.createElement("tr");
+            const leftConditionCell = document.createElement("td");
+            const centerConditionCell = document.createElement("td");
+            const rightConditionCell = document.createElement("td");
+            leftConditionCell.innerHTML = `${rule1.condition}`;
+            rightConditionCell.innerHTML = `${rule2.condition}`;
+            conflict_rappresentation_container.appendChild(conditionRow);
+            conditionRow.appendChild(leftConditionCell);
+            conditionRow.appendChild(centerConditionCell);
+            conditionRow.appendChild(rightConditionCell);
+
+            //riga freccia
+            const arrowRow = document.createElement("tr");
+            const leftArrowCell = document.createElement("td");
+            const centerArrowCell = document.createElement("td");
+            const rightArrowCell = document.createElement("td");
+            leftArrowCell.appendChild(svgArrow());
+            rightArrowCell.appendChild(svgArrow());
+            conflict_rappresentation_container.appendChild(arrowRow);
+            arrowRow.appendChild(leftArrowCell);
+            arrowRow.appendChild(centerArrowCell);
+            arrowRow.appendChild(rightArrowCell);
+          }
         }
+        container.appendChild(conflict_rappresentation_container);
+        //riga azioni
         const actionRow = document.createElement("tr");
         const leftActionCell = document.createElement("td");
         const centerImageCell = document.createElement("td");
@@ -1081,8 +1143,8 @@ function createConflictCard(isActive, headerText, conflictInfo) {
         actionRow.appendChild(leftActionCell);
         actionRow.appendChild(centerImageCell);
         actionRow.appendChild(rightActionCell);
+
         body.appendChild(conflict_rappresentation_container);
-        
         container.appendChild(conflict_rappresentation_container);
     };
     body.appendChild(container);
