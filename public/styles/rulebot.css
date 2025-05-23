@@ -995,6 +995,9 @@ td {
   }
 
 @media (max-width: 1280px) {
+  .id_badge {
+    width: 30%;
+  }
   #left-container {
     width: 50%;
   }
