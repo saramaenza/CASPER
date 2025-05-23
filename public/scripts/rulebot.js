@@ -1030,53 +1030,57 @@ function createConflictCard(isActive, headerText, conflictInfo) {
         const conflict_rappresentation_container = document.createElement("table");
         conflict_rappresentation_container.className = "conflict_rappresentation_container no_mt";
         if(type_of_conflict === "same_event_different_conditions") { 
-          //TODO: sistema i nomi dei tr/td
-          const tr0 = document.createElement("tr");
-          const td_0 = document.createElement("td");
-          const td_1 = document.createElement("td");
-          const td_2 = document.createElement("td");
-          td_0.style.color = "green";
-          td_0.innerHTML = `${rule1.condition}`;
-          td_2.style.color = "green";
-          td_2.innerHTML = `${rule2.condition}`;
-          conflict_rappresentation_container.appendChild(tr0);
-          tr0.appendChild(td_0);
-          tr0.appendChild(td_1);
-          tr0.appendChild(td_2);
 
-          const tr01 = document.createElement("tr");
-          const td_00 = document.createElement("td");
-          const td_01 = document.createElement("td");
-          const td_02 = document.createElement("td");
-          td_00.appendChild(svgArrow());
-          td_02.appendChild(svgArrow());
-          conflict_rappresentation_container.appendChild(tr01);
-          tr01.appendChild(td_00);
-          tr01.appendChild(td_01);
-          tr01.appendChild(td_02);
+          const conditionRow = document.createElement("tr");
+          const leftConditionCell = document.createElement("td");
+          const centerConditionCell = document.createElement("td");
+          const rightConditionCell = document.createElement("td");
+          leftConditionCell.style.color = "green";
+          leftConditionCell.innerHTML = `${rule1.condition}`;
+          rightConditionCell.style.color = "green";
+          rightConditionCell.innerHTML = `${rule2.condition}`;
+          conflict_rappresentation_container.appendChild(tr0);
+          conditionRow.appendChild(leftConditionCell);
+          conditionRow.appendChild(centerConditionCell);
+          conditionRow.appendChild(rightConditionCell);
+
+          const arrowRow = document.createElement("tr");
+          const leftArrowCell = document.createElement("td");
+          const centerArrowCell = document.createElement("td");
+          const rightArrowCell = document.createElement("td");
+          leftArrowCell.appendChild(svgArrow());
+          rightArrowCell.appendChild(svgArrow());
+          conflict_rappresentation_container.appendChild(arrowRow);
+          arrowRow.appendChild(leftArrowCell);
+          arrowRow.appendChild(centerArrowCell);
+          arrowRow.appendChild(rightArrowCell);
         }
-        const tr1 = document.createElement("tr");
-        const td1 = document.createElement("td");
-        const td2 = document.createElement("td");
-        const td3 = document.createElement("td");
-        const actionWords1 = (rule1.action).trim().split(/\s+/);
-        const firstWord1 = actionWords1[0] || "";
-        const restOfPhrase1 = actionWords1.slice(1).join(" ");
-        td1.innerHTML =  `<span>${firstWord1}</span> ${restOfPhrase1} </br> <i>${rule1_name}</i>`;
-        td2.className = "cell_img_conf";
-        td1.style.width = "44%";
-        td3.style.width = "44%";
-        const img1 = document.createElement("img");
-        img1.src = "img/conflict2.png";
-        td2.appendChild(img1);
-        const actionWords2 = (rule2.action).trim().split(/\s+/);
-        const firstWord2 = actionWords2[0] || "";
-        const restOfPhrase2 = actionWords2.slice(1).join(" ");
-        td3.innerHTML =  `<span>${firstWord2}</span> ${restOfPhrase2} </br> <i>${rule2_name}</i>`;
-        conflict_rappresentation_container.appendChild(tr1);
-        tr1.appendChild(td1);
-        tr1.appendChild(td2);
-        tr1.appendChild(td3);
+        const actionRow = document.createElement("tr");
+        const leftActionCell = document.createElement("td");
+        const centerImageCell = document.createElement("td");
+        const rightActionCell = document.createElement("td");
+
+        const actionWordsRule1 = (rule1.action).trim().split(/\s+/);
+        const actionVerbRule1 = actionWordsRule1[0] || "";
+        const actionRestRule1 = actionWordsRule1.slice(1).join(" ");
+        leftActionCell.innerHTML =  `<span>${actionVerbRule1}</span> ${actionRestRule1} </br> <i>${rule1_name}</i>`;
+        leftActionCell.style.width = "44%";
+        rightActionCell.style.width = "44%";
+        
+        centerImageCell.className = "cell_img_conf";
+        const conflictImage = document.createElement("img");
+        conflictImage.src = "img/conflict2.png";
+        centerImageCell.appendChild(conflictImage);
+
+        const actionWordsRule2 = (rule2.action).trim().split(/\s+/);
+        const actionVerbRule2 = actionWordsRule2[0] || "";
+        const actionRestRule2 = actionWordsRule2.slice(1).join(" ");
+        rightActionCell.innerHTML =  `<span>${actionVerbRule2}</span> ${actionRestRule2} </br> <i>${rule2_name}</i>`;
+        
+        conflict_rappresentation_container.appendChild(actionRow);
+        actionRow.appendChild(leftActionCell);
+        actionRow.appendChild(centerImageCell);
+        actionRow.appendChild(rightActionCell);
         body.appendChild(conflict_rappresentation_container);
         
         container.appendChild(conflict_rappresentation_container);
