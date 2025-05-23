@@ -181,6 +181,10 @@ body{
   padding-left: 10px;
 }
 
+.rule-name{
+  width: 80%;
+}
+
 .solved-tag{
   font-size: 0.6em;
   border: 1px solid;
@@ -763,7 +767,7 @@ td {
   background: #efefef;
   color: black;
   border-radius: 4px;
-  width: 180px;
+  width: 20%;
   height: 32px;
   display: flex;
   align-items: center;
