@@ -1089,7 +1089,7 @@ function createConflictCard(isActive, headerText, conflictInfo) {
           arrowRow.appendChild(centerArrowCell);
           arrowRow.appendChild(rightArrowCell);
 
-          if(type_of_conflict === "different_event_with_conditions") {
+          if(type_of_conflict === "different_event_different_conditions") {
             //riga condizioni
             const conditionRow = document.createElement("tr");
             const leftConditionCell = document.createElement("td");
