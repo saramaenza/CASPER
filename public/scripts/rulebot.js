@@ -881,7 +881,7 @@ function printUserProblems(problemsList) {
 // stesso evento, stesse condizioni, azioni diverse --> same_event_same_conditions
 // stesso evento, condizioni diverse ma sovrapponibili --> same_event_different_conditions
 // diversi eventi, no condizioni, azioni diverse --> different_event_no_conditions
-// diversi eventi, condizioni sovrapponibili, azioni diverse --> different_event_with_conditions
+// diversi eventi, condizioni sovrapponibili, azioni diverse --> different_event_different_conditions
 function createConflictCard(isActive, headerText, conflictInfo) {
     //isActive = boolean (True dovrebbe essere solo la prima card generata)
     /*conflictInfo = {
@@ -981,7 +981,7 @@ function createConflictCard(isActive, headerText, conflictInfo) {
     const rule2 = conflictInfo['rules'][1]
     const rule2_id = rule2['id']
     const rule2_name = rule2['name']
-    const type_of_conflict = "same_event_no_conditions";
+    const type_of_conflict = conflictInfo['tag'];
 
     const temp_mapping = new Map();
     temp_mapping.set(rule1_id, rule1);
