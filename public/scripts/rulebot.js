@@ -317,14 +317,14 @@ async function printUserRule(rules) {
         switchSlider.className = 'slider';
 
         // Crea il tooltip
-        switchContainer.title = "Attiva";
+        switchContainer.title = "Attiva Automazione";
 
         // Aggiorna il tooltip quando cambia lo stato dello switch
         switchInput.addEventListener('change', function() {
           if (switchInput.checked) {
-            switchContainer.title = "Disattiva";
+            switchContainer.title = "Disattiva Automazione";
           } else {
-            switchContainer.title = "Attiva";
+            switchContainer.title = "Attiva Automazione";
           }
         });
 
@@ -335,6 +335,7 @@ async function printUserRule(rules) {
         const deleteButton = document.createElement('i');
         deleteButton.classList.add('bx', 'bxs-trash', 'deleteButton');
         deleteButton.id = element['id'];
+        deleteButton.setAttribute('title', 'Elimina Automazione');
         buttonsContainer.appendChild(deleteButton);
 
         buttonsContainer.appendChild(switchContainer);

@@ -706,18 +706,20 @@ td {
 }
 
 .deleteButton {
+  width: 34px;
+  display: flex !important;
+  justify-content: center;
+  align-items: center;
   padding: 5px;
   border: 1px solid #dee2e6;
   border-radius: 5px;
   font-family: 'Nunito', sans-serif;
   cursor: pointer !important;
-}
-.deleteButton {
-  background: #ff00006e;
+  background-color: #efefef;
 }
 
 .deleteButton:hover {
-  background: #ff0000a2;
+  background-color: #e72337c7;
 }
 
 /* Modern switch */
