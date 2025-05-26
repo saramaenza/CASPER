@@ -745,6 +745,10 @@ td {
   border-radius: 24px;
 }
 
+.slider:hover, .switch input:checked + .slider:hover {
+  background-color: #2F4156;
+}
+
 .slider:before {
   position: absolute;
   content: "";
