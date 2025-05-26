@@ -885,7 +885,8 @@ function printUserProblems(problemsList) {
 // stesso evento, stesse condizioni, azioni diverse --> same_event_same_conditions
 // stesso evento, condizioni diverse ma sovrapponibili --> same_event_different_conditions
 // diversi eventi, no condizioni, azioni diverse --> different_event_no_conditions
-// diversi eventi, condizioni sovrapponibili, azioni diverse --> different_event_different_conditions
+// diversi eventi, condizioni diverse ma sovrapponibili, azioni diverse --> different_event_different_conditions
+// diversi eventi, stesse condizioni, azioni diverse --> different_event_same_conditions
 function createConflictCard(isActive, headerText, conflictInfo) {
     //isActive = boolean (True dovrebbe essere solo la prima card generata)
     /*conflictInfo = {
@@ -1092,7 +1093,8 @@ function createConflictCard(isActive, headerText, conflictInfo) {
           arrowRow.appendChild(centerArrowCell);
           arrowRow.appendChild(rightArrowCell);
 
-          if(type_of_conflict === "different_event_different_conditions") {
+          //costruzione sezione condizioni
+          if(type_of_conflict === "different_event_different_conditions" || type_of_conflict === "different_event_same_conditions") {
             //riga condizioni
             const conditionRow = document.createElement("tr");
             const leftConditionCell = document.createElement("td");
