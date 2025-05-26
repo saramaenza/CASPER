@@ -26,7 +26,8 @@ trigger_tag=""
 # stesso evento, stesse condizioni, azioni diverse --> same_event_same_conditions
 # stesso evento, condizioni diverse ma sovrapponibili --> same_event_different_conditions
 # diversi eventi, no condizioni, azioni diverse --> different_event_no_conditions
-# diversi eventi, condizioni sovrapponibili, azioni diverse --> different_event_different_conditions
+# diversi eventi, condizioni diverse ma sovrapponibili, azioni diverse --> different_event_different_conditions
+# diversi eventi, stesse condizioni, azioni diverse --> different_event_same_conditions
 
 #########  STUFF FOR GETTING SOLUTIONS #########
 
@@ -47,7 +48,7 @@ def call_find_solution_llm(idAutomation1: str, idAutomation2: str, ruleName1: st
 
 #########  STUFF FOR CONFLICT ON ACTIONS #########
 
-def process_action_conflict(action1, action2, ruleName1, ruleName2, entityRuleName1, entityRuleName2, domainTrigger1, domainTrigger2, condition1, condition2, type_of_conflict, type_of_front_end, idAutomation1, idAutomation2, automation1_description, automation2_description):
+def process_action_conflict(action1, action2, ruleName1, ruleName2, type_of_conflict, idAutomation1, idAutomation2, automation1_description, automation2_description):
     device_id1, area1, attr1, domain1 = process_action(action1)
     device_id2, area2, attr2, domain2 = process_action(action2)
 
@@ -75,25 +76,19 @@ def process_action_conflict(action1, action2, ruleName1, ruleName2, entityRuleNa
     deviceNameAction1 = getNameUserDevice(common_device[0]) or common_device[0]
     deviceNameAction2 = deviceNameAction1 # ???
 
-    infoPlatform1 = getInfoPlatform(domain1, action1)
-    infoPlatform2 = getInfoPlatform(domain2, action2)
-
     if checkOperatorsAppliances(getEventType(action1), getEventType(action2)) and not attr1 and not attr2:
-        append_conflict(ruleName1, ruleName2, getEventType(action1), getEventType(action2), None, None, None, None, "", "", infoPlatform1, infoPlatform2, domainTrigger1, domainTrigger2, deviceNameAction1, deviceNameAction2, condition1, condition2, getDeviceClass(deviceNameAction1), automation1_description, automation2_description, type_of_conflict, type_of_front_end, idAutomation1, idAutomation2)
+        append_conflict(ruleName1, ruleName2, automation1_description, automation2_description, type_of_conflict, idAutomation1, idAutomation2, device_id1)
     elif attr1 or attr2:
         dataAttr = attr1 if attr1 else attr2
         for data in dataAttr:
-            nameAttribute1 = data
-            nameAttribute2 = data
             valueAttribute1 = attr1.get(data, None)
             valueAttribute2 = attr2.get(data, None)
             if valueAttribute1 and valueAttribute2 and valueAttribute1 != valueAttribute2:
-                append_conflict(ruleName1, ruleName2, getEventType(action1), getEventType(action2), valueAttribute1, valueAttribute2, nameAttribute1, nameAttribute2, deviceNameAction1, deviceNameAction2, infoPlatform1, infoPlatform2, domainTrigger1, domainTrigger2, deviceNameAction1, deviceNameAction2, condition1, condition2, getDeviceClass(deviceNameAction1), automation1_description, automation2_description, type_of_conflict, type_of_front_end, idAutomation1, idAutomation2)
+                append_conflict(ruleName1, ruleName2, automation1_description, automation2_description, type_of_conflict, idAutomation1, idAutomation2, device_id1)
             elif (valueAttribute1 and not valueAttribute2) or (not valueAttribute1 and valueAttribute2):
-                #(name_rule1, name_rule2, trigger_type_rule1, trigger_type_rule2, action_type_rule1, action_type_rule2, device_name_rule1, device_name_rule2 ):
                 if not check_element_exists(ruleName1, ruleName2, None, None, getEventType(action1), getEventType(action2), deviceNameAction1, deviceNameAction2):
                     if checkOperatorsAppliances(getEventType(action1), getEventType(action2)):
-                        append_conflict(ruleName1, ruleName2, getEventType(action1), getEventType(action2), None, None, None, None, deviceNameAction1, deviceNameAction2, infoPlatform1, infoPlatform2, domainTrigger1, domainTrigger2, deviceNameAction1, deviceNameAction2, condition1, condition2, getDeviceClass(deviceNameAction1), automation1_description, automation2_description, type_of_conflict, type_of_front_end, idAutomation1, idAutomation2)
+                        append_conflict(ruleName1, ruleName2, automation1_description, automation2_description, type_of_conflict, idAutomation1, idAutomation2, device_id1)
 
 def has_attributes(action):
     data = action.get("data", {})
@@ -135,31 +130,30 @@ def is_conflict_present(conflict_array, id_conflict):
     return False   
 
 
-def append_conflict(ruleName1, ruleName2, type1, type2, optionalValue1, optionalValue2, typeOptionalValue1, typeOptionalValue2, nameApplianceTrigger1, nameApplianceTrigger2, typeTrigger1, typeTrigger2, domainTrigger1, domainTrigger2, nameApplianceAction1, nameApplianceAction2, condition1, condition2, device_class1, automation1_description, automation2_description, type_of_conflict, type_of_front_end, idAutomation1, idAutomation2):  
-    if(type_of_front_end == "llm"):
-        solution_info = call_find_solution_llm(idAutomation1, idAutomation2, ruleName1, ruleName2, automation1_description, automation2_description) 
-        id_conflict = str(idAutomation1)+"_"+str(idAutomation2)
-        # Check if the conflict is already present before appending
-        if not is_conflict_present(infoConflictArrayLLM, id_conflict):
-            infoConflictArrayLLM.append({
-                "type": "conflict",
-                "tag": trigger_tag+'_'+condition_tag,
-                "confidence": type_of_conflict,
-                "unique_id": id_conflict,
-                "rules": [
-                    {
-                        "id": idAutomation1,
-                        "name": ruleName1,
-                        "description": automation1_description,
-                    },
-                    {
-                        "id": idAutomation2,
-                        "name": ruleName2,
-                        "description": automation2_description,
-                    }
-                ],
-                "possibleSolutions": solution_info, # Assicurarsi che solution_info sia nel formato atteso
-            })
+def append_conflict(ruleName1, ruleName2, automation1_description, automation2_description, type_of_conflict, idAutomation1, idAutomation2, id_device):  
+    solution_info = call_find_solution_llm(idAutomation1, idAutomation2, ruleName1, ruleName2, automation1_description, automation2_description) 
+    id_conflict = str(idAutomation1)+"_"+str(idAutomation2)+"_"+str(id_device)
+    # Check if the conflict is already present before appending
+    if not is_conflict_present(infoConflictArrayLLM, id_conflict):
+        infoConflictArrayLLM.append({
+            "type": "conflict",
+            "tag": trigger_tag+'_'+condition_tag,
+            "confidence": type_of_conflict,
+            "unique_id": id_conflict,
+            "rules": [
+                {
+                    "id": idAutomation1,
+                    "name": ruleName1,
+                    "description": automation1_description,
+                },
+                {
+                    "id": idAutomation2,
+                    "name": ruleName2,
+                    "description": automation2_description,
+                }
+            ],
+            "possibleSolutions": solution_info, # Assicurarsi che solution_info sia nel formato atteso
+        })
 
 
 def process_action(action):
@@ -412,11 +406,10 @@ def detectConflicts(rules, rule1):
     #rules = _db.get_automations(user_id) #[{"id": automation_id_int, "config": {"id", "alias", "description", "triggers"...}, ...]
     infoConflictArrayLLM.clear()
     global trigger_tag
-    ruleName1 = rule1.get("alias", None) #None potrebbe tornare errore nella linea successiva
+    ruleName1 = rule1.get("alias", "") #None potrebbe tornare errore nella linea successiva
     entityRuleName1 = "automation." + ruleName1.replace(" ", "_") #sostituito con l'alias della nuova automazione spazi -> _
     rule1_trigger = rule1.get("trigger") or rule1.get("triggers") or None
     rule1_condition = rule1.get("condition") or rule1.get("conditions") or None
-    domainTrigger1 = rule1_trigger[0].get("domain", None) if isinstance(rule1_trigger, list) and rule1_trigger else None #trigger o triggerS?
     idAutomation1 = rule1.get("id", None)
     actions1 = rule1.get("actions", []) or rule1.get("action", [])
     
@@ -429,8 +422,6 @@ def detectConflicts(rules, rule1):
             entityRuleName2 = "automation." + ruleName2.replace(" ", "_")
 
             if entityRuleName1 != entityRuleName2:
-                # Triggers and conditions overlap (possible/certain conflict)
-                domainTrigger2 = rule2_trigger[0].get("domain", None) if isinstance(rule2_trigger, list) and rule2_trigger else None #trigger o triggerS?
                 actions2 = rule2.get("actions", []) or rule2.get("action", [])
                 idAutomation2 = rule2.get("id", None)
                 same_trigger = rule1_trigger == rule2_trigger
@@ -456,7 +447,7 @@ def detectConflicts(rules, rule1):
                 
                 # Conflict on actions and solution retrieval
                 for action2 in actions2:
-                    process_action_conflict(action1, action2, ruleName1, ruleName2, entityRuleName1, entityRuleName2, domainTrigger1, domainTrigger2, rule1_condition, rule2_condition, type_of_conflict, "llm", idAutomation1, idAutomation2, "automation_description", "automation2_description")
+                    process_action_conflict(action1, action2, ruleName1, ruleName2, type_of_conflict, idAutomation1, idAutomation2, "automation_description", "automation2_description")
     return infoConflictArrayLLM
 
 if __name__ == "__main__":
