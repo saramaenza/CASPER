@@ -356,7 +356,7 @@ def checkCondition(condition1, condition2):
                         return False
                     if (c1.get('user') == c2.get('user') and c1.get('zone') != c2.get('zone')) and (c1['condition'] == 'not' or c2['condition'] == 'not'):
                         return False
-    condition_tag = "with_conditions"
+    condition_tag = "different_conditions"
     return True
 
 def getConditionInfo(condition, typeCondition):
