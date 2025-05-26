@@ -374,9 +374,9 @@ app.use('/get_rule_list', verifyToken, async (req, res) =>{
   }
 })
 
-app.get('/get_problems', verifyToken, async (req, res) => {
+app.use('/get_problems', verifyToken, async (req, res) => {
   try {
-    let user_id = req.query.id;
+    let user_id = req.body.user_id;
     const data = await getProblems(user_id);
     res.json(data);
   } catch (error) {

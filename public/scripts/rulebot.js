@@ -152,8 +152,8 @@ window.addEventListener('load', async ()=>{
 
   printUserRule(rulesList); //PRINT regole
   printUserDevices(devicesList); //PRINT devices
-  //await printUserProblems(problemList);
-  //await printUserGoals(goalList); 
+  let problemsList = await getProblems()
+  printUserProblems(problemsList);
   
   //open_delete_rule();
 
@@ -860,7 +860,7 @@ createConflictCard(
 
 function printUserProblems(problemsList) {
   for (const [index, problem] of problemsList.entries()){
-    if (problems['type'] == 'conflict'){
+    if (problem['type'] == 'conflict'){
       createConflictCard(
         index == 0,
         `Conflitto ${problem['id']}`,
@@ -888,6 +888,7 @@ function printUserProblems(problemsList) {
 // diversi eventi, condizioni diverse ma sovrapponibili, azioni diverse --> different_event_different_conditions
 // diversi eventi, stesse condizioni, azioni diverse --> different_event_same_conditions
 function createConflictCard(isActive, headerText, conflictInfo) {
+  console.log("Creating conflict card with info: ", conflictInfo);
     //isActive = boolean (True dovrebbe essere solo la prima card generata)
     /*conflictInfo = {
     "id_conflict": "17422966096088_1746629662875",

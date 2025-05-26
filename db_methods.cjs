@@ -10,6 +10,7 @@ let dbName = "";
 const setServerConfig = (server) => {
     dbName = server.db_name;
 }
+
 const client = new MongoClient(uri);
 //crea nuovo utente e lo mette nel db
 const createUser = async (name,surname,pass,email) =>{
@@ -41,7 +42,7 @@ const createUser = async (name,surname,pass,email) =>{
 }
 
 const createGoogleUser = async (payload, fullInfo) =>{
-    const client = new MongoClient(uri);
+    
     try{
         const database = client.db(dbName);
         const users = database.collection('users');
@@ -81,7 +82,7 @@ const checkEmail = (len, users, newemail) =>{
 
 //torna la lista di utenti
 const getUser = async (emailToCheck) => {
-    const client = new MongoClient(uri);
+    
     try{
         const database = client.db(dbName);
         const users = database.collection('users');
@@ -93,7 +94,7 @@ const getUser = async (emailToCheck) => {
 }
 
 const verifyEmail = async (email) => {
-    const client = new MongoClient(uri);
+    
     try {
         const database = client.db(dbName);
         const users = database.collection('users');
@@ -142,7 +143,7 @@ const isLogged = (req) =>{
 }
 
 const userInfo = async (req) =>{ //ritorna tutte le informazioni dell'utente
-    const client = new MongoClient(uri);
+    
     try{
         const database = client.db(dbName);
         const users = database.collection('users');
@@ -156,21 +157,21 @@ const userInfo = async (req) =>{ //ritorna tutte le informazioni dell'utente
 
 
 const getProblems = async (userId) => {
-    const client = new MongoClient(uri);
     try {
         const database = client.db(dbName);
         const conflicts = database.collection('problems');
         const userConflicts = await conflicts.findOne({ 'user_id': userId });
+        
         return userConflicts['problems'];
     } catch (err) {
-        console.log('error in getProblems');
+        console.log('error in db_methonds - getProblems');
         console.log(err);
         return err;
     }
 };
 
 const getAutomations=async (userId) => {
-    const client = new MongoClient(uri);
+    
     try {
         const database = client.db(dbName);
         const automations = database.collection('automations');
@@ -187,7 +188,7 @@ const getAutomations=async (userId) => {
 
 
 const saveConfiguration = async (userId, data, auth) => {
-    const client = new MongoClient(uri);
+    
     try {
         const database = client.db(dbName);
         const config = database.collection('config');
@@ -205,7 +206,7 @@ const saveConfiguration = async (userId, data, auth) => {
 }
 
 const getConfiguration = async (userId) => {
-    const client = new MongoClient(uri);
+    
     try {
         const database = client.db(dbName);
         const config = database.collection('config');
@@ -224,7 +225,7 @@ const getConfiguration = async (userId) => {
 }
 
 const saveSelectedConfiguration = async (userId, data) => {
-    const client = new MongoClient(uri);
+    
     try {
         const database = client.db(dbName);
         const config = database.collection('config');
@@ -260,7 +261,7 @@ const saveSelectedConfiguration = async (userId, data) => {
 
 const saveAutomations = async (userId, automationsData) => {
     //saves all automations to DB
-    const client = new MongoClient(uri);
+    
     try {
         const database = client.db(dbName);
         const automations = database.collection('automations');
@@ -286,7 +287,7 @@ const saveAutomations = async (userId, automationsData) => {
 
 const saveAutomation = async (userId, automationId, config) => {
     //saves a single automation to DB
-    const client = new MongoClient(uri);
+    
     try {
         const database = client.db(dbName);
         const automations = database.collection('automations');
@@ -327,7 +328,7 @@ const saveAutomation = async (userId, automationId, config) => {
 };
 
 const deleteRule = async (userId, ruleId) => {
-    const client = new MongoClient(uri);
+    
     try {
         const database = client.db(dbName);
         const automations = database.collection('automations');
@@ -359,7 +360,7 @@ async function closeDatabaseConnection() {
 }
 
 // const getHAAutomation = async (userId, automationId) => {
-//     const client = new MongoClient(uri);
+//     
 //     try {
 //         const database = client.db(dbName);
 //         const automations = database.collection('automations');
