@@ -271,118 +271,219 @@ async function deleteAutomation(rule_id) {
   }
 
 async function printUserRule(rules) {
-
   const rulesContainer = document.querySelector('#rules-container');
   rulesContainer.innerText = '';
+
   if (rules.length > 0) {
+
+    // Wrapper per tutte le automation-card
+    const automationListWrapper = document.createElement('div');
+    automationListWrapper.className = 'automation-list-wrapper';
+    rulesContainer.appendChild(automationListWrapper);
+
+    // Barra di ricerca
+    const searchContainer = document.createElement('div');
+    searchContainer.className = 'search-container';
+    const searchBar = document.createElement('input');
+    searchBar.type = 'text';
+    searchBar.className = 'search-bar';
+    searchBar.placeholder = 'Cerca automazioni...';
+    const searchIcon = document.createElement('div');
+    searchIcon.className = 'search-icon';
+    searchIcon.textContent = '🔍';
+    searchContainer.appendChild(searchBar);
+    searchContainer.appendChild(searchIcon);
+    automationListWrapper.appendChild(searchContainer);
+
     rules.forEach((element, index) => {
-      element = element['config']
+      element = element['config'];
       setTimeout(() => {
-        let rule = document.createElement('div');
-        rule.classList.add('rule');
+        // CARD PRINCIPALE
+        const card = document.createElement('div');
+        card.className = 'automation-card';
+        card.style.transform = 'translateY(0px) scale(1)';
+        card.style.display = 'block';
+        card.style.animation = '0.3s ease 0s 1 normal none running fadeIn';
 
-        let ruleHead = document.createElement('div');
-        ruleHead.classList.add('rule-head');
-        ruleHead.setAttribute('ruleid', element['id']);
-        let ruleName = document.createElement('span');
-        ruleName.classList.add('rule-name');
-        ruleName.innerText = `${element['alias']}`;
+        // Status indicator
+        const statusIndicator = document.createElement('div');
+        statusIndicator.className = 'status-indicator';
+        card.appendChild(statusIndicator);
 
-        let ruleElement = document.createElement('div');
-        ruleElement.classList.add('rule-element', 'closed', 'rule-content-wrapper');
-        ruleElement.setAttribute('descid', element['id']);
-  
-        let ruleDescription = document.createElement('div');
-        ruleDescription.classList.add('rule-description');
-        ruleDescription.innerHTML = element['description'] || 'Questa automazione non ha una descrizione';
-        
+        // CARD HEADER
+        const cardHeader = document.createElement('div');
+        cardHeader.className = 'card-header';
 
-        const idBadge = document.createElement('div');
-        idBadge.textContent = `ID ${element['id']}`;
-        idBadge.classList.add('id_badge');
+        // Header left (icon + title/id)
+        const headerLeft = document.createElement('div');
+        headerLeft.style.display = 'flex';
+        headerLeft.style.alignItems = 'center';
 
-        const buttonsContainer = document.createElement('div');
-        buttonsContainer.classList.add('buttons-container');
+        // Icon
+        const automationIcon = document.createElement('div');
+        const iconInfo = getAutomationIconInfo(element);
+        automationIcon.className = `automation-icon ${iconInfo.className}`;
+        automationIcon.textContent = iconInfo.icon;
 
-        // Crea un contenitore per lo switch
-        const switchContainer = document.createElement('label');
-        switchContainer.className = 'switch';
+        // Titolo e ID
+        const titleIdContainer = document.createElement('div');
+        const automationTitle = document.createElement('div');
+        automationTitle.className = 'automation-title';
+        automationTitle.textContent = element['alias'];
 
-        // Crea l'input checkbox
-        const switchInput = document.createElement('input');
-        switchInput.type = 'checkbox';
+        const automationId = document.createElement('div');
+        automationId.className = 'automation-id';
+        automationId.textContent = `ID ${element['id']}`;
 
-        // Crea lo slider
-        const switchSlider = document.createElement('span');
-        switchSlider.className = 'slider';
+        titleIdContainer.appendChild(automationTitle);
+        titleIdContainer.appendChild(automationId);
 
-        // Crea il tooltip
-        switchContainer.title = "Attiva Automazione";
+        headerLeft.appendChild(automationIcon);
+        headerLeft.appendChild(titleIdContainer);
 
-        // Aggiorna il tooltip quando cambia lo stato dello switch
-        switchInput.addEventListener('change', function() {
-          if (switchInput.checked) {
-            switchContainer.title = "Disattiva Automazione";
-          } else {
-            switchContainer.title = "Attiva Automazione";
-          }
-        });
+        // Toggle switch
+        const toggleSwitch = document.createElement('div');
+        toggleSwitch.className = 'toggle-switch active'; // aggiungi/rimuovi 'active' per stato ON/OFF
 
-        // Assembla lo switch
-        switchContainer.appendChild(switchInput);
-        switchContainer.appendChild(switchSlider);
+        const toggleSlider = document.createElement('div');
+        toggleSlider.className = 'toggle-slider';
+        toggleSwitch.appendChild(toggleSlider);
 
-        const deleteButton = document.createElement('i');
-        deleteButton.classList.add('bx', 'bxs-trash', 'deleteButton');
-        deleteButton.id = element['id'];
-        deleteButton.setAttribute('title', 'Elimina Automazione');
-        buttonsContainer.appendChild(deleteButton);
+        // Assembla header
+        cardHeader.appendChild(headerLeft);
+        cardHeader.appendChild(toggleSwitch);
 
-        buttonsContainer.appendChild(switchContainer);
+        // Descrizione
+        const automationDescription = document.createElement('div');
+        automationDescription.className = 'automation-description';
+        automationDescription.textContent = element['description'] || 'Questa automazione non ha una descrizione';
 
-        ruleHead.appendChild(ruleName);
-        ruleHead.appendChild(idBadge);
-        //ruleHead.appendChild(icon);
-        rule.appendChild(ruleHead);
-        rule.appendChild(ruleElement);
-        ruleElement.appendChild(ruleDescription);
-        ruleElement.appendChild(buttonsContainer);
-        rulesContainer.appendChild(rule);
-
-        // Aggiungi l'event listener per l'apertura del contenuto
-        ruleHead.addEventListener('click', (event) => {
-            if (
-              event.target.classList.contains('rule-head') ||
-              event.target.classList.contains('rule-name') ||
-              event.target.classList.contains('id_badge') // aggiunto qui
-            ) {
-              displayDesc(ruleHead);
-            }
-        });
-        deleteButton.addEventListener('click', async (event) => {
-          event.stopPropagation(); // Impedisce la propagazione dell'evento al genitore
-          const ruleId = deleteButton.getAttribute('id');
-          const ruleName = "ID:"+ruleId+" - " +deleteButton.parentElement.parentElement.parentElement.querySelector('.rule-name').innerText;
-         
-          const confirmation = confirm(`Sei sicuro di voler eliminare la regola "${ruleName}"?`);
-          if (confirmation) {
-            await deleteAutomation(ruleId);
-            deleteRule(ruleId, rules);
-          }
-        });
-      }, index * 100); // Ritardo di 500ms tra ogni regola
+        // Assembla tutto
+        card.appendChild(cardHeader);
+        card.appendChild(automationDescription);
+        automationListWrapper.appendChild(card);
+      }, index * 100);
     });
+
+    // Funzionalità di ricerca
+    searchBar.addEventListener('input', function() {
+      const searchTerm = this.value.toLowerCase();
+      const cards = automationListWrapper.querySelectorAll('.automation-card');
+      cards.forEach(card => {
+        const title = card.querySelector('.automation-title')?.textContent.toLowerCase() || "";
+        const description = card.querySelector('.automation-description')?.textContent.toLowerCase() || "";
+        if (title.includes(searchTerm) || description.includes(searchTerm)) {
+          card.style.display = 'block';
+          card.style.animation = 'fadeIn 0.3s ease';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    });
+
+    // Effetto hover sulle card e toggle functionality
+    setTimeout(() => {
+      automationListWrapper.querySelectorAll('.automation-card').forEach(card => {
+        // Hover effect
+        card.addEventListener('mouseenter', function() {
+          this.style.transform = 'translateX(3px)';
+        });
+        card.addEventListener('mouseleave', function() {
+          this.style.transform = 'translateX(0px)';
+        });
+
+        // Toggle functionality
+        const toggle = card.querySelector('.toggle-switch');
+        const indicator = card.querySelector('.status-indicator');
+        if (toggle) {
+          toggle.addEventListener('click', function() {
+            this.classList.toggle('active');
+            if (this.classList.contains('active')) {
+              indicator.classList.remove('inactive');
+            } else {
+              indicator.classList.add('inactive');
+            }
+          });
+        }
+      });
+    }, rules.length * 100 + 100);
+
   } else {
-    console.log("Nessuna regola associata a questo account");
     rulesContainer.innerText = 'Nessuna regola associata a questo account';
   }
 }
 
+function getAutomationIconInfo(automation) {
+    const regex = /^event(?:s|o|i)?:\s*(?<event>.*?)(?:\s*(?:condition(?:s)?|condizion(?:e|i)):\s*(?<condition>.*?))?\s*(?:action(?:s)?|azion(?:i|e)):\s*(?<action>.*)$/i;
+    const rule_match = automation.description.match(regex);
+    const groups = rule_match.groups;
+    const text = (groups.action).toLowerCase();
+    
+    if (text.includes("movimento") || text.includes("motion")) {
+        return {
+            icon: "🏃",
+            className: "motion-icon"
+        };
+    }
+    if (text.includes("luce") || text.includes("light") || text.includes("lampadina")) {
+        return {
+            icon: "💡",
+            className: "light-icon"
+        };
+    }
+    if (text.includes("temperatura") || text.includes("climate")) {
+        return {
+            icon: "🌡️",
+            className: "schedule-icon"
+        };
+    }
+    if (text.includes("porta") || text.includes("finestra") || text.includes("door") || text.includes("window")) {
+        return {
+            icon: "🚪",
+            className: "corridor-icon"
+        };
+    }
+    if (text.includes("ventilatore") || text.includes("fan")) {
+        return {
+            icon: "💨",
+            className: "living-icon"
+        };
+    }
+    if (text.includes("pioggia") || text.includes("rain") || text.includes("weather")) {
+        return {
+            icon: "🌧️",
+            className: "bathroom-icon"
+        };
+    }
+    // Default
+    return {
+        icon: "⚡",
+        className: "kitchen-icon"
+    };
+}
 
 async function printUserDevices(devicesList) {
   const devices = devicesList['selected'];
   const devicesContainer = document.querySelector('#devices-list-container');
-  devicesContainer.innerHTML = '';
+
+  const devicesListWrapper = document.createElement('div');
+  devicesListWrapper.className = 'devices-list-wrapper';
+  devicesContainer.appendChild(devicesListWrapper);
+  
+  // Barra di ricerca
+  const searchContainer = document.createElement('div');
+  searchContainer.className = 'search-container';
+  const searchBar = document.createElement('input');
+  searchBar.type = 'text';
+  searchBar.className = 'search-bar';
+  searchBar.placeholder = 'Cerca dispositivi...';
+  const searchIcon = document.createElement('div');
+  searchIcon.className = 'search-icon';
+  searchIcon.textContent = '🔍';
+  searchContainer.appendChild(searchBar);
+  searchContainer.appendChild(searchIcon);
+  devicesListWrapper.appendChild(searchContainer);
+
   let icon = domainMap['default'];
   let cleanList = {};
   if (devicesList != true && devices != undefined) { //organizzo per stanze "a", salvo il nome dell entita "f"
@@ -406,24 +507,38 @@ async function printUserDevices(devicesList) {
   Object.keys(cleanList).forEach((key) => {
     // Crea il contenitore della stanza
     let room = document.createElement('div');
-    room.classList.add('room');
+    room.classList.add('room-card');
     
     let roomName = document.createElement('div');
-    roomName.classList.add('room-name');
-    roomName.innerText = key;
+    roomName.classList.add('category-title');
+
+    let categoryIcon = document.createElement('div');
+    categoryIcon.classList.add('category-icon');
+    categoryIcon.textContent = getCategoryIcon(key);
+    categoryIcon.className = "automation-icon room-icon";
+
+    const roomNameText = document.createElement('span');
+    roomNameText.classList.add('room-name');
+    roomNameText.textContent = ` ${key}`;
+
+    roomName.appendChild(categoryIcon);
+    roomName.appendChild(roomNameText);
 
     // Aggiungi il listener per il clic
     roomName.addEventListener('click', () => {
       roomName.classList.toggle('active');
+      const roomNameSpan = roomName.querySelector('.room-name');
+      if (roomNameSpan) {
+        roomNameSpan.classList.toggle('active');
+      }
       const devicesList_container = roomName.nextElementSibling;
 
       if (devicesList_container && devicesList_container.classList.contains('devicesList_container')) {
-        // Alterna la classe 'open' per gestire l'apertura e la chiusura
         if (devicesList_container.classList.contains('open')) {
-          devicesList_container.style.maxHeight = '0'; // Nascondi
+          devicesList_container.style.maxHeight = '0';
           devicesList_container.classList.remove('open');
         } else {
-          devicesList_container.style.maxHeight = devicesList_container.scrollHeight + 'px'; // Mostra
+          devicesList_container.style.maxHeight = devicesList_container.scrollHeight + 'px';
           devicesList_container.classList.add('open');
         }
       }
@@ -451,9 +566,46 @@ async function printUserDevices(devicesList) {
 
     devicesList_container.appendChild(devicesList);
     room.appendChild(devicesList_container);
-    devicesContainer.appendChild(room);
+    devicesListWrapper.appendChild(room);
   });
 }, 100);
+}
+
+function getCategoryIcon(roomName) {
+  const name = roomName.toLowerCase();
+  
+  if (name.includes("cucina") || name.includes("kitchen")) {
+      return "🍳";
+  }
+  if (name.includes("camera") || name.includes("bedroom")) {
+      return "🛏️";
+  }
+  if (name.includes("bagno") || name.includes("bathroom")) {
+      return "🚿";
+  }
+  if (name.includes("salotto") || name.includes("living")) {
+      return "🛋️";
+  }
+  if (name.includes("studio") || name.includes("office")) {
+      return "💼";
+  }
+  if (name.includes("garage")) {
+      return "🚗";
+  }
+  if (name.includes("giardino") || name.includes("garden")) {
+      return "🌳";
+  }
+  if (name.includes("corridoio") || name.includes("hallway")) {
+      return "🚪";
+  }
+  if (name.includes("cantina") || name.includes("cellar")) {
+      return "🍷";
+  }
+  if (name.includes("fuori") || name.includes("outside")) {
+    return "☀️";
+  }
+  // Icona di default per altre stanze
+  return "🏠";
 }
 
 //cancella una regola dalla lista
@@ -880,7 +1032,6 @@ function printUserProblems(problemsList) {
   }   
 }
 
-//TODO: aggiungere a conflicts.py il tipo di conflitto (se ha evento uguale senza condizioni, evento uguale con condizioni ecc.)
 // stesso evento, no condizioni, azioni diverse --> same_event_no_conditions
 // stesso evento, stesse condizioni, azioni diverse --> same_event_same_conditions
 // stesso evento, condizioni diverse ma sovrapponibili --> same_event_different_conditions
@@ -1130,7 +1281,7 @@ function createConflictCard(isActive, headerText, conflictInfo) {
         const actionWordsRule1 = (rule1.action).trim().split(/\s+/);
         const actionVerbRule1 = actionWordsRule1[0] || "";
         const actionRestRule1 = actionWordsRule1.slice(1).join(" ");
-        leftActionCell.innerHTML =  `<span>${actionVerbRule1}</span> ${actionRestRule1} </br> <i>${rule1_name}</i>`;
+        leftActionCell.innerHTML =  `<span>${actionVerbRule1}</span> ${actionRestRule1} </br> <span class="automation_name">${rule1_name}</span>`;
         leftActionCell.style.width = "44%";
         rightActionCell.style.width = "44%";
         
@@ -1142,7 +1293,7 @@ function createConflictCard(isActive, headerText, conflictInfo) {
         const actionWordsRule2 = (rule2.action).trim().split(/\s+/);
         const actionVerbRule2 = actionWordsRule2[0] || "";
         const actionRestRule2 = actionWordsRule2.slice(1).join(" ");
-        rightActionCell.innerHTML =  `<span>${actionVerbRule2}</span> ${actionRestRule2} </br> <i>${rule2_name}</i>`;
+        rightActionCell.innerHTML =  `<span>${actionVerbRule2}</span> ${actionRestRule2} </br> <span class="automation_name">${rule2_name}</span>`;
         
         conflict_rappresentation_container.appendChild(actionRow);
         actionRow.appendChild(leftActionCell);
