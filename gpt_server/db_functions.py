@@ -65,7 +65,6 @@ def remove_state(user_id, session_id):
         print("----------------")
 
 def get_automations(user_id):
-    print(f"Get Automations: {user_id}")
     try:
         collection = db["automations"]
         automations = collection.find_one({"user_id": user_id})
