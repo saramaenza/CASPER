@@ -21,11 +21,14 @@ def problem_detector(user_id, session_id, automation_id):
         if not data:
             return "Error: Automation not found."
 
-        chain_detector = ChainsDetector(ha_client)
-
-        direct_chains = chain_detector.detect_chains(data, new_automation, "direct")
+        chain_detector = ChainsDetector(ha_client, user_id) # Pass user_id here
+        print(f"Detecting problems for automation ID: {automation_id}")
+        print("direct chains")
+        direct_chains = chain_detector.detect_chains(data, new_automation, "direct") 
+        print("indirect chains")
         indirect_chains = chain_detector.detect_chains(data, new_automation, "indirect")
         conflicts = detectConflicts(data, new_automation)
+        print("conflicts")
 
         all_problems = direct_chains + indirect_chains + conflicts
         end = time.time()
