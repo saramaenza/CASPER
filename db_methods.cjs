@@ -301,6 +301,7 @@ const saveAutomation = async (userId, automationId, config) => {
             
             const automationData = {
                 id: automationId,
+                state: 'on',
                 config: config
             };
             
@@ -359,6 +360,35 @@ async function closeDatabaseConnection() {
     }
 }
 
+const toggleAutomation = async (userId, automationId, state) => {
+    try {
+        const database = client.db(dbName);
+        const automations = database.collection('automations');
+        
+        const userAutomations = await automations.findOne({ 'user_id': userId });
+        
+        if (!userAutomations) return false;
+        
+        const automationIndex = userAutomations.automation_data.findIndex(
+            auto => auto.id.toString() === automationId.toString()
+        );
+        
+        if (automationIndex === -1) return false; // Automazione non trovata
+        
+        userAutomations.automation_data[automationIndex].state = state;
+        
+        await automations.updateOne(
+            { 'user_id': userId },
+            { $set: { 'automation_data': userAutomations.automation_data } }
+        );
+        
+        return true;
+    } catch (err) {
+        console.log('Errore in toggleAutomation:', err);
+        return false;
+    }
+}
+
 // const getHAAutomation = async (userId, automationId) => {
 //     
 //     try {
@@ -404,5 +434,6 @@ module.exports = {
     getConfiguration,
     deleteRule,
     closeDatabaseConnection,
+    toggleAutomation,
 };
 
