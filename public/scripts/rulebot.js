@@ -1287,6 +1287,14 @@ function createConflictCard(isActive, headerText, conflictInfo) {
     const container = document.createElement("div");
     container.className = "container_arrow";
 
+    const ignoreButton = document.createElement("button");
+    ignoreButton.textContent = "Ignora";
+    ignoreButton.id = conflictInfo["id_conflict"];
+
+    const solveButton = document.createElement("button");
+    solveButton.textContent = "Risolvi";
+    solveButton.id = conflictInfo["id_conflict"];
+
     const rule1_match = rule1_description.match(regex);
     const rule2_match = rule2_description.match(regex);
 
@@ -1423,7 +1431,7 @@ function createConflictCard(isActive, headerText, conflictInfo) {
         body.appendChild(conflict_rappresentation_container);
         container.appendChild(conflict_rappresentation_container);
     };
-    body.appendChild(container);
+    body.appendChild(container);    
 
     const title = document.createElement("p");
     title.className = "card-title";
@@ -1483,6 +1491,8 @@ function createConflictCard(isActive, headerText, conflictInfo) {
     };
 
     body.appendChild(accordion);
+    body.appendChild(ignoreButton);
+    body.appendChild(solveButton);
     card.appendChild(body);
     carousel.appendChild(card);
     carousel.click();
