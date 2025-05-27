@@ -672,6 +672,7 @@ td {
   background-color: transparent;
   display: flex;
   text-wrap: nowrap;
+  border-radius: 16px;
 }
 
 .selector-selected {
@@ -961,20 +962,15 @@ td {
 }
 
 .deleteButton {
-  width: 34px;
-  display: flex !important;
-  justify-content: center;
-  align-items: center;
-  padding: 5px;
-  border: 1px solid #dee2e6;
-  border-radius: 5px;
-  font-family: 'Nunito', sans-serif;
-  cursor: pointer !important;
-  background-color: #efefef;
+  color: #bd4141;
+  cursor: pointer;
+  display: inline-block;
+  margin-top: 5px;
 }
 
 .deleteButton:hover {
-  background-color: #e72337c7;
+  color: #f3021a;
+  font-weight: bold;
 }
 
 /* Modern switch */
