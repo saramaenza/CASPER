@@ -349,6 +349,13 @@ async function printUserRule(rules) {
         toggleSlider.className = 'toggle-slider';
         toggleSwitch.appendChild(toggleSlider);
 
+        // Bottone "Elimina"
+        const deleteButton = document.createElement('span');
+        deleteButton.textContent = 'Elimina';
+        deleteButton.classList.add('deleteButton');
+        deleteButton.id = element['id'];
+        deleteButton.setAttribute('title', 'Elimina Automazione');
+
         // Assembla header
         cardHeader.appendChild(headerLeft);
         cardHeader.appendChild(toggleSwitch);
@@ -361,7 +368,22 @@ async function printUserRule(rules) {
         // Assembla tutto
         card.appendChild(cardHeader);
         card.appendChild(automationDescription);
+        card.appendChild(deleteButton);
         automationListWrapper.appendChild(card);
+
+
+        // Funzionalità di cancellazione
+        deleteButton.addEventListener('click', async (event) => {
+            event.stopPropagation(); // Impedisce la propagazione dell'evento al genitore
+            const ruleId = deleteButton.getAttribute('id');
+            const ruleName = "ID:"+ruleId+" - " +automationTitle.textContent;
+          
+            const confirmation = confirm(`Sei sicuro di voler eliminare la regola "${ruleName}"?`);
+            if (confirmation) {
+              await deleteAutomation(ruleId);
+              deleteRule(ruleId, rules);
+            }
+          });
       }, index * 100);
     });
 
