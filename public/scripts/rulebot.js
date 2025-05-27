@@ -152,11 +152,12 @@ window.addEventListener('load', async ()=>{
   //problemList = await getData(`${getProblems}?id=${userId}`) //GET problemi
   let devicesList = await getData(`${getDevices}?id=${userId}`) //GET problemi
   //goalList = await getData(`${getGoals}?id=${userId}`) //GET goal
-  
-
+  document.querySelector('#n_automations').innerText = rulesList.length;
   printUserRule(rulesList); //PRINT regole
+  document.querySelector('#n_devices').innerText = devicesList['selected'].length;
   printUserDevices(devicesList); //PRINT devices
   let problemsList = await getProblems()
+  document.querySelector('#n_problems').innerText = problemsList.length;
   printUserProblems(problemsList);
   
   //open_delete_rule();
@@ -325,7 +326,7 @@ async function printUserRule(rules) {
     automationListWrapper.appendChild(searchContainer);
 
     rules.forEach((element, index) => {
-      let automationState = element['state'] == "on" ? "active":"" || 'active'; // Stato di default se non specificato
+      let automationState = element['state'] === "on" ? "active": ""; // Stato di default se non specificato
       element = element['config'];
       setTimeout(() => {
         // CARD PRINCIPALE
@@ -376,6 +377,7 @@ async function printUserRule(rules) {
         toggleSwitch.className = `toggle-switch ${automationState}`; // aggiungi/rimuovi 'active' per stato ON/OFF
         toggleSwitch.setAttribute('entity', element['alias'].toLowerCase().split(' ').join('_'));
         toggleSwitch.setAttribute('ruleid', element['id']);
+        toggleSwitch.setAttribute('title', 'Accendi/Spegni Automazione');
 
         const toggleSlider = document.createElement('div');
         toggleSlider.className = 'toggle-slider';
