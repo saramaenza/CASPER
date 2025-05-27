@@ -111,7 +111,7 @@ body{
 #msgContainer{
     width: 100%;
     overflow-y: auto;
-    height: 85%;
+    height: 80%;
     background-color: #28384a;
     backdrop-filter: blur(10px);
 }
@@ -721,7 +721,7 @@ td {
 }
 .selector-unselected:hover {
   font-weight: bold;
-  background-color: #2F4156;
+  background-color: rgba(255, 255, 255, 0.05);
 }
 .selector-unselected:hover {
   font-weight: normal !important;
@@ -732,7 +732,7 @@ td {
   align-items: center;
   width: 20px;      
   height: 20px;
-  background: linear-gradient(135deg, #FF4757, #FFD700);
+  background: white;
   color: black;     
   border-radius: 50%; 
   box-shadow: 0 2px 6px rgba(0,0,0,0.08);
@@ -740,6 +740,9 @@ td {
   font-size: 14px;
   font-weight: 600;
   margin-left: 10px;
+}
+#n_problems{
+  background-color: #ffc118;
 }
 .leftbar-selected{
   display: block;
@@ -1128,6 +1131,43 @@ td {
   font-size: 12px;
   color: #d0d0d0;
   font-family: 'Courier New', monospace;
+}
+
+.chat-header {
+    padding: 20px 30px;
+    background: #2F4156;
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    justify-content: flex-end; /* Allinea i contenuti a destra */
+}
+
+.chat-controls {
+    display: flex;
+    gap: 10px;
+    margin-left: auto; /* Spinge i controlli verso destra */
+}
+
+.control-btn {
+    padding: 8px 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: #d0d0d0;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 12px;
+}
+
+.theme-btn:hover {
+    background: rgba(196, 195, 252, 0.2);
+    color: white;
+    border-color: rgba(180, 179, 250, 0.2);
+}
+.logout-btn:hover {
+    background: rgba(255, 71, 87, 0.2);
+    color: white;
+    border-color: rgba(255, 71, 87, 0.3);
 }
 
 #initial-name {
