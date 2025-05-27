@@ -26,7 +26,7 @@
                             <img src="img/logo.png">
                         </div>
                         
-                        <span id="initial-name">Ciao <b></b>,</span>
+                        <div id="initial-name"></div>
                         <!-- <a href="/configuration" target="_blank" rel="noopener noreferrer">Configs</a> -->
                     </div>
                     <!-- <div id="profile">
@@ -37,8 +37,8 @@
                         </div>
                     </div> -->
                     <div id="rules-buttons-container">
-                        <div type="button" id="show-rules" class="selector-button selector-selected"><i class='bx bxs-magic-wand' ></i> Automazioni</div>
-                        <div type="button" id="show-devices" class="selector-button selector-unselected"><i class='bx bxs-washer'></i> Dispositivi</div>
+                        <div type="button" id="show-rules" class="selector-button selector-selected"><i class='bx bxs-magic-wand' ></i> Automazioni <span class="circle-number" id="nautomations">2</span></div>
+                        <div type="button" id="show-devices" class="selector-button selector-unselected"><i class='bx bxs-washer'></i> Dispositivi <span class="circle-number" id="n_devices">2</span></div>
                         <div type="button" id="show-problems" class="selector-button selector-unselected"><i class='bx bx-alarm-exclamation'></i> Problemi <span class="circle-number" id="n_problems">2</span></div>
                        <!--  <input type="button" disabled id="download" class="rule-button" value="Download regole">
                         <input  type="button" id="aggiorna" class="rule-button" value="Aggiorna lista regole">-->
@@ -865,6 +865,12 @@
                 -->
             </div>
             <div id="chat">
+                <div class="chat-header">
+                    <div class="chat-controls">
+                        <div class="control-btn theme-btn" id="themeButton" onclick="toggleTheme()">🎨 Tema</div>
+                        <div class="control-btn logout-btn" onclick="logout()">🚪 Logout</div>
+                    </div>    
+                </div>
                 <div id="msgContainer">
                     <!-- <div class="infoMsgContainer">
                         <div class="infoLabel">Info di Sistema</div>

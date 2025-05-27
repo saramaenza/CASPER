@@ -7,6 +7,7 @@ body{
     background: #f7f7f7;
     font-family: 'Nunito', sans-serif;
     font-weight: 400;
+    overflow-y: hidden;
 }
 
 .container{
@@ -35,7 +36,6 @@ body{
   border-radius: 9px 0 0 0;
 }
 #welcome span {
-  margin-left: 15px;
   margin-top: 15px;
 }
 #welcome img{
@@ -43,12 +43,13 @@ body{
   height: auto;
 }
 #rules-buttons-container{
-  width: 100%;
   color: white;
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 2px;
+  gap: 4px;
+  padding-left: 12px;
+  padding-right: 12px;
 }
 
 #profile{
@@ -85,6 +86,7 @@ body{
   width: 100%;
   height: 100%;
   display: flex;
+  overflow-y: hidden;
 }
 
 #left-container{
@@ -93,24 +95,24 @@ body{
   width: 40%;
   height: 100%;
   border-right: 1px solid #ffffff;
-  border-radius: 10px 0 0 10px;
   display: flex;
-  border: none;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   flex-direction: column;
-  overflow-y: overlay;
+  overflow-y: auto;
 }
 
 #chat{
-    width: 69%;
-    height: 100%;
-  background: #fefeff;
+  width: 69%;
+  height: 100%;
+  background: #28384a;
+  overflow-y: auto;
 }
 
 #msgContainer{
     width: 100%;
-    overflow-y: scroll;
-    height: 85%;
-    background-color: rgba(255, 255, 255, 0.9);
+    overflow-y: auto;
+    height: 80%;
+    background-color: #28384a;
     backdrop-filter: blur(10px);
 }
 #inputContainer{
@@ -122,7 +124,7 @@ body{
     backdrop-filter: blur(10px);
 }
 #inputBox{
-    background-color: #efefef;
+    background-color: #2F4156;
     width: 80%;
     margin: 0;
     height: 50%;
@@ -133,9 +135,18 @@ body{
 	  resize:none;
     font-family: 'Nunito', sans-serif;
     font-weight: 400;
+    color: white;
 }
 #inputBox:focus{
     outline: none;
+    border-color: #0066FF;
+    box-shadow: 0 0 10px rgba(0, 102, 255, 1);
+}
+
+#inputBox::placeholder {
+  color: white;      
+  opacity: 0.7;           
+  font-family: 'Nunito', sans-serif;
 }
 
 
@@ -294,16 +305,47 @@ body{
 .device-element{
   display: flex;
   align-items: center;
-  gap: 6px; 
+  gap: 12px; 
   margin-bottom: 1px;
+  cursor: pointer;
+  transition: all 0.15s;
+  border-radius: 6px;
+  padding: 8px 12px;
 }
-  
+
+.device-element.active {
+  background: rgba(0, 225, 255, 0.05);
+}
+
+.device-element:hover {
+    background: rgba(0, 225, 255, 0.05)
+}
+
+.device-text {
+  flex: 1;
+}
+
+.item-indicator {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #00FF88;
+  animation: glow 2s infinite;
+}
+
+.item-value {
+  font-size: 12px;
+  color: #d0d0d0;
+}
+
 .card-body, .devices-list {
   padding: 1.25rem;
 }
 
 .room-card {
   margin-bottom: 10px;
+  animation: 0.3s ease 0s 1 normal none running fadeIn;
+  cursor: pointer;
 }
 
 .category-title {
@@ -334,11 +376,15 @@ body{
 
 .category-title:hover {
     transform: translateX(+5px);
-    border-color: rgba(0, 102, 255, 0.3);
+    border-color: #0066ff88;
 }
 
 .category-title:hover::before {
     opacity: 1;
+}
+
+.category-title.active {
+  background-color: rgba(0, 225, 255, 0.05);
 }
 
 .devicesList_container {
@@ -563,6 +609,7 @@ td {
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  overflow-y: auto;
 }
 .carousel-wrapper {
   display: flex;
@@ -660,20 +707,21 @@ td {
 
 .selector-selected {
   font-weight: bold;
-  background-color: #2F4156;
+  background: linear-gradient(135deg, #0066FF, #8B5CF6);
+  border-radius: 12px;
 }
 .selector-selected  {
   font-weight: normal !important;
 }
 
 .selector-unselected {
-  background-color: #7A90A9;
-  border: 0px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   color: white;
+  border-radius: 12px;
 }
 .selector-unselected:hover {
   font-weight: bold;
-  background-color: #2F4156;
+  background-color: rgba(255, 255, 255, 0.05);
 }
 .selector-unselected:hover {
   font-weight: normal !important;
@@ -684,18 +732,22 @@ td {
   align-items: center;
   width: 20px;      
   height: 20px;
-  background: #e3b70f; 
+  background: white;
   color: black;     
   border-radius: 50%; 
   box-shadow: 0 2px 6px rgba(0,0,0,0.08);
   margin-left: 5px;
   font-size: 14px;
   font-weight: 600;
+  margin-left: 10px;
+}
+#n_problems{
+  background-color: #ffc118;
 }
 .leftbar-selected{
   display: block;
   margin-top: 2rem;
-  overflow-y: overlay;
+  overflow-y: auto;
 }
 .leftbar-unselected{
   display: none !important;
@@ -706,15 +758,21 @@ td {
   scrollbar-gutter: stable;
   height: 100%;
 }
-
+.devicesList_container {
+  border-radius: 16px;
+}
 .devices-list {
-  background-color: white;
+  background-color: #2F4156;
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
 }
 
 /* Search Bar */
 .search-container {
     position: relative;
     margin-bottom: 25px;
+    animation: 0.3s ease 0s 1 normal none running fadeIn;
 }
 
 .search-bar {
@@ -828,7 +886,7 @@ td {
 
 .automation-id {
   font-size: 12px;
-  color: #cbcbcb;
+  color: #d0d0d0;
   font-family: 'Courier New', monospace;
 }
 
@@ -938,15 +996,30 @@ td {
 }
 
 .deleteButton {
-  color: #bd4141;
+  width: 32px;
+  height: 32px;
+  background: rgba(255, 71, 87, 0.1);
+  border: 1px solid rgba(255, 71, 87, 0.3);
+  border-radius: 8px;
+  color: #FF4757;
   cursor: pointer;
-  display: inline-block;
-  margin-top: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  opacity: 0.7;
+  float: right;
+}
+.deleteButton:hover {
+  background: rgba(255, 71, 87, 0.2);
+  border-color: #FF4757;
+  opacity: 1;
+  transform: scale(1.05);
 }
 
-.deleteButton:hover {
-  color: #f3021a;
-  font-weight: bold;
+.deleteButton:active {
+  transform: scale(0.95);
 }
 
 /* Modern switch */
@@ -1054,6 +1127,63 @@ td {
   transition: opacity 0.5s ease;
 }
 
+.chat-id {
+  font-size: 12px;
+  color: #d0d0d0;
+  font-family: 'Courier New', monospace;
+}
+
+.chat-header {
+    padding: 20px 30px;
+    background: #2F4156;
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    justify-content: flex-end; /* Allinea i contenuti a destra */
+}
+
+.chat-controls {
+    display: flex;
+    gap: 10px;
+    margin-left: auto; /* Spinge i controlli verso destra */
+}
+
+.control-btn {
+    padding: 8px 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: #d0d0d0;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 12px;
+}
+
+.theme-btn:hover {
+    background: rgba(196, 195, 252, 0.2);
+    color: white;
+    border-color: rgba(180, 179, 250, 0.2);
+}
+.logout-btn:hover {
+    background: rgba(255, 71, 87, 0.2);
+    color: white;
+    border-color: rgba(255, 71, 87, 0.3);
+}
+
+#initial-name {
+  margin: 0;
+  padding-left: 15px;
+}
+
+#initial-name h1 {
+  font-size: 24px;
+  font-weight: 600;
+  background: white;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin: 0;
+  padding: 0;
+}
 
 .botMsgContainer {
     margin: 1.5% auto 1.5% 5%;
@@ -1106,6 +1236,25 @@ td {
   .typeGif {
     width: 50px;
   }
+/* Modern Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #2F4156;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
 
 
   /*===============================================*/
@@ -1117,11 +1266,12 @@ td {
     padding: 0;
     /* border: 0.2px rgb(78, 77, 77) solid; */
     border: none;
-    background-color: #2F4156;
+    background: linear-gradient(135deg, #0066FF, #8B5CF6);
     display: flex;
     justify-content: center;
     align-items: center;
     cursor: pointer;
+    transition: transform 0.2s ease-in-out;
   }
   .send-disabled {
     background-color: #757575 !important ;
@@ -1131,7 +1281,8 @@ td {
   }
   
   .inputButton:hover {
-    background-color: #2c3758;
+    transform: scale(1.05);
+    box-shadow: 0 5px 20px rgba(0, 102, 255, 0.4);
   }
   .off:hover {
     background-color: #2c3758 !important ;
@@ -1141,25 +1292,7 @@ td {
   }
   .buttonIcon {
     width: auto;
-    height: 50%;
-  }
-  ::-webkit-scrollbar {
-    width: 10px;
-    height: 13px;
-  }
-  ::-webkit-scrollbar-thumb {
-    background: #e0e0e0;
-    border-radius: 10px;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-
-    background-color: #cccccc;
-    /* background: linear-gradient(13deg, #C7CEFF 14%,#F9D4FF 64%); */
-  }
-  ::-webkit-scrollbar-track {
-    background: #eeeaea75;
-    border-radius: 10px;
-    /* box-shadow: inset -10px -10px 0px 30px #eeeaea75; */
+    height: 35%;
   }
  
   #speaker-wrapper {
