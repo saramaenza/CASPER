@@ -93,10 +93,10 @@ def generate_automation(
             problems = problem_detector(user_id, session_id, automation_id)
             utils.update_chat_state(action="confirm-state", state="Automazione generata e salvata con successo", session_id=session_id, user_id=user_id, id='generate-automation')
             utils.update_chat_state(action="update-automation-list", state="", session_id=session_id, user_id=user_id)
-            return f"Automation Info: {response}. ID assegnato: {automation_id}. \n Problems info: {problems}"
+            return f"Automation Info: {response.json()}. ID assegnato: {automation_id}. \nProblems info: {problems}"
         else:
             utils.update_chat_state(action="error-state", state="Errore durante la generazione dell'automazione", session_id=session_id, user_id=user_id, id='generate-automation')
-            return f"Errore durante la generazione dell'automazione: {response}"
+            return f"Errore durante la generazione dell'automazione: {response.json()}"
     except Exception as e:
         utils.update_chat_state(action="error-state", state="Errore durante la generazione dell'automazione", session_id=session_id, user_id=user_id, id='generate-automation')
         return f"Errore durante la generazione dell'automazione: {e}"

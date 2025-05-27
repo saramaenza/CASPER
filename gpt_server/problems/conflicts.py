@@ -1,470 +1,408 @@
 import json
-import os
-from langchain_core.messages import HumanMessage, SystemMessage
-from requests import get, post
 import re
 import ast
+from typing import List, Dict, Any
+from langchain_core.messages import HumanMessage, SystemMessage
 import db_functions as _db
 import responses
 import prompts
 import models
+from ha_client import HomeAssistantClient
+
+llm = models.gpt4
+import json
+import re
+import ast
+from typing import List, Dict, Any
+from langchain_core.messages import HumanMessage, SystemMessage
+import db_functions as _db
+import responses
+import prompts
+import models
+from ha_client import HomeAssistantClient
 
 llm = models.gpt4
 
-url = os.environ["HASS_URL"]
-token = os.environ["HASS_API_KEY"]
+class ConflictDetector:
+    def __init__(self, ha_client: HomeAssistantClient, user_id: str):
+        self.ha_client = ha_client
+        self.user_id = user_id
+        self.conflicts_array = []
+        self.condition_tag = ""
+        self.trigger_tag = ""
 
-headers = {
-    "Authorization": "Bearer " + token,
-    "content-type": "application/json",
-}
+    def clear_conflicts(self):
+        """Clear the conflict array"""
+        self.conflicts_array.clear()
 
-infoConflictArrayLLM = []   #contiene le coppie di automazioni in conflitto tra loro
-condition_tag = ""
-trigger_tag=""
-# stesso evento, no condizioni, azioni diverse --> same_event_no_conditions
-# stesso evento, stesse condizioni, azioni diverse --> same_event_same_conditions
-# stesso evento, condizioni diverse ma sovrapponibili --> same_event_different_conditions
-# diversi eventi, no condizioni, azioni diverse --> different_event_no_conditions
-# diversi eventi, condizioni diverse ma sovrapponibili, azioni diverse --> different_event_different_conditions
-# diversi eventi, stesse condizioni, azioni diverse --> different_event_same_conditions
-
-#########  STUFF FOR GETTING SOLUTIONS #########
-
-def call_find_solution_llm(idAutomation1: str, idAutomation2: str, ruleName1: str, ruleName2: str, automation1_description: str, automation2_description: str):
-    formatted_prompt = prompts.recommender.format(
-            home_devices=_db.get_devices(user_id),
+    def call_find_solution_llm(self, id_automation1: str, id_automation2: str, rule_name1: str, rule_name2: str, automation1_description: str, automation2_description: str):
+        """Generate solution for conflicts using LLM"""
+        formatted_prompt = prompts.recommender.format(
+            home_devices=_db.get_devices(self.user_id),
         )
-    messages = [
-        SystemMessage(formatted_prompt),
-        HumanMessage(f"Generate a solution for the conflict between the following automations:\n{ruleName1}(id {idAutomation1}): {automation1_description}\n{ruleName2}(id {idAutomation2}):{automation2_description}"),
-    ]
-    structured_response = llm.with_structured_output(responses.GenerateRecommendationResponse)
-    data = structured_response.invoke(messages)
-    return data
+        messages = [
+            SystemMessage(formatted_prompt),
+            HumanMessage(f"Generate a solution for the conflict between the following automations:\n{rule_name1}(id {id_automation1}): {automation1_description}\n{rule_name2}(id {id_automation2}):{automation2_description}"),
+        ]
+        structured_response = llm.with_structured_output(responses.GenerateRecommendationResponse)
+        data = structured_response.invoke(messages)
+        return data
 
+    def get_device_id(self, action):
+        """Extract device_id from action"""
+        target = action.get("target", {})
+        device_id = action.get("device_id") or target.get("device_id") or action.get("entity_id") or target.get("entity_id")
+        if device_id:
+            device_id = re.sub(r'[\'\[\]]', '', str(device_id))
+        return device_id
 
+    def check_element_exists(self, name_rule1, name_rule2, trigger_type_rule1, trigger_type_rule2, action_type_rule1, action_type_rule2, device_name_rule1, device_name_rule2):
+        """Check if a conflict element already exists"""
+        for element in self.conflicts_array:
+            if (element["rule1"]["name"] == name_rule1 and
+                element["rule2"]["name"] == name_rule2 and
+                element["rule1"]["trigger"][0]["type"] == trigger_type_rule1 and
+                element["rule2"]["trigger"][0]["type"] == trigger_type_rule2 and
+                element["rule1"]["action"][0]["type"] == action_type_rule1 and
+                element["rule2"]["action"][0]["type"] == action_type_rule2 and
+                element["rule1"]["action"][0]["device_friendly_name"] == device_name_rule1 and
+                element["rule2"]["action"][0]["device_friendly_name"] == device_name_rule2):
+                return True
+        return False
 
+    def is_conflict_present(self, conflict_array, id_conflict):
+        """Check if id_conflict is already in the array"""
+        for conflict in conflict_array:
+            if conflict.get("id_conflict") == id_conflict:
+                return True
+        return False   
 
-#########  STUFF FOR CONFLICT ON ACTIONS #########
+    def append_conflict(self, rule_name1, rule_name2, automation1_description, automation2_description, type_of_conflict, id_automation1, id_automation2, id_device):  
+        """Append a conflict to the array"""
+        solution_info = self.call_find_solution_llm(id_automation1, id_automation2, rule_name1, rule_name2, automation1_description, automation2_description) 
+        id_conflict = str(id_automation1)+"_"+str(id_automation2)+"_"+str(id_device)
+        # Check if the conflict is already present before appending
+        if not self.is_conflict_present(self.conflicts_array, id_conflict):
+            self.conflicts_array.append({
+                "type": "conflict",
+                "tag": self.trigger_tag+'_'+self.condition_tag,
+                "confidence": type_of_conflict,
+                "unique_id": id_conflict,
+                "rules": [
+                    {
+                        "id": id_automation1,
+                        "name": rule_name1,
+                        "description": automation1_description,
+                    },
+                    {
+                        "id": id_automation2,
+                        "name": rule_name2,
+                        "description": automation2_description,
+                    }
+                ],
+                "possibleSolutions": solution_info,
+            })
 
-def process_action_conflict(action1, action2, ruleName1, ruleName2, type_of_conflict, idAutomation1, idAutomation2, automation1_description, automation2_description):
-    device_id1, area1, attr1, domain1 = process_action(action1)
-    device_id2, area2, attr2, domain2 = process_action(action2)
+    def process_action(self, action):
+        """Process action and extract relevant information"""
+        if isinstance(action, str):
+            return None, None, False, None
+        device_id = self.get_device_id(action)
+        service = action.get("service")
+        domain = service.split('.')[0] if service else None
+        has_attrs = action.get("data", {}) or action.get("data_template", {})
+        area_id = action.get("target", {}).get("area_id")
+        return device_id, area_id, has_attrs, domain
 
-    if not device_id1 and not area1 or not device_id2 and not area2:
-        return
+    def get_devices_id(self, entities):
+        """Get device IDs from entities list"""
+        devices_id = []
+        for e in entities:
+            device_id = self.ha_client.get_device_id_from_entity_id(e)
+            devices_id.append(device_id)
+        return devices_id
 
-    if not device_id1 and area1:
-        entitiesByDomainAndArea1 = getEntitiesByDomainAndArea(area1, domain1)
-        device_id1 = getDevicesId(entitiesByDomainAndArea1)
+    def get_info_zone(self, user, zone, event):
+        """Get zone information"""
+        user = self.ha_client.get_friendly_name(user)
+        zone = self.ha_client.get_friendly_name(zone)
+        return user + " " + event + " at " + zone
 
-    if not device_id2 and area2:
-        entitiesByDomainAndArea2 = getEntitiesByDomainAndArea(area2, domain2)
-        device_id2 = getDevicesId(entitiesByDomainAndArea2)
+    def get_info_platform(self, platform, trigger):
+        """Get platform information"""
+        if platform == "time":
+            return "time is " + trigger['at']
+        if platform == "zone":
+            info_zone = self.get_info_zone(trigger['entity_id'], trigger['zone'], trigger['event'])
+            return info_zone
+        if platform == "sun":
+            return "there is the " + trigger['event']
+        return platform
 
-    arrayDeviceActionId1 = device_id1.split(", ") if isinstance(device_id1, str) else device_id1 #???
-    arrayDeviceActionId2 = device_id2.split(", ") if isinstance(device_id2, str) else device_id2 #???
+    def check_operators_appliances(self, type1, type2):
+        """Check if two operators are conflicting"""
+        if type1 == "turn_on":
+            if type2 == "turn_off" or type2 == "brightness_decrease" or type2 == "brightness_increase" or type2 == "toggle":
+                return True
+            else: 
+                return False
+        elif type1 == "turn_off":
+            if type2 == "turn_on" or type2 == "brightness_decrease" or type2 == "brightness_increase" or type2 == "toggle": 
+                return True
+            else:
+                return False
+        elif type1 == "brightness_increase":
+            if type2 == "brightness_decrease" or type2 == "turn_on" or type2 == "turn_off" or type2 == "toggle":
+                return True
+            else: 
+                return False
+        elif type1 == "brightness_decrease":
+            if type2 == "brightness_increase" or type2 == "turn_on" or type2 == "turn_off" or type2 == "toggle": 
+                return True
+            else:
+                return False
+        elif type1 == "toggle": 
+            if type2 == "brightness_decrease" or type2 == "turn_off" or type2 == "brightness_increase" or type2 =="toggle" or type2 == "turn_on": 
+                return True
+            else:
+                return False
+        elif type1 == "open":
+            if type2 == "close":
+                return True
+            else: 
+                return False
+        elif type1 == "close":
+            if type2 == "open":
+                return True
+            else: 
+                return False
+        return False
 
-    if type_of_conflict == "possible" and not arrayDeviceActionId2:
-        return
+    def get_event_type(self, e):
+        """Extract event type from action/trigger"""
+        event_type = e.get('type')
+        service = e.get("service", None)
+        if e.get("service") is not None:
+            service = e.get("service") 
+        if event_type is None and service is not None:
+            event_type = re.sub(r'.*?\.', '', service) 
+        if event_type is None:
+            action = e.get("action")
+            if action is not None:
+                event_type = re.sub(r'.*?\.', '', action) 
+            if action is None:
+                trigger = e.get("trigger")
+                if trigger == "time":
+                    event_type = e.get("at")
+        return event_type
 
-    common_device = [element for element in arrayDeviceActionId1 if element in set(arrayDeviceActionId2)]
-    if not common_device:
-        return
+    def process_action_conflict(self, action1, action2, rule_name1, rule_name2, type_of_conflict, id_automation1, id_automation2, automation1_description, automation2_description):
+        """Process and detect conflicts in actions"""
+        device_id1, area1, attr1, domain1 = self.process_action(action1)
+        device_id2, area2, attr2, domain2 = self.process_action(action2)
 
-    deviceNameAction1 = getNameUserDevice(common_device[0]) or common_device[0]
-    deviceNameAction2 = deviceNameAction1 # ???
+        if not device_id1 and not area1 or not device_id2 and not area2:
+            return
 
-    if checkOperatorsAppliances(getEventType(action1), getEventType(action2)) and not attr1 and not attr2:
-        append_conflict(ruleName1, ruleName2, automation1_description, automation2_description, type_of_conflict, idAutomation1, idAutomation2, device_id1)
-    elif attr1 or attr2:
-        dataAttr = attr1 if attr1 else attr2
-        for data in dataAttr:
-            valueAttribute1 = attr1.get(data, None)
-            valueAttribute2 = attr2.get(data, None)
-            if valueAttribute1 and valueAttribute2 and valueAttribute1 != valueAttribute2:
-                append_conflict(ruleName1, ruleName2, automation1_description, automation2_description, type_of_conflict, idAutomation1, idAutomation2, device_id1)
-            elif (valueAttribute1 and not valueAttribute2) or (not valueAttribute1 and valueAttribute2):
-                if not check_element_exists(ruleName1, ruleName2, None, None, getEventType(action1), getEventType(action2), deviceNameAction1, deviceNameAction2):
-                    if checkOperatorsAppliances(getEventType(action1), getEventType(action2)):
-                        append_conflict(ruleName1, ruleName2, automation1_description, automation2_description, type_of_conflict, idAutomation1, idAutomation2, device_id1)
+        if not device_id1 and area1:
+            entities_by_domain_and_area1 = self.ha_client.get_entities_by_domain_and_area(area1, domain1)
+            device_id1 = self.get_devices_id(entities_by_domain_and_area1)
 
-def has_attributes(action):
-    data = action.get("data", {})
-    return data
+        if not device_id2 and area2:
+            entities_by_domain_and_area2 = self.ha_client.get_entities_by_domain_and_area(area2, domain2)
+            device_id2 = self.get_devices_id(entities_by_domain_and_area2)
 
+        array_device_action_id1 = device_id1.split(", ") if isinstance(device_id1, str) else device_id1
+        array_device_action_id2 = device_id2.split(", ") if isinstance(device_id2, str) else device_id2
 
-def get_device_id(action):
-    target = action.get("target", {})
-    device_id = action.get("device_id") or target.get("device_id") or action.get("entity_id") or target.get("entity_id")
-    if device_id:
-        device_id = re.sub(r'[\'\[\]]', '', str(device_id))
-    return device_id
+        if type_of_conflict == "possible" and not array_device_action_id2:
+            return
 
+        common_device = [element for element in array_device_action_id1 if element in set(array_device_action_id2)]
+        if not common_device:
+            return
 
-def check_element_exists(name_rule1, name_rule2, trigger_type_rule1, trigger_type_rule2, action_type_rule1, action_type_rule2, device_name_rule1, device_name_rule2 ):
-    for element in infoConflictArrayLLM:
-        if (element["rule1"]["name"] == name_rule1 and
-            element["rule2"]["name"] == name_rule2 and
-            element["rule1"]["trigger"][0]["type"] == trigger_type_rule1 and
-            element["rule2"]["trigger"][0]["type"] == trigger_type_rule2 and
-            element["rule1"]["action"][0]["type"] == action_type_rule1 and
-            element["rule2"]["action"][0]["type"] == action_type_rule2 and
-            element["rule1"]["action"][0]["device_friendly_name"] == device_name_rule1 and
-            element["rule2"]["action"][0]["device_friendly_name"] == device_name_rule2):
+        device_name_action1 = self.ha_client.get_device_name_by_user(common_device[0]) or common_device[0]
+        device_name_action2 = device_name_action1
+
+        if self.check_operators_appliances(self.get_event_type(action1), self.get_event_type(action2)) and not attr1 and not attr2:
+            self.append_conflict(rule_name1, rule_name2, automation1_description, automation2_description, type_of_conflict, id_automation1, id_automation2, device_id1)
+        elif attr1 or attr2:
+            data_attr = attr1 if attr1 else attr2
+            for data in data_attr:
+                value_attribute1 = attr1.get(data, None)
+                value_attribute2 = attr2.get(data, None)
+                if value_attribute1 and value_attribute2 and value_attribute1 != value_attribute2:
+                    self.append_conflict(rule_name1, rule_name2, automation1_description, automation2_description, type_of_conflict, id_automation1, id_automation2, device_id1)
+                elif (value_attribute1 and not value_attribute2) or (not value_attribute1 and value_attribute2):
+                    if not self.check_element_exists(rule_name1, rule_name2, None, None, self.get_event_type(action1), self.get_event_type(action2), device_name_action1, device_name_action2):
+                        if self.check_operators_appliances(self.get_event_type(action1), self.get_event_type(action2)):
+                            self.append_conflict(rule_name1, rule_name2, automation1_description, automation2_description, type_of_conflict, id_automation1, id_automation2, device_id1)
+
+    def array_conditions(self, condition1, condition2):
+        """Process conditions arrays"""
+        condition_info1 = []
+        condition_info2 = []
+        if condition1:
+            for c in condition1:
+                if "conditions" in c:
+                    for condition in c["conditions"]:
+                        condition = self.get_condition_info(condition, c["condition"])
+                        condition_info1.append(condition)
+                elif "condition" in c:
+                    condition = self.get_condition_info(c, c["condition"])
+                    condition_info1.append(condition)
+        if condition2:
+            for c in condition2:
+                if "conditions" in c:
+                    for condition in c["conditions"]:
+                        condition = self.get_condition_info(condition, c["condition"])
+                        condition_info2.append(condition)
+                elif "condition" in c:
+                    condition = self.get_condition_info(c, c["condition"])
+                    condition_info2.append(condition)
+        return condition_info1, condition_info2
+
+    def check_condition(self, condition1, condition2):
+        """Check if conditions are conflicting"""
+        if not condition1 and not condition2:
+            self.condition_tag = "no_conditions"
             return True
-    return False
-
-#restituisce la device_class del dispositivo
-def getDeviceClass(friendly_name):
-	template =  '{% for sensor in states %}{% if sensor.attributes.friendly_name == "'+friendly_name+'" %}{{ sensor.attributes.device_class }}{% endif %}{% endfor %}'
-	return getTemplateData(template)
-	
-
-# Function to check if id_conflict is already in the array
-def is_conflict_present(conflict_array, id_conflict):
-    for conflict in conflict_array:
-        if conflict.get("id_conflict") == id_conflict:
+        if not condition1 or not condition2:
+            self.condition_tag = "different_conditions"
             return True
-    return False   
+        if condition1 == condition2:
+            self.condition_tag = "same_conditions"
+            return True
+        for c1 in condition1:
+            for c2 in condition2:
+                if c1['condition'] != "or" and c2['condition'] != "or":
+                    if c1.get('device') is not None and c2.get('device') is not None and c1.get('type') is not None and c2.get('type') is not None:
+                        if c1.get('device') == c2.get('device') and c1.get('type') != c2.get('type'):
+                            return False
+                        if (c1.get('device') == c2.get('device') and c1.get('type') == c2.get('type')) and (c1['condition'] == 'not' or c2['condition'] == 'not'):
+                            return False
+                    if c1.get('user') is not None and c2.get('user') is not None and c1.get('zone') is not None and c2.get('zone') is not None:
+                        if c1.get('user') == c2.get('user') and c1.get('zone') != c2.get('zone'):
+                            return False
+                        if (c1.get('user') == c2.get('user') and c1.get('zone') != c2.get('zone')) and (c1['condition'] == 'not' or c2['condition'] == 'not'):
+                            return False
+        self.condition_tag = "different_conditions"
+        return True
 
-
-def append_conflict(ruleName1, ruleName2, automation1_description, automation2_description, type_of_conflict, idAutomation1, idAutomation2, id_device):  
-    solution_info = call_find_solution_llm(idAutomation1, idAutomation2, ruleName1, ruleName2, automation1_description, automation2_description) 
-    id_conflict = str(idAutomation1)+"_"+str(idAutomation2)+"_"+str(id_device)
-    # Check if the conflict is already present before appending
-    if not is_conflict_present(infoConflictArrayLLM, id_conflict):
-        infoConflictArrayLLM.append({
-            "type": "conflict",
-            "tag": trigger_tag+'_'+condition_tag,
-            "confidence": type_of_conflict,
-            "unique_id": id_conflict,
-            "rules": [
-                {
-                    "id": idAutomation1,
-                    "name": ruleName1,
-                    "description": automation1_description,
-                },
-                {
-                    "id": idAutomation2,
-                    "name": ruleName2,
-                    "description": automation2_description,
+    def get_condition_info(self, condition, type_condition):
+        """Extract condition information"""
+        if "condition" in condition:
+            if "device" in condition["condition"]:
+                device = condition['device_id']
+                device = self.ha_client.get_device_name_by_user(device)
+                type_device = condition['type']
+                condition = {
+                    "condition": type_condition,
+                    "device": device,
+                    "type": type_device,
                 }
-            ],
-            "possibleSolutions": solution_info, # Assicurarsi che solution_info sia nel formato atteso
-        })
+            if "zone" in condition["condition"]:
+                user = self.ha_client.get_friendly_name(condition['entity_id'])
+                zone = self.ha_client.get_friendly_name(condition['zone'])
+                condition = {
+                    "condition": type_condition,
+                    "user": user,
+                    "zone": zone
+                }
+            if "time" in condition["condition"]:
+                after = None
+                before = None
+                if 'after' in condition:
+                    after = condition['after']
+                if 'before' in condition:
+                    before = condition['before']
+                weekday = None
+                if "weekday" in condition:
+                    weekday = condition['weekday']
+                condition = {
+                    "condition": type_condition,
+                    "after": after,
+                    "before": before,
+                    "weekday": weekday
+                }
+        return condition
 
+    def process_conditions(self, condition1, condition2):
+        """Process conditions and return processed arrays"""
+        if condition1:
+            if condition1[0]['condition'] == "or" and len(condition1[0]['conditions']) == 1:
+                condition1[0]['condition'] = "and"
+        if condition2:
+            if condition2[0]['condition'] == "or" and len(condition2[0]['conditions']) == 1:
+                condition2[0]['condition'] = "and"
+        return self.array_conditions(condition1, condition2)
 
-def process_action(action):
-    if isinstance(action, str):
-        return None, None, False, None
-    device_id = get_device_id(action)
-    service = action.get("service")
-    domain = service.split('.')[0] if service else None
-    has_attrs = has_attributes(action)
-    area_id = action.get("target", {}).get("area_id")
-    return device_id, area_id, has_attrs, domain
+    def detect_conflicts(self, rules, rule1):
+        """Main function to detect conflicts"""
+        self.clear_conflicts()
+        rule_name1 = rule1.get("alias", "")
+        entity_rule_name1 = "automation." + rule_name1.replace(" ", "_")
+        rule1_trigger = rule1.get("trigger") or rule1.get("triggers") or None
+        rule1_condition = rule1.get("condition") or rule1.get("conditions") or None
+        id_automation1 = rule1.get("id", None)
+        automation1_description = rule1.get("description", "")
+        actions1 = rule1.get("actions", []) or rule1.get("action", [])
+        
+        for action1 in actions1:
+            for rule2 in rules:
+                rule2 = rule2['config']
+                rule_name2 = rule2.get("alias", None)
+                rule2_trigger = rule2.get("trigger") or rule2.get("triggers") or None
+                rule2_condition = rule2.get("condition") or rule2.get("conditions") or None
+                entity_rule_name2 = "automation." + rule_name2.replace(" ", "_")
+                automation2_description = rule2.get("description", "")
 
+                if entity_rule_name1 != entity_rule_name2:
+                    actions2 = rule2.get("actions", []) or rule2.get("action", [])
+                    id_automation2 = rule2.get("id", None)
+                    same_trigger = rule1_trigger == rule2_trigger
+                    rule1_condition, rule2_condition = self.process_conditions(rule1_condition, rule2_condition)
+                    if same_trigger:
+                        self.trigger_tag = "same_event"
+                    else:
+                        self.trigger_tag = "different_event"
+                    type_of_conflict = "certain" if same_trigger and self.check_condition(rule1_condition, rule2_condition) else "possible"
+                    
+                    # Conflict on actions and solution retrieval
+                    for action2 in actions2:
+                        self.process_action_conflict(action1, action2, rule_name1, rule_name2, type_of_conflict, id_automation1, id_automation2, automation1_description, automation2_description)
+        return self.conflicts_array
 
-#get entities in a room
-def getEntitiesByArea(area):
-	template =  '{{ area_entities("'+area+'") }}'
-	return getTemplateData(template)
+# Usage example and backward compatibility
+"""def detectConflicts(rules, rule1, ha_client: HomeAssistantClient, user_id: str):
+    detector = ConflictDetector(ha_client, user_id)
+    return detector.detect_conflicts(rules, rule1)
+    """
 
-
-def getEntitiesByDomainAndArea(area, domain):
-    area = ' '.join(area)
-    entitiesByArea = getEntitiesByArea(area)
-    entitiesByArea = ast.literal_eval(entitiesByArea)          
-    entitiesByDomainAndArea = [item for item in entitiesByArea if item.startswith(domain)]
-    return entitiesByDomainAndArea
-
-
-
-def getInfoZone(user, zone, event):
-    user = getFriendlyName(user)
-    zone = getFriendlyName(zone)
-    return user + " " + event + " at " + zone
-
-
-#get the device/sensor ID through its entity_id
-def getID(device):
-    template =  '{{ device_id("'+device+'") }}'
-    return getTemplateData(template)
-
-
-def getDevicesId(entities):
-    devicesId = []
-    for e in entities:
-        id = getID(e)
-        devicesId.append(id)
-    return devicesId
-
-
-def getInfoPlatform(platform, trigger):
-    if(platform == "time"):
-        return "time is " + trigger['at']
-    if(platform == "zone"):
-        infoZone = getInfoZone(trigger['entity_id'], trigger['zone'], trigger['event'])
-        return infoZone
-    if(platform == "sun"):
-        return "there is the " + trigger['event']
-    return platform
-
-
-
-def checkOperatorsAppliances(type1, type2):
-    if (type1 == "turn_on"):
-        if(type2 == "turn_off" or type2 == "brightness_decrease" or type2 == "brightness_increase" or type2 == "toggle"):
-            return True
-        else: 
-            return False
-    elif (type1 == "turn_off"):
-        if (type2 == "turn_on" or type2 == "brightness_decrease" or type2 == "brightness_increase" or type2 == "toggle"): 
-            return True
-        else:
-            return False
-    elif (type1 == "brightness_increase"):
-        if(type2 == "brightness_decrease" or type2 == "turn_on" or type2 == "turn_off" or type2 == "toggle"):
-            return True
-        else: 
-            return False
-    elif (type1 == "brightness_decrease"):
-        if (type2 == "brightness_increase" or type2 == "turn_on" or type2 == "turn_off" or type2 == "toggle"): 
-            return True
-        else:
-            return False
-    elif (type1 == "toggle"): 
-        if (type2 == "brightness_decrease" or type2 == "turn_off" or type2 == "brightness_increase" or type2 =="toggle" or type2 == "turn_on"): 
-            return True
-        else:
-            return False
-    elif (type1 == "open"):
-        if(type2 == "close"):
-            return True
-        else: 
-            return False
-    elif (type1 == "close"):
-        if(type2 == "open"):
-            return True
-        else: 
-            return False
-    return False
-
-
-def getEventType(e):
-    type = e.get('type')
-    service = e.get("service", None)
-    if(e.get("service") != None):
-        service = e.get("service") 
-    if(type == None and service != None):
-        type = re.sub(r'.*?\.', '', service) 
-    if(type == None):
-        action = e.get("action")
-        if(action != None):
-            type = re.sub(r'.*?\.', '', action) 
-        if(action == None):
-            trigger = e.get("trigger")
-            if(trigger == "time"):
-                type = e.get("at")
-    
-    return type
-
-
-########### STUFF FOR TRIGGER/CONDITIONS OVERLAP #########
-
-
-#get the device name given by the user
-def getNameUserDevice(device):
-	template =  '{{ device_attr("'+device+'", "name_by_user") }}'
-	return getTemplateData(template)
-
-#get the device friendly name through the entity id
-def getFriendlyName(entity_id):
-	template =  '{{ state_attr("'+entity_id+'", "friendly_name") }}'
-	return getTemplateData(template)
-	
-
-#Validates an HTTP response and returns the content or raises an error if the response is unsuccessful.
-def check_response(response):
-    if response.status_code == 200:
-        return response.text
-    else:
-        response.raise_for_status()
-
-
-#Sends a POST request to the Home Assistant template API to render a provided template.
-def getTemplateData(template):
-	data = {"template": template}
-	url = url + "/api/template"
-	response = post(url, headers=headers, data=json.dumps(data))
-	return check_response(response)
-
-# Print parsed data
-#print(data)
-def arrayConditions(condition1, condition2):
-    conditionInfo1 = []
-    conditionInfo2 = []
-    if(condition1):
-        for c in condition1:
-            if("conditions" in c):
-                for condition in c["conditions"]:
-                    condition = getConditionInfo(condition, c["condition"]) #{"condition":..., "device":..., "type":..., "user":..., "zone":...}
-                    conditionInfo1.append(condition)
-            elif("condition" in c):
-                condition = getConditionInfo(c, c["condition"])
-                conditionInfo1.append(condition)
-    if(condition2):
-        for c in condition2:
-            if("conditions" in c):
-                for condition in c["conditions"]:
-                    condition = getConditionInfo(condition, c["condition"])
-                    conditionInfo2.append(condition)
-            elif("condition" in c):
-                condition = getConditionInfo(c, c["condition"])
-                conditionInfo2.append(condition)
-    return conditionInfo1, conditionInfo2
-
-def checkCondition(condition1, condition2):
-    global condition_tag
-    if (not condition1 and not condition2):
-        condition_tag = "no_conditions"
-        return True
-    if (not condition1 or not condition2):
-        condition_tag = "different_conditions"
-        return True
-    if (condition1 == condition2):
-        condition_tag = "same_conditions"
-        return True
-    for c1 in condition1:
-        for c2 in condition2:
-            if(c1['condition'] != "or" and c2['condition'] != "or"):
-                if(c1.get('device') != None and c2.get('device')!= None and c1.get('type') != None and c2.get('type')!= None):
-                    if (c1.get('device') == c2.get('device') and c1.get('type') != c2.get('type')):
-                        return False
-                    if (c1.get('device') == c2.get('device') and c1.get('type') == c2.get('type')) and (c1['condition'] == 'not' or c2['condition'] == 'not'):
-                        return False
-                if(c1.get('user') != None and c2.get('user')!= None and c1.get('zone') != None and c2.get('zone')!= None):
-                    if (c1.get('user') == c2.get('user') and c1.get('zone') != c2.get('zone')):
-                        return False
-                    if (c1.get('user') == c2.get('user') and c1.get('zone') != c2.get('zone')) and (c1['condition'] == 'not' or c2['condition'] == 'not'):
-                        return False
-    condition_tag = "different_conditions"
-    return True
-
-def getConditionInfo(condition, typeCondition):
-    if("condition" in condition):
-        if "device" in condition["condition"]:
-            device = condition['device_id']
-            device = getNameUserDevice(device)
-            typeDevice = condition['type']
-            condition = {
-                "condition": typeCondition,
-                "device": device,
-                "type": typeDevice,
-            }
-        if "zone" in condition["condition"]:
-            user = getFriendlyName(condition['entity_id'])
-            zone = getFriendlyName(condition['zone'])
-            condition = {
-                "condition" : typeCondition,
-                "user": user,
-                "zone": zone
-            }
-        if "time" in condition["condition"]:
-            after = None
-            before = None
-            if 'after' in condition:
-                after = condition['after']
-            if 'before' in condition:
-                before = condition['before']
-            weekday = None
-            if "weekday" in condition:
-                weekday = condition['weekday']
-            condition = {
-                "condition" : typeCondition,
-                "after" : after,
-                "before": before,
-                "weekday": weekday
-            }
-    return condition
-
-def process_conditions(condition1, condition2):
-    if condition1:
-        if condition1[0]['condition'] == "or" and len(condition1[0]['conditions']) == 1: #Perche' si modifica l'or in and se c'è una sola condizione? In teoria se c'è una sola condizione non ha senso avere l'or
-            condition1[0]['condition'] = "and"
-    if condition2:
-        if condition2[0]['condition'] == "or" and len(condition2[0]['conditions']) == 1:
-            condition2[0]['condition'] = "and"
-    return arrayConditions(condition1, condition2)
-
-
-########### MAIN PROBLEM CHECKING FUNCTION #########
-import time
-def detectConflicts(rules, rule1):
-    #rules = _db.get_automations(user_id) #[{"id": automation_id_int, "config": {"id", "alias", "description", "triggers"...}, ...]
-    infoConflictArrayLLM.clear()
-    global trigger_tag
-    ruleName1 = rule1.get("alias", "") #None potrebbe tornare errore nella linea successiva
-    entityRuleName1 = "automation." + ruleName1.replace(" ", "_") #sostituito con l'alias della nuova automazione spazi -> _
-    rule1_trigger = rule1.get("trigger") or rule1.get("triggers") or None
-    rule1_condition = rule1.get("condition") or rule1.get("conditions") or None
-    idAutomation1 = rule1.get("id", None)
-    actions1 = rule1.get("actions", []) or rule1.get("action", [])
-    
-    for action1 in actions1:
-        for rule2 in rules:
-            rule2 = rule2['config']
-            ruleName2 = rule2.get("alias", None)
-            rule2_trigger = rule2.get("trigger") or rule2.get("triggers") or None
-            rule2_condition = rule2.get("condition") or rule2.get("conditions") or None
-            entityRuleName2 = "automation." + ruleName2.replace(" ", "_")
-
-            if entityRuleName1 != entityRuleName2:
-                actions2 = rule2.get("actions", []) or rule2.get("action", [])
-                idAutomation2 = rule2.get("id", None)
-                same_trigger = rule1_trigger == rule2_trigger
-                rule1_condition, rule2_condition = process_conditions(rule1_condition, rule2_condition)
-                if same_trigger:
-                    trigger_tag = "same_event"
-                else:
-                    trigger_tag = "different_event"
-                type_of_conflict = "certain" if same_trigger and checkCondition(rule1_condition, rule2_condition) else "possible"
-                
-                #print("Trigger1: ", trigger1)
-                #print("Condition1: ", condition1)
-                #print("Trigger2: ", trigger2)
-                #print("Condition2: ", condition2)
-                #print("Type of conflict: ", type_of_conflict)
-                #print("--------------------------")
-                
-                # Retrieving automations description (need for solutions)
-                # Le soluzioni sarebbero recuperata dal db client['explainTAP'], non so se funzionerà ancora così?
-
-                #automation2_desc = collection_automations_description.find_one({"entity_id": entityRuleName2})
-                #automation2_description = automation2_desc["description"] if automation2_desc else ""
-                
-                # Conflict on actions and solution retrieval
-                for action2 in actions2:
-                    process_action_conflict(action1, action2, ruleName1, ruleName2, type_of_conflict, idAutomation1, idAutomation2, "automation_description", "automation2_description")
-    return infoConflictArrayLLM
 
 if __name__ == "__main__":
-   #url HA ufficio
+    import os
+    from ha_client import HomeAssistantClient
+    
+    # url HA ufficio
     base_url = "http://luna.isti.cnr.it:8123"
-        
-    #url HA casa simone
-    #base_url = "https://test-home.duckdns.org"
-    user_id="681e05bfd5c21048c157e431"
-    all_rules = _db.get_automations(user_id)
-    #token HA ufficio
+    
+    # url HA casa simone
+    # base_url = "https://test-home.duckdns.org"
+    user_id = "681e05bfd5c21048c157e431"
+    
+    # token HA ufficio
     token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiI2ODdmNGEyMDg5ZjA0NDc2YjQ2ZGExNWM3ZTYwNTRjYyIsImlhdCI6MTcxMTA5ODc4MywiZXhwIjoyMDI2NDU4NzgzfQ.lsqxXXhaSBa5BuoXbmho_XsEkq2xeCAeXL4lu7c2LMk"
-        
-    headers = {
-        "Authorization": "Bearer " + token,
-        "content-type": "application/json",
-    }
+    
+    # Create HomeAssistant client
+    ha_client = HomeAssistantClient(base_url, token)
+    
+    # Create ConflictDetector
+    detector = ConflictDetector(ha_client, user_id)
+    
+    all_rules = _db.get_automations(user_id)
+    
     automations_post = {
         "id": "17422966096088",
         "alias": "Accendi aria condizionata quando è caldo",
@@ -478,19 +416,19 @@ if __name__ == "__main__":
             'trigger': 'device', 
             'above': 26}
         ],
-        "condition": [], # Modificato da "conditions" a "condition" per coerenza con HA
+        "condition": [],  # Modificato da "conditions" a "condition" per coerenza con HA
         "action": [
           {
-            "type": "turn_on", # "type" è usato in UI, HA usa "service"
+            "type": "turn_on",  # "type" è usato in UI, HA usa "service"
             "device_id": "280e80f05bac59e20d7b901d6d483dfb",
-            "entity_id": "1e833b3d059eb1a6b67b2a26aa64bf18", # Spesso ridondante se device_id è presente
-            "domain": "fan" # "domain" è usato in UI, HA lo deduce da service o entity_id
+            "entity_id": "1e833b3d059eb1a6b67b2a26aa64bf18",  # Spesso ridondante se device_id è presente
+            "domain": "fan"  # "domain" è usato in UI, HA lo deduce da service o entity_id
           }
         ],
         "mode": "single"
     }
 
     # Call the function
-    infoConflictArrayLLM = detectConflicts(all_rules, automations_post)
+    conflicts_array = detector.detect_conflicts(all_rules, automations_post)
 
-    print("Info Conflict Array LLM: ", infoConflictArrayLLM)
+    print("Info Conflict Array LLM: ", conflicts_array)

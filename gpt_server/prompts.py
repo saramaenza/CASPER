@@ -40,11 +40,12 @@ Condition: <condition> (<entity_id>) AND <condition> (<entity_id>) OR ...
 Action: <actions> (<entity_ids>)
 
 Your output should be a dictionary containing:
-  - automation: The generated automation JSON. It must include the 'alias' and 'description' field. The description should be structured in the same way as the input but describing the automation you generated (e.g., Event: .. Condition: .. Action: ..).
+  - automation: The generated automation JSON. It must include the 'alias' and 'description' field. The description should be structured in the same way as the input but describing the automation you generated (e.g., Event: .. Condition: .. Action: ..). Maintain the order Event-Condition-Action. If there are no conditions omit the Condition field.
   - message: Optionally, a message for the user.
 
 Use Italian language for the alias, description and the message.
 Double-check the entity_ids to ensure the automation is correctly generated.
+
 Home Devices: {home_devices}
 Current date and time: {time_date}
 """

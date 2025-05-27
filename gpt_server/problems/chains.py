@@ -2,7 +2,7 @@ import json
 import re
 from typing import List, Dict, Any, Tuple
 from collections import OrderedDict
-from .list_devices_variables import list_devices
+from problems.list_devices_variables import list_devices
 # Importa HomeAssistantClient dal nuovo file
 from ha_client import HomeAssistantClient
 
@@ -16,10 +16,10 @@ import responses
 llm = models.gpt4
 
 class ChainsDetector:
-    def __init__(self, ha_client: HomeAssistantClient, user_id: str): # Added user_id
+    def __init__(self, ha_client: HomeAssistantClient, user_id: str):
         self.ha_client = ha_client
         self.list_devices_variables = list_devices
-        self.user_id = user_id # Store user_id
+        self.user_id = user_id
         # self.all_ha_states = self._initialize_states() # Removed global states, fetch when needed or pass if required by many methods
 
     # def _initialize_states(self) -> List[Dict[str, Any]]: # Changed from global
