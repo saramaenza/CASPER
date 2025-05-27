@@ -655,6 +655,7 @@ td {
   background-color: transparent;
   display: flex;
   text-wrap: nowrap;
+  border-radius: 16px;
 }
 
 .selector-selected {
