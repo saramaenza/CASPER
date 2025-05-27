@@ -888,7 +888,6 @@ function printUserProblems(problemsList) {
 // diversi eventi, condizioni diverse ma sovrapponibili, azioni diverse --> different_event_different_conditions
 // diversi eventi, stesse condizioni, azioni diverse --> different_event_same_conditions
 function createConflictCard(isActive, headerText, conflictInfo) {
-  console.log("Creating conflict card with info: ", conflictInfo);
     //isActive = boolean (True dovrebbe essere solo la prima card generata)
     /*conflictInfo = {
     "id_conflict": "17422966096088_1746629662875",
@@ -929,6 +928,7 @@ function createConflictCard(isActive, headerText, conflictInfo) {
   }*/
     //recommendations = {"alias_automazione1": ["opzione1", "opzione2"], "alias_automazione2": ["opzione3", "opzione4"]}
     const regex = /^event(?:s|o|i)?:\s*(?<event>.*?)(?:\s*(?:condition(?:s)?|condizion(?:e|i)):\s*(?<condition>.*?))?\s*(?:action(?:s)?|azion(?:i|e)):\s*(?<action>.*)$/i;
+    const entityIDRegex = /\s*\([a-zA-Z_]+\.[a-zA-Z0-9_]+\)/g;
     const svgArrow = () => {
         const svgNS = "http://www.w3.org/2000/svg";
         const svg = document.createElementNS(svgNS, "svg");
@@ -984,9 +984,12 @@ function createConflictCard(isActive, headerText, conflictInfo) {
     const rule1 = conflictInfo['rules'][0]
     const rule1_id = rule1['id']
     const rule1_name = rule1['name']
+    const rule1_description = rule1['description'].replace(entityIDRegex, ''); //rimuovo gli entityID
     const rule2 = conflictInfo['rules'][1]
     const rule2_id = rule2['id']
     const rule2_name = rule2['name']
+    const rule2_description = rule2['description'].replace(entityIDRegex, '');
+
     const type_of_conflict = conflictInfo['tag'];
 
     const temp_mapping = new Map();
@@ -1017,8 +1020,8 @@ function createConflictCard(isActive, headerText, conflictInfo) {
     const container = document.createElement("div");
     container.className = "container_arrow";
 
-    const rule1_match = rule1['description'].match(regex);
-    const rule2_match = rule2['description'].match(regex);
+    const rule1_match = rule1_description.match(regex);
+    const rule2_match = rule2_description.match(regex);
 
     if (rule1_match && rule1_match.groups && rule2_match && rule2_match.groups) {
         const rule1 = rule1_match.groups;
@@ -1047,9 +1050,9 @@ function createConflictCard(isActive, headerText, conflictInfo) {
             const centerConditionCell = document.createElement("td");
             const rightConditionCell = document.createElement("td");
             leftConditionCell.style.color = "green";
-            leftConditionCell.innerHTML = `${rule1.condition}`;
+            leftConditionCell.textContent = `${rule1.condition}`;
             rightConditionCell.style.color = "green";
-            rightConditionCell.innerHTML = `${rule2.condition}`;
+            rightConditionCell.textContent = `${rule2.condition}`;
             conflict_rappresentation_container.appendChild(conditionRow);
             conditionRow.appendChild(leftConditionCell);
             conditionRow.appendChild(centerConditionCell);
