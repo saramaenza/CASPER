@@ -6,6 +6,15 @@ from problems.list_devices_variables import list_devices
 # Importa HomeAssistantClient dal nuovo file
 from ha_client import HomeAssistantClient
 
+
+from langchain_core.messages import HumanMessage, SystemMessage
+import prompts
+import db_functions as _db
+import models
+import responses
+
+llm = models.gpt4
+
 class ChainsDetector:
     def __init__(self, ha_client: HomeAssistantClient, user_id: str):
         self.ha_client = ha_client
@@ -25,7 +34,10 @@ class ChainsDetector:
         # with open('C:\\LaboratorySite\\www\\demo\\explaintap\\main\\list_devices_variables.json', 'r') as file:
         with open('list_devices_variables.json', 'r') as file:
             return json.load(file)
-
+        
+    
+    
+  
     # Search for the entity ID of the automation based on the ID of the automation's 'attributes' element
     # This function operates on data that might come from get_all_states.
     # Consider if it should be a static method or if 'data' should be fetched internally.
@@ -39,6 +51,12 @@ class ChainsDetector:
     def get_event_type(self, e: Dict[str, Any]) -> str:
         type_event = e.get('type')
         service = e.get("service")
+
+        if service == "switch.turn_on": 
+            return "turn_on"
+        if service == "switch.turn_off":
+            return "turn_off"
+
         if type_event is None and service:
             type_event = re.sub(r'.*?\\.', '', service)
         if type_event is None:
@@ -54,6 +72,7 @@ class ChainsDetector:
         return type_event if type_event is not None else "unknown" # Ensure a string is always returned
 
     def check_operator(self, type1: str, type2: str) -> bool:
+        print(f"Checking operator between {type1} and {type2}")
         return (type1 == "turn_on" and type2 == "turned_on") or \
                (type1 == "turn_off" and type2 == "turned_off") or \
                (type1 == type2)
@@ -120,6 +139,22 @@ class ChainsDetector:
                     ("increase", item.get("increase_variable", []))
                 ])
         return OrderedDict([("decrease", []), ("increase", [])])
+    
+
+    #########  STUFF FOR GETTING SOLUTIONS #########
+
+    def call_find_solution_llm(self, idAutomation1: str, idAutomation2: str, ruleName1: str, ruleName2: str, automation1_description: str, automation2_description: str):  
+        formatted_prompt = prompts.recommender_chains.format(
+                home_devices=_db.get_devices(self.user_id), # Use self.user_id
+            )
+        messages = [
+            SystemMessage(formatted_prompt),
+            HumanMessage(f"Generate a solution for the chain activation between the following automations:\n{ruleName1}(id {idAutomation1}): {automation1_description}\n{ruleName2}(id {idAutomation2}):{automation2_description}"),
+        ]
+        structured_response = llm.with_structured_output(responses.GenerateRecommendationResponse)
+        data = structured_response.invoke(messages)
+        return data
+
 
     def process_direct_chain(self, rule_chain: List[Dict[str, Any]], rule1: Dict[str, Any], rule2: Dict[str, Any],
                              action1_details: Dict[str, Any], # Contains device_action1, type_action1 etc.
@@ -129,12 +164,11 @@ class ChainsDetector:
         device_action1 = action1_details['device_action']
         type_action1 = action1_details['type_action']
 
+
         trigger2_list = rule2.get("triggers", []) or rule2.get("trigger", []) # Ensure it's a list
         if not isinstance(trigger2_list, list): trigger2_list = [trigger2_list] # if it's a single dict
-
         if not trigger2_list:
             return
-
         for trigger2_item in trigger2_list: # Iterate through all triggers of rule2
             if not isinstance(trigger2_item, dict): continue # Skip if trigger is not a dict
 
@@ -154,7 +188,6 @@ class ChainsDetector:
             
             if not device_trigger2 and trigger_entity_id: # If action was by entity, trigger might be by entity
                 device_trigger2 = trigger_entity_id
-
             type_trigger2 = self.get_event_type(trigger2_item)
 
             is_match = False
@@ -163,9 +196,10 @@ class ChainsDetector:
                     is_match = True
             elif device_action1 == device_trigger2:
                 is_match = True
-            
             if is_match and self.check_operator(type_action1, type_trigger2):
-                solution_info = "" # Placeholder for call_find_solution_direct_chain
+            #if is_match and True: # Temporarily removed operator check for testing
+                #print(rule1.get("alias"), rule1.get("description"), rule2.get("alias"), rule2.get("description"))
+                solution_info = self.call_find_solution_llm(rule1.get("id"), rule1.get("alias"), rule1.get("description"), rule2.get("id"), rule2.get("alias"), rule2.get("description")) 
                 
                 rule_name2 = rule2.get("alias")
                 id_automation2 = rule2.get("id")
@@ -225,7 +259,8 @@ class ChainsDetector:
                         continue
                     
                     if variable == device_class_trigger2:
-                        solution_info = "" # Placeholder
+                        solution_info = self.call_find_solution_llm(rule1.get("id"), rule1.get("alias"), rule1.get("description"), rule2.get("id"), rule2.get("alias"), rule2.get("description"))
+                       
                         rule_name2 = rule2.get("alias")
                         id_automation2 = rule2.get("id")
                         unique_id_chain = str(id_automation1) + "_" + str(id_automation2)
@@ -327,7 +362,8 @@ if __name__ == "__main__":
     HA_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiI2ODdmNGEyMDg5ZjA0NDc2YjQ2ZGExNWM3ZTYwNTRjYyIsImlhdCI6MTcxMTA5ODc4MywiZXhwIjoyMDI2NDU4NzgzfQ.lsqxXXhaSBa5BuoXbmho_XsEkq2xeCAeXL4lu7c2LMk" # Example
     LIST_DEVICES_PATH = 'C:/Users/andre/Programmazione/CASPER ENV/CASPER/gpt_server/problems/list_devices_variables.json' # Example
 
-
+    #user_id="681e05bfd5c21048c157e431"
+    user_id="682c59206a47b8e0ef343796"
     # Instantiate the client and detector
     ha_client = HomeAssistantClient(base_url=HA_BASE_URL, token=HA_TOKEN) # Modificato per usare il client importato
     # The _db module needs to be accessible here. For a standalone script, you might need to mock it
