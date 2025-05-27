@@ -346,18 +346,19 @@ async function printUserRule(rules) {
 
         // Toggle switch
         const toggleSwitch = document.createElement('div');
-        toggleSwitch.className = 'toggle-switch active'; // aggiungi/rimuovi 'active' per stato ON/OFF
+        toggleSwitch.className = 'toggle-switch active';
+        toggleSwitch.setAttribute('title', 'Disattiva automazione'); // Titolo iniziale (active per default)
 
         const toggleSlider = document.createElement('div');
         toggleSlider.className = 'toggle-slider';
         toggleSwitch.appendChild(toggleSlider);
 
         // Bottone "Elimina"
-        const deleteButton = document.createElement('span');
-        deleteButton.textContent = 'Elimina';
+        const deleteButton = document.createElement('button');
+        deleteButton.textContent = '🗑️';
         deleteButton.classList.add('deleteButton');
         deleteButton.id = element['id'];
-        deleteButton.setAttribute('title', 'Elimina Automazione');
+        deleteButton.setAttribute('title', 'Elimina automazione');
 
         // Assembla header
         cardHeader.appendChild(headerLeft);
@@ -420,15 +421,18 @@ async function printUserRule(rules) {
         // Toggle functionality
         const toggle = card.querySelector('.toggle-switch');
         const indicator = card.querySelector('.status-indicator');
+        // Toggle functionality
         if (toggle) {
-          toggle.addEventListener('click', function() {
-            this.classList.toggle('active');
-            if (this.classList.contains('active')) {
-              indicator.classList.remove('inactive');
-            } else {
-              indicator.classList.add('inactive');
-            }
-          });
+            toggle.addEventListener('click', function() {
+                this.classList.toggle('active');
+                if (this.classList.contains('active')) {
+                    indicator.classList.remove('inactive');
+                    this.setAttribute('title', 'Disattiva automazione'); 
+                } else {
+                    indicator.classList.add('inactive');
+                    this.setAttribute('title', 'Attiva automazione');
+                }
+            });
         }
       });
     }, rules.length * 100 + 100);
@@ -579,21 +583,62 @@ async function printUserDevices(devicesList) {
     devicesList.classList.add('devices-list');
     cleanList[key].forEach((device) => {
       let deviceElement = document.createElement('div');
-      let deviceText = document.createElement('span');
+      let deviceText = document.createElement('div');
       let iconElement = document.createElement('i');
+      let itemIndicator = document.createElement('div');
+      let itemValue = document.createElement('div');
+
       iconElement.classList.add('bx', device[1]);
+      deviceText.classList.add('device-text');
       deviceElement.classList.add('device-element');
+      itemIndicator.classList.add('item-indicator'); 
+      itemValue.classList.add('item-value'); 
+      itemValue.innerHTML = `21°C`; // esempio di valore, può essere dinamico
+
       deviceText.textContent = device[0];
+      deviceElement.appendChild(itemIndicator)
       deviceElement.appendChild(iconElement);
       deviceElement.appendChild(deviceText);
+      deviceElement.appendChild(itemValue);
       devicesList.appendChild(deviceElement);
     });
 
     devicesList_container.appendChild(devicesList);
     room.appendChild(devicesList_container);
     devicesListWrapper.appendChild(room);
-  });
-}, 100);
+    });
+    // Funzionalità di ricerca
+    searchBar.addEventListener('input', function() {
+      const searchTerm = this.value.toLowerCase();
+      const rooms = devicesListWrapper.querySelectorAll('.room-card');
+      
+      rooms.forEach(room => {
+        const roomName = room.querySelector('.room-name')?.textContent.toLowerCase() || "";
+        const devices = room.querySelectorAll('.device-element');
+        let hasVisibleDevices = false;
+        
+        // Cerca nei dispositivi di questa stanza
+        devices.forEach(device => {
+          const deviceName = device.querySelector('.device-text')?.textContent.toLowerCase() || "";
+          if (deviceName.includes(searchTerm) || roomName.includes(searchTerm)) {
+            device.style.display = 'flex';
+            hasVisibleDevices = true;
+          } else {
+            device.style.display = 'none';
+          }
+        });
+        
+        // Mostra/nascondi la stanza in base ai dispositivi visibili
+        if (hasVisibleDevices || roomName.includes(searchTerm)) {
+          room.style.display = 'block';
+          room.style.animation = 'fadeIn 0.3s ease';
+        } else {
+          room.style.display = 'none';
+        }
+      });
+    });
+
+  }, 100);
 }
 
 function getCategoryIcon(roomName) {
