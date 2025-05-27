@@ -161,7 +161,7 @@ const getProblems = async (userId) => {
         const database = client.db(dbName);
         const conflicts = database.collection('problems');
         const userConflicts = await conflicts.findOne({ 'user_id': userId });
-        
+        if (!userConflicts) return []; // Se non ci sono conflitti, restituisci un array vuoto
         return userConflicts['problems'];
     } catch (err) {
         console.log('error in db_methonds - getProblems');

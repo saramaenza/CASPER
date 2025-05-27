@@ -157,7 +157,7 @@ window.addEventListener('load', async ()=>{
   document.querySelector('#n_devices').innerText = devicesList['selected'].length;
   printUserDevices(devicesList); //PRINT devices
   let problemsList = await getProblems()
-  document.querySelector('#n_problems').innerText = problemsList.length;
+  document.querySelector('#n_problems').innerText = problemsList.length || 0;
   printUserProblems(problemsList);
   
   //open_delete_rule();
@@ -1126,6 +1126,7 @@ createConflictCard(
 );*/
 
 function printUserProblems(problemsList) {
+
   for (const [index, problem] of problemsList.entries()){
     if (problem['type'] == 'conflict'){
       createConflictCard(
