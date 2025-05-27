@@ -139,10 +139,13 @@ document.getElementById('show-problems').addEventListener('click', function() {
 
 let rulesList;
 window.addEventListener('load', async ()=>{
-  initial.innerHTML = `Ciao, <b>${userName}</b>`;
-  let chatID = document.createElement('p');
-  chatID.innerHTML = `Chat ID: <b>${chat_session_id}</b>`;
-  chatID.style.fontSize = '0.5em';
+  const greeting = document.createElement('h1');
+  greeting.textContent = `Ciao, ${userName}`;
+  initial.appendChild(greeting);
+
+  let chatID = document.createElement('div');
+  chatID.className = 'chat-id';
+  chatID.innerHTML = `Chat ID: ${chat_session_id}`;
   initial.appendChild(chatID);
   let rulesList = await getRulesParam() //GET regole
   //problemList = await getData(`${getProblems}?id=${userId}`) //GET problemi
@@ -1615,3 +1618,17 @@ function slide(options) {
 
   return options.show;
 }
+
+// Send button functionality
+document.querySelector('.inputButton').addEventListener('click', function() {
+    const input = document.querySelector('.inputButton');
+    if (input.value.trim()) {
+        // Animazione più fluida
+        this.style.transition = 'transform 0.2s ease-in-out';
+        this.style.transform = 'scale(0.95)';
+        setTimeout(() => {
+            this.style.transform = 'scale(1)';
+            input.value = '';
+        }, 200);
+    }
+});
