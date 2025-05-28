@@ -158,7 +158,7 @@ window.addEventListener('load', async ()=>{
   entitiesStates = await getData(`${getEntitiesStates}?id=${userId}`) 
   console.log("Entities states loaded: ", entitiesStates);
   // Updates every 60 seconds
-  setInterval(updateEntitiesStates, 600000);
+  setInterval(updateEntitiesStates, 60000);
 
   printUserRule(rulesList); //PRINT regole
   document.querySelector('#n_devices').innerText = devicesList['selected'].length;
@@ -181,19 +181,25 @@ window.addEventListener('load', async ()=>{
 
 async function updateEntitiesStates(){
   entitiesStates = await getData(`${getEntitiesStates}?id=${userId}`)
-  console.log("Entities states updated");
+  let devicesList = await getData(`${getDevices}?id=${userId}`) //GET problemi
+  dinamicallyPopulateEntityValue(devicesList['selected']);
 }
 
 // Identifica in entitiesStates l'entità corrispondente e restituisce lo stato
-function dinamciallyPopulateEntityValue(device){
-  const entityId = device[2]; // Nome dell'entità 
-  const currentEntity = entitiesStates.find(entity => entity.entity_id === entityId);
-  // crea lo stato come stato + unità di misura (se presente)
-  if (currentEntity.state === "unavailable")
-    return "unavailable";
-  
-  let state = currentEntity.state + (currentEntity.attributes.unit_of_measurement ? currentEntity.attributes.unit_of_measurement : "");
-  return state;
+function dinamicallyPopulateEntityValue(devices){
+  //devices = device['slected']
+  const cleanList = formatDeviceList(devices);
+  for (let element of Object.entries(cleanList)) {
+    let devices = element[1];
+    for (let device of devices) {
+      const entityId = device[2]; // Nome dell'entità
+      const currentEntity = entitiesStates.find(entity => entity.entity_id === entityId);
+      document.querySelector(`div[entityid='${entityId}'] .item-value`).textContent = currentEntity.state + (currentEntity.attributes.unit_of_measurement ? currentEntity.attributes.unit_of_measurement : "");
+      if (currentEntity.state === "unavailable") {
+        document.querySelector(`div[entityid='${entityId}'] .item-indicator`).classList.add('inactive');
+      }
+    }
+  }
 }
 
 /*
@@ -582,25 +588,12 @@ async function printUserDevices(devicesList) {
   searchContainer.appendChild(searchIcon);
   devicesListWrapper.appendChild(searchContainer);
 
-  let icon = domainMap['default'];
-  let cleanList = {};
-  if (devicesList != true && devices != undefined) { //organizzo per stanze "a", salvo il nome dell entita "f"
-    devices.forEach(element => {
-      const deviceClass = element['dc'] || null;
-      const deviceDomain = element['t'] || null;
-      icon = classMap[deviceClass] || domainMap[deviceDomain] || domainMap['default'];
-      if (cleanList.hasOwnProperty(element['a'])) {
-        cleanList[element['a']].push([element['f'], icon, element['e']]); //aggiungi entity id
-      }else {
-        cleanList[element['a']] = [[element['f'], icon, element['e']]]; //aggiungi entity id
-      }
-    })
 
+  let cleanList = {}
+  if (devicesList != true && devices != undefined) { //organizzo per stanze "a", salvo il nome dell entita "f"
+    cleanList = formatDeviceList(devices);
   } else { return "Nessun dispositivo associato a questo account"; }
-  // Crea e aggiungi il titolo
-  //const title = document.createElement('h3');
-  //title.innerText = 'Conflitti e Catene';
-  //rulesContainer.appendChild(title);
+
   setTimeout(() => {
   Object.keys(cleanList).forEach((key) => {
     // Crea il contenitore della stanza
@@ -656,19 +649,17 @@ async function printUserDevices(devicesList) {
       let iconElement = document.createElement('i');
       let itemIndicator = document.createElement('div');
       let itemValue = document.createElement('div');
-      let deviceState = dinamciallyPopulateEntityValue(device); // Ottieni lo stato dinamico dell'entità
+      //let deviceState = dinamciallyPopulateEntityValue(device); // Ottieni lo stato dinamico dell'entità
       
-      itemIndicator.classList.add('item-indicator');
-      if (deviceState === "unavailable") {
-        itemIndicator.classList.add('inactive');
-      }
       iconElement.classList.add('bx', device[1]);
       deviceText.classList.add('device-text');
       deviceElement.classList.add('device-element');
+      deviceElement.setAttribute('entityid', device[2]); // Aggiungi l'entity id come attributo
+      itemIndicator.classList.add('item-indicator'); 
        
       itemValue.classList.add('item-value'); 
       
-      itemValue.innerHTML = deviceState; 
+      //itemValue.innerHTML = deviceState; 
 
       deviceText.textContent = device[0];
       deviceElement.appendChild(itemIndicator)
@@ -712,8 +703,9 @@ async function printUserDevices(devicesList) {
         }
       });
     });
-
+    dinamicallyPopulateEntityValue(devices)
   }, 100);
+ 
 }
 
 function getCategoryIcon(roomName) {
@@ -1788,3 +1780,25 @@ document.querySelector('.inputButton').addEventListener('click', function() {
         }, 200);
     }
 });
+
+
+// ===================== Device List ======================= //
+
+function formatDeviceList(devices){
+  //si aspetta in input device['selected']
+  let icon = domainMap['default'];
+  let cleanList = {};
+  if (devices != undefined) { //organizzo per stanze "a", salvo il nome dell entita "f"
+    devices.forEach(element => {
+      const deviceClass = element['dc'] || null;
+      const deviceDomain = element['t'] || null;
+      icon = classMap[deviceClass] || domainMap[deviceDomain] || domainMap['default'];
+      if (cleanList.hasOwnProperty(element['a'])) {
+        cleanList[element['a']].push([element['f'], icon, element['e']]); //aggiungi entity id
+      }else {
+        cleanList[element['a']] = [[element['f'], icon, element['e']]]; //aggiungi entity id
+      }
+    });
+    return cleanList;
+  }
+}
