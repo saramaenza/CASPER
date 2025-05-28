@@ -21,11 +21,7 @@
         <div class="chat-container">
             <div id="left-container">
                 <div id="rules-head">
-                    <div id="welcome">
-                        <div id="logo">
-                            <img src="img/logo.png">
-                        </div>
-                        
+                    <div id="welcome">                        
                         <div id="initial-name"></div>
                         <!-- <a href="/configuration" target="_blank" rel="noopener noreferrer">Configs</a> -->
                     </div>
@@ -843,31 +839,28 @@
                         </div>
        
                 </div>
-                
-                    <!--<div id="problems-container"></div>-->
-                    <!--<div id="goals-container"></div>-->
-                
-                <!--
-                <div id="left-container-footer">
-                    <input class="rule-button" type="button" id="logout" value="Logout">
-                    <input class="rule-button report" type="button" id="report" value="Segnala errore" style="display: none;">
-                </div>
-                -->
-                
-                <!-- <div class="rule">
-                    <div class="rule-head" ruleid='1'><span class="rule-name">Rule Name</span><img class='deleteImg' src="img/delete.svg" alt="" srcset=""></div>
-                    <div class="rule-element closed" descid='1'>description</div>
-                </div>
-                <div class="rule">
-                    <div class="rule-head" ruleid='2'><span class="rule-name">Rule Name</span><img class='deleteImg' src="img/delete.svg" alt="" srcset=""></div>
-                    <div class="rule-element closed" descid='2'>description</div>
-                </div>
-                -->
             </div>
             <div id="chat">
                 <div class="chat-header">
+                    <div id="logo">
+                        <img src="img/logo.png">
+                        <div class="agent-info">
+                            <div class="agent-name">CASPER</div>
+                            <div class="status-indicator-chat"></div>
+                            <div class="agent-status">Online</div>
+                        </div>
+                    </div>
                     <div class="chat-controls">
-                        <div class="control-btn theme-btn" id="themeButton" onclick="toggleTheme()">🎨 Tema</div>
+                        <div class="toggle-container">
+                            <div class="toggle-switch-theme dark" id="toggleSwitch" style="transform: translateY(0px) scale(1);">
+                                <div class="toggle-bg-icons sun-bg">☀️</div>
+                                <div class="toggle-bg-icons moon-bg">🌙</div>
+                                <div class="toggle-ball dark" id="toggleBall">
+                                    <span class="sun-icon">☀️</span>
+                                    <span class="moon-icon">🌙</span>
+                                </div>
+                            </div>
+                        </div>
                         <div class="control-btn logout-btn" onclick="logout()">🚪 Logout</div>
                     </div>    
                 </div>

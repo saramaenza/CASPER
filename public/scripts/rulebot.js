@@ -31,6 +31,8 @@ const [btnLeftCarousel, btnRightCarousel] = document.querySelectorAll(
 let carouselCount = carouselItems.length;
 let pos = 0;
 let translateX = 0;
+const toggleSwitch = document.getElementById('toggleSwitch');
+const toggleBall = document.getElementById('toggleBall');
 
 // Immagine del profilo a pallina
 //const userProfile = document.querySelector('#profile');
@@ -435,19 +437,49 @@ async function printUserRule(rules) {
         card.appendChild(deleteButton);
         automationListWrapper.appendChild(card);
 
-
         // Funzionalità di cancellazione
         deleteButton.addEventListener('click', async (event) => {
-            event.stopPropagation(); // Impedisce la propagazione dell'evento al genitore
-            const ruleId = deleteButton.getAttribute('ruleid');
-            const ruleName = "ID:"+ruleId+" - " +automationTitle.textContent;
-          
-            const confirmation = confirm(`Sei sicuro di voler eliminare la regola "${ruleName}"?`);
-            if (confirmation) {
-              await deleteAutomation(ruleId);
-              deleteRule(ruleId, rules);
-            }
+          event.stopPropagation();
+          const ruleId = deleteButton.getAttribute('ruleid');
+          const ruleName = "ID:"+ruleId+" - " +automationTitle.textContent;
+
+          // Crea l'overlay
+          const overlay = document.createElement('div');
+          overlay.className = 'overlay';
+
+          // Crea il dialog
+          const dialog = document.createElement('div');
+          dialog.className = 'confirm-dialog';
+          dialog.innerHTML = `
+              <h3>Conferma eliminazione</h3>
+              <p>Sei sicuro di voler eliminare la regola "${ruleName}"?</p>
+              <div class="confirm-buttons">
+                  <button class="confirm-btn no">No</button>
+                  <button class="confirm-btn yes">Si</button>
+              </div>
+          `;
+
+          overlay.appendChild(dialog);
+          document.body.appendChild(overlay);
+
+          // Gestisci i click sui bottoni
+          const buttons = dialog.querySelectorAll('.confirm-btn');
+          buttons.forEach(button => {
+              button.addEventListener('click', async () => {
+                  // Aggiungi la classe fadeOut
+                  overlay.classList.add('fadeOut');
+                  
+                  // Rimuovi l'overlay dopo che l'animazione è completata
+                  setTimeout(async () => {
+                      if (button.classList.contains('yes')) {
+                          await deleteAutomation(ruleId);
+                          deleteRule(ruleId, rules);
+                      }
+                      overlay.remove();
+                  }, 200); // Stesso tempo dell'animazione CSS
+              });
           });
+      });
       }, index * 100);
     });
 
@@ -1802,3 +1834,66 @@ function formatDeviceList(devices){
     return cleanList;
   }
 }
+
+
+// Gestisce il click sul toggle tema
+toggleSwitch.addEventListener('click', function() {
+    //body.classList.toggle('dark');
+    toggleSwitch.classList.toggle('dark');
+    toggleBall.classList.toggle('dark');
+});
+
+// Aggiunge effetto hover con il mouse
+toggleSwitch.addEventListener('mouseenter', function() {
+    this.style.transform = 'translateY(-2px) scale(1.02)';
+});
+
+toggleSwitch.addEventListener('mouseleave', function() {
+    this.style.transform = 'translateY(0) scale(1)';
+});
+
+// Funzione per impostare il tema
+function setTheme(isDark = false) {
+    const root = document.documentElement;
+    const toggleSwitch = document.getElementById('toggleSwitch');
+    const toggleBall = document.getElementById('toggleBall');
+    
+    if (isDark) {
+        root.removeAttribute('data-theme');
+        toggleSwitch.classList.add('dark');
+        toggleBall.classList.add('dark');
+    } else {
+        root.setAttribute('data-theme', 'light');
+        toggleSwitch.classList.remove('dark');
+        toggleBall.classList.remove('dark');
+    }
+}
+
+// Funzione per rilevare il tema di sistema e impostare il tema dell'app
+function setSystemTheme() {
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+    
+    function updateTheme(e) {
+        const isDark = e.matches;
+        setTheme(isDark);
+    }
+    
+    // Imposta il tema iniziale in base alle preferenze di sistema
+    updateTheme(prefersDark);
+    
+    // Ascolta i cambiamenti del tema di sistema
+    prefersDark.addEventListener('change', updateTheme);
+}
+
+// Inizializza quando il DOM è caricato
+document.addEventListener('DOMContentLoaded', () => {
+    // Imposta il tema iniziale basato sulle preferenze di sistema
+    setSystemTheme();
+    
+    // Mantieni la funzionalità del toggle manuale
+    document.getElementById('toggleSwitch').addEventListener('click', function() {
+        const root = document.documentElement;
+        const isDark = root.getAttribute('data-theme') === 'light';
+        setTheme(isDark);
+    });
+});
