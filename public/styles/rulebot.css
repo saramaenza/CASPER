@@ -1156,13 +1156,134 @@ td {
     color: #d0d0d0;
     cursor: pointer;
     transition: all 0.3s ease;
-    font-size: 12px;
+    font-size: 14px;
 }
 
-.theme-btn:hover {
-    background: rgba(196, 195, 252, 0.2);
-    color: white;
-    border-color: rgba(180, 179, 250, 0.2);
+.toggle-container {
+  position: relative;
+  display: inline-block;
+}
+
+.toggle-switch-theme {
+  width: 80px;
+  height: 40px;
+  background: linear-gradient(145deg, #e8f4f8, #d1e7dd);
+  border-radius: 20px;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 
+      inset 5px 5px 10px rgba(174, 207, 230, 0.2),
+      inset -5px -5px 10px rgba(255, 255, 255, 0.9),
+      0 5px 20px rgba(0, 0, 0, 0.1);
+}
+
+.toggle-switch-theme.dark {
+  background: linear-gradient(145deg, #2c2c54, #1a1a2e);
+  box-shadow: 
+      inset 5px 5px 10px rgba(0, 0, 0, 0.3),
+      inset -5px -5px 10px rgba(70, 70, 120, 0.2),
+      0 5px 20px rgba(0, 0, 0, 0.3);
+}
+
+.toggle-ball {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    background: linear-gradient(145deg, #ffd700, #ffed4e);
+    box-shadow: 
+        0 3px 10px rgba(255, 215, 0, 0.4),
+        inset 1px 1px 5px rgba(255, 255, 255, 0.3),
+        inset -1px -1px 5px rgba(255, 180, 0, 0.2);
+}
+
+.toggle-ball.dark {
+  transform: translateX(40px);
+  background: linear-gradient(145deg, #f0f0f0, #e0e0e0);
+  box-shadow: 
+      0 3px 10px rgba(240, 240, 240, 0.3),
+      inset 1px 1px 5px rgba(255, 255, 255, 0.4),
+      inset -1px -1px 5px rgba(200, 200, 200, 0.2);
+}
+
+.sun-icon, .moon-icon {
+  position: absolute;
+  transition: all 0.3s ease;
+}
+
+.sun-icon {
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
+}
+
+.toggle-ball.dark .sun-icon {
+  opacity: 0;
+  transform: rotate(180deg) scale(0.8);
+}
+
+.moon-icon {
+  opacity: 0;
+  transform: rotate(-180deg) scale(0.8);
+}
+
+.toggle-ball.dark .moon-icon {
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
+}
+
+.toggle-bg-icons {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  transition: all 0.4s ease;
+  font-size: 12px;
+  opacity: 0.6;
+}
+
+.sun-bg {
+  left: 10px;
+  opacity: 1;
+}
+
+.moon-bg {
+  right: 10px;
+  opacity: 0.3;
+}
+
+.toggle-switch-theme.dark .sun-bg {
+  opacity: 0.3;
+}
+
+.toggle-switch-theme.dark .moon-bg {
+  opacity: 1;
+}
+
+@keyframes twinkle {
+  0% { opacity: 0.3; transform: scale(1); }
+  100% { opacity: 1; transform: scale(1.2); }
+}
+
+.toggle-switch:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+      inset 5px 5px 10px rgba(174, 207, 230, 0.3),
+      inset -5px -5px 10px rgba(255, 255, 255, 1),
+      0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.toggle-switch.dark:hover {
+  box-shadow: 
+      inset 5px 5px 10px rgba(0, 0, 0, 0.4),
+      inset -5px -5px 10px rgba(70, 70, 120, 0.3),
+      0 8px 25px rgba(0, 0, 0, 0.4);
 }
 .logout-btn:hover {
     background: rgba(255, 71, 87, 0.2);

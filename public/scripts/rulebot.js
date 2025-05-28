@@ -29,6 +29,8 @@ const [btnLeftCarousel, btnRightCarousel] = document.querySelectorAll(
 let carouselCount = carouselItems.length;
 let pos = 0;
 let translateX = 0;
+const toggleSwitch = document.getElementById('toggleSwitch');
+const toggleBall = document.getElementById('toggleBall');
 
 // Immagine del profilo a pallina
 //const userProfile = document.querySelector('#profile');
@@ -1756,5 +1758,37 @@ document.querySelector('.inputButton').addEventListener('click', function() {
             this.style.transform = 'scale(1)';
             input.value = '';
         }, 200);
+    }
+});
+
+// Gestisce il click sul toggle
+toggleSwitch.addEventListener('click', function() {
+    //body.classList.toggle('dark');
+    toggleSwitch.classList.toggle('dark');
+    toggleBall.classList.toggle('dark');
+});
+
+// Aggiunge effetto hover con il mouse
+toggleSwitch.addEventListener('mouseenter', function() {
+    this.style.transform = 'translateY(-2px) scale(1.02)';
+});
+
+toggleSwitch.addEventListener('mouseleave', function() {
+    this.style.transform = 'translateY(0) scale(1)';
+});
+
+// Salva la preferenza nel sessionStorage
+toggleSwitch.addEventListener('click', function() {
+    //const isDark = body.classList.contains('dark');
+    sessionStorage.setItem('darkMode', isDark);
+});
+
+// Carica la preferenza salvata
+window.addEventListener('load', function() {
+    const savedMode = sessionStorage.getItem('darkMode');
+    if (savedMode === 'true') {
+        //body.classList.add('dark');
+        toggleSwitch.classList.add('dark');
+        toggleBall.classList.add('dark');
     }
 });

@@ -867,7 +867,16 @@
             <div id="chat">
                 <div class="chat-header">
                     <div class="chat-controls">
-                        <div class="control-btn theme-btn" id="themeButton" onclick="toggleTheme()">🎨 Tema</div>
+                        <div class="toggle-container">
+                            <div class="toggle-switch-theme dark" id="toggleSwitch" style="transform: translateY(0px) scale(1);">
+                                <div class="toggle-bg-icons sun-bg">☀️</div>
+                                <div class="toggle-bg-icons moon-bg">🌙</div>
+                                <div class="toggle-ball dark" id="toggleBall">
+                                    <span class="sun-icon">☀️</span>
+                                    <span class="moon-icon">🌙</span>
+                                </div>
+                            </div>
+                        </div>
                         <div class="control-btn logout-btn" onclick="logout()">🚪 Logout</div>
                     </div>    
                 </div>
