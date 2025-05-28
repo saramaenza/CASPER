@@ -1776,13 +1776,13 @@ toggleSwitch.addEventListener('mouseenter', function() {
 toggleSwitch.addEventListener('mouseleave', function() {
     this.style.transform = 'translateY(0) scale(1)';
 });
-
+/*
 // Salva la preferenza nel sessionStorage
 toggleSwitch.addEventListener('click', function() {
     //const isDark = body.classList.contains('dark');
     sessionStorage.setItem('darkMode', isDark);
 });
-
+*/
 // Carica la preferenza salvata
 window.addEventListener('load', function() {
     const savedMode = sessionStorage.getItem('darkMode');
