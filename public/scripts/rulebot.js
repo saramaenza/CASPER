@@ -8,10 +8,12 @@ const userId = token.id;
 //const name = token.name.charAt(0).toUpperCase() + token.name.slice(1);
 const userName = token.name;
 let isReminderText = false;
+let entitiesStates;
 
 const base_link = window.location.origin;
 const getRuleList = `${base_link}/get_rule_list`; // chiamata POST per ricevere la lista delle regole
 const getDevices = `${base_link}/get_config`; // chiamata POST per ricevere la lista delle regole
+const getEntitiesStates = `${base_link}/get_entities_states`; // chiamata POST per ricevere lo stato delle entità
 const sendMessage = `${base_link}/send_message`; // chiamata POST per ricevere la lista delle regole
 const changeRule = `${base_link}/changeRule`; // chiamata POST per aggiornare le regole dopo il cancellamento
 const getProblemList = `${base_link}/get_problems`; // chiamata GET per ricevere la lista dei problemi
@@ -154,7 +156,12 @@ window.addEventListener('load', async ()=>{
   //problemList = await getData(`${getProblems}?id=${userId}`) //GET problemi
   let devicesList = await getData(`${getDevices}?id=${userId}`) //GET problemi
   //goalList = await getData(`${getGoals}?id=${userId}`) //GET goal
-  document.querySelector('#n_automations').innerText = rulesList.length;
+  document.querySelector('#n_automations').innerText = rulesList.length;  // First call
+  entitiesStates = await getData(`${getEntitiesStates}?id=${userId}`) 
+  console.log("Entities states loaded: ", entitiesStates);
+  // Updates every 60 seconds
+  setInterval(updateEntitiesStates, 600000);
+
   printUserRule(rulesList); //PRINT regole
   document.querySelector('#n_devices').innerText = devicesList['selected'].length;
   printUserDevices(devicesList); //PRINT devices
@@ -173,6 +180,23 @@ window.addEventListener('load', async ()=>{
   }
 
 })
+
+async function updateEntitiesStates(){
+  entitiesStates = await getData(`${getEntitiesStates}?id=${userId}`)
+  console.log("Entities states updated");
+}
+
+// Identifica in entitiesStates l'entità corrispondente e restituisce lo stato
+function dinamciallyPopulateEntityValue(device){
+  const entityId = device[2]; // Nome dell'entità 
+  const currentEntity = entitiesStates.find(entity => entity.entity_id === entityId);
+  // crea lo stato come stato + unità di misura (se presente)
+  if (currentEntity.state === "unavailable")
+    return "unavailable";
+  
+  let state = currentEntity.state + (currentEntity.attributes.unit_of_measurement ? currentEntity.attributes.unit_of_measurement : "");
+  return state;
+}
 
 /*
 logoutButton = document.querySelector('#logout');
@@ -598,9 +622,9 @@ async function printUserDevices(devicesList) {
       const deviceDomain = element['t'] || null;
       icon = classMap[deviceClass] || domainMap[deviceDomain] || domainMap['default'];
       if (cleanList.hasOwnProperty(element['a'])) {
-        cleanList[element['a']].push([element['f'], icon]);
+        cleanList[element['a']].push([element['f'], icon, element['e']]); //aggiungi entity id
       }else {
-        cleanList[element['a']] = [[element['f'], icon]];
+        cleanList[element['a']] = [[element['f'], icon, element['e']]]; //aggiungi entity id
       }
     })
 
@@ -664,13 +688,19 @@ async function printUserDevices(devicesList) {
       let iconElement = document.createElement('i');
       let itemIndicator = document.createElement('div');
       let itemValue = document.createElement('div');
-
+      let deviceState = dinamciallyPopulateEntityValue(device); // Ottieni lo stato dinamico dell'entità
+      
+      itemIndicator.classList.add('item-indicator');
+      if (deviceState === "unavailable") {
+        itemIndicator.classList.add('inactive');
+      }
       iconElement.classList.add('bx', device[1]);
       deviceText.classList.add('device-text');
       deviceElement.classList.add('device-element');
-      itemIndicator.classList.add('item-indicator'); 
+       
       itemValue.classList.add('item-value'); 
-      itemValue.innerHTML = `21°C`; // esempio di valore, può essere dinamico
+      
+      itemValue.innerHTML = deviceState; 
 
       deviceText.textContent = device[0];
       deviceElement.appendChild(itemIndicator)

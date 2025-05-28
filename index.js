@@ -27,7 +27,7 @@ const jwt = require('jsonwebtoken')
 const {setServerConfig, createUser, getUser, verifyToken, isLogged, createGoogleUser, userInfo, verifyEmail, getProblems, getAutomations, getConfiguration, saveConfiguration,  saveSelectedConfiguration, saveAutomations, saveAutomation, deleteRule, closeDatabaseConnection} = require('./db_methods.cjs');
 const JWT_SECRET = 'sdjkfh8923yhjdksbfma@#*(&@*!^#&@bhjb2qiuhesdbhjdsfg839ujkdhfjk'
 // =======================================
-const { getEntities, getAutomationsHA, postAutomationHA, toggleAutomation} = require('./utils.cjs');
+const { getEntities, getAutomationsHA, postAutomationHA, getEntitiesStates, toggleAutomation} = require('./utils.cjs');
 const { selectConfig } = require('./config.cjs');
 const configs = await selectConfig();
 setServerConfig(configs); //imposta la configurazione del server in db_methods.cjs
@@ -291,6 +291,19 @@ app.use('/load_devices', verifyToken, async (req, res) =>{
     }
   } catch (error) {
     console.log('/load_devices:')
+    console.log(error)
+  }
+})
+
+app.use('/get_entities_states', verifyToken, async (req, res) =>{
+  try {
+    let conf = await getConfiguration(req.query.id)
+    let url = conf.auth.url
+    let token = conf.auth.token
+    const entitiesStates = await getEntitiesStates(url, token, conf);
+    res.json(entitiesStates)
+  } catch (error) {
+    console.log('/load_entities_states:')
     console.log(error)
   }
 })

@@ -149,6 +149,41 @@ async function postAutomationHA(baseUrl, token, automationId, configData) {
     }
 }
 
+async function getEntitiesStates(baseUrl, token, conf) {
+    const headers = {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+    };
+    
+    try {
+        // Recupera tutti gli stati
+        const statesResponse = await fetch(`${baseUrl}/api/states`, {
+            headers: headers
+        });
+
+        if (!statesResponse.ok) {
+            console.error(`Errore nel recupero degli stati: ${statesResponse.status}`);
+            return null;
+        }
+
+        let states = await statesResponse.json();
+
+        // Filtra gli stati in base alla configurazione
+        states = states.filter(state => {
+            const entityId = state.entity_id;
+            return conf.selected.some(selected => selected.e === entityId);
+        });
+        //console.log("Fitlered States:", states);
+        
+        return states;
+       
+    }
+        catch (error) {
+        console.error(`Errore durante il recupero degli stati:`, error);
+        return false;
+    }
+}
+
 async function toggleAutomation(baseUrl, token, automationId, automationEntityId, userId) {
     const headers = {
             "Authorization": `Bearer ${token}`,
@@ -185,4 +220,4 @@ async function toggleAutomation(baseUrl, token, automationId, automationEntityId
    
 }
 
-module.exports = { getEntities, getAutomationsHA, postAutomationHA, toggleAutomation };
+module.exports = { getEntities, getAutomationsHA, postAutomationHA, toggleAutomation, getEntitiesStates };
