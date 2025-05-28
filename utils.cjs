@@ -1,3 +1,4 @@
+const { toggleAutomation: toggleAutomationDB } = require('./db_methods.cjs');
 //Funzione per ottenere la lista delle entità con le relative descrizioni.
 async function getEntities(baseUrl, token) {
     const url = `${baseUrl}/api/template`;
@@ -89,6 +90,7 @@ async function getAutomationsHA(baseUrl, token) {
         // Recupera la configurazione per ogni automazione
         const automationConfigs = await Promise.all(
             automations.map(async (automation) => {
+                const automationState = automation.state;
                 const automationId = automation.attributes.id;
                 if (!automationId) return null;
 
@@ -105,6 +107,7 @@ async function getAutomationsHA(baseUrl, token) {
                 const config = await configResponse.json();
                 return {
                     id: automationId,
+                    state: automationState,
                     config: config
                 };
             })
@@ -181,4 +184,40 @@ async function getEntitiesStates(baseUrl, token, conf) {
     }
 }
 
-module.exports = { getEntities, getAutomationsHA, postAutomationHA, getEntitiesStates };
+async function toggleAutomation(baseUrl, token, automationId, automationEntityId, userId) {
+    const headers = {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
+        };
+     try {
+        const entityId = "automation."+automationEntityId
+        const response = await fetch(
+            `${baseUrl}/api/services/automation/toggle`, 
+            {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify({
+                    "entity_id": entityId
+                })
+            }
+        );
+        if (!response.ok) {
+            console.error(`Errore nel toggle dell'automazione ID:${automationId}: ${response.status}`);
+            return false;
+        }
+        let final_response = await response.json();
+        if (!final_response || final_response==[] || !final_response[0].state) {
+            console.error(`Risposta non valida dal server per l'automazione ID:${automationId}`);
+            return false;
+        }
+        let state = final_response[0].state;
+        toggleAutomationDB(userId, automationId, state);
+        return state;
+    } catch (error) {
+        console.error(`Errore durante il salvataggio dell'automazione:`, error);
+        return false;
+    }
+   
+}
+
+module.exports = { getEntities, getAutomationsHA, postAutomationHA, toggleAutomation, getEntitiesStates };

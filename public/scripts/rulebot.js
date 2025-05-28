@@ -19,6 +19,7 @@ const changeRule = `${base_link}/changeRule`; // chiamata POST per aggiornare le
 const getProblemList = `${base_link}/get_problems`; // chiamata GET per ricevere la lista dei problemi
 const getGoals = `${base_link}/get_goals`; // chiamata POST per ricevere la lista dei goal
 const ping = `${base_link}/get_chat_state`; // chiamata POST per ricevere la lista dei goal
+const toggleAutomation = `${base_link}/toggle_automation`; // chiamata POST per ricevere la lista delle regole
 const downButton = document.querySelector("#download");
 const aggiorna = document.querySelector("#aggiorna");
 let currentIndex = 0;
@@ -153,16 +154,17 @@ window.addEventListener('load', async ()=>{
   //problemList = await getData(`${getProblems}?id=${userId}`) //GET problemi
   let devicesList = await getData(`${getDevices}?id=${userId}`) //GET problemi
   //goalList = await getData(`${getGoals}?id=${userId}`) //GET goal
-  
-  // First call
+  document.querySelector('#n_automations').innerText = rulesList.length;  // First call
   entitiesStates = await getData(`${getEntitiesStates}?id=${userId}`) 
   console.log("Entities states loaded: ", entitiesStates);
   // Updates every 60 seconds
   setInterval(updateEntitiesStates, 600000);
 
   printUserRule(rulesList); //PRINT regole
+  document.querySelector('#n_devices').innerText = devicesList['selected'].length;
   printUserDevices(devicesList); //PRINT devices
   let problemsList = await getProblems()
+  document.querySelector('#n_problems').innerText = problemsList.length || 0;
   printUserProblems(problemsList);
   
   //open_delete_rule();
@@ -297,12 +299,37 @@ async function deleteAutomation(rule_id) {
     });
   }
 
+  function triggerToggleAutomation(automationId, automationEntityId) {
+    return new Promise((resolve, reject) => {
+      fetch(toggleAutomation, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          "userId": userId,
+          "automationEntityId": automationEntityId,
+          "automationId": automationId,
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        resolve(data); // Risolve la promessa con i dati desiderati
+      })
+      .catch(error => {
+        console.log(error);
+        reject(error); // Reietta la promessa in caso di errore
+      });
+    });
+  }
+
 async function printUserRule(rules) {
   const rulesContainer = document.querySelector('#rules-container');
   rulesContainer.innerText = '';
 
   if (rules.length > 0) {
-
+    
     // Wrapper per tutte le automation-card
     const automationListWrapper = document.createElement('div');
     automationListWrapper.className = 'automation-list-wrapper';
@@ -323,6 +350,7 @@ async function printUserRule(rules) {
     automationListWrapper.appendChild(searchContainer);
 
     rules.forEach((element, index) => {
+      let automationState = element['state'] === "on" ? "active": ""; // Stato di default se non specificato
       element = element['config'];
       setTimeout(() => {
         // CARD PRINCIPALE
@@ -370,8 +398,10 @@ async function printUserRule(rules) {
 
         // Toggle switch
         const toggleSwitch = document.createElement('div');
-        toggleSwitch.className = 'toggle-switch active';
-        toggleSwitch.setAttribute('title', 'Disattiva automazione'); // Titolo iniziale (active per default)
+        toggleSwitch.className = `toggle-switch ${automationState}`; // aggiungi/rimuovi 'active' per stato ON/OFF
+        toggleSwitch.setAttribute('entity', element['alias'].toLowerCase().split(' ').join('_'));
+        toggleSwitch.setAttribute('ruleid', element['id']);
+        toggleSwitch.setAttribute('title', 'Accendi/Spegni Automazione');
 
         const toggleSlider = document.createElement('div');
         toggleSlider.className = 'toggle-slider';
@@ -381,8 +411,8 @@ async function printUserRule(rules) {
         const deleteButton = document.createElement('button');
         deleteButton.textContent = '🗑️';
         deleteButton.classList.add('deleteButton');
-        deleteButton.id = element['id'];
-        deleteButton.setAttribute('title', 'Elimina automazione');
+        deleteButton.setAttribute('ruleid', element['id']);
+        deleteButton.setAttribute('title', 'Elimina Automazione');
 
         // Assembla header
         cardHeader.appendChild(headerLeft);
@@ -403,7 +433,7 @@ async function printUserRule(rules) {
         // Funzionalità di cancellazione
         deleteButton.addEventListener('click', async (event) => {
             event.stopPropagation(); // Impedisce la propagazione dell'evento al genitore
-            const ruleId = deleteButton.getAttribute('id');
+            const ruleId = deleteButton.getAttribute('ruleid');
             const ruleName = "ID:"+ruleId+" - " +automationTitle.textContent;
           
             const confirmation = confirm(`Sei sicuro di voler eliminare la regola "${ruleName}"?`);
@@ -447,16 +477,27 @@ async function printUserRule(rules) {
         const indicator = card.querySelector('.status-indicator');
         // Toggle functionality
         if (toggle) {
-            toggle.addEventListener('click', function() {
-                this.classList.toggle('active');
-                if (this.classList.contains('active')) {
-                    indicator.classList.remove('inactive');
-                    this.setAttribute('title', 'Disattiva automazione'); 
-                } else {
-                    indicator.classList.add('inactive');
-                    this.setAttribute('title', 'Attiva automazione');
-                }
-            });
+          toggle.addEventListener('click', async function () {
+            const toggleCall = await triggerToggleAutomation(
+              this.getAttribute('ruleid'),
+              this.getAttribute('entity')
+            )
+            if (toggleCall.status === "error") {
+              alert(`Errore durante il cambio di stato dell'automazione`);
+              return;
+            }
+            const state = toggleCall.state=="on" ? "active" : "";
+            if (state === "active") {
+              if (!this.classList.contains('active')) {
+                this.classList.add('active');
+                indicator.classList.remove('inactive');
+              }
+            }else {
+              this.classList.remove('active');
+              indicator.classList.add('inactive');
+            }
+            
+          });
         }
       });
     }, rules.length * 100 + 100);
@@ -469,8 +510,12 @@ async function printUserRule(rules) {
 function getAutomationIconInfo(automation) {
     const regex = /^event(?:s|o|i)?:\s*(?<event>.*?)(?:\s*(?:condition(?:s)?|condizion(?:e|i)):\s*(?<condition>.*?))?\s*(?:action(?:s)?|azion(?:i|e)):\s*(?<action>.*)$/i;
     const rule_match = automation.description.match(regex);
-    const groups = rule_match.groups;
-    const text = (groups.action).toLowerCase();
+    let groups = {};
+    let text = automation.description.toLowerCase();
+    if (rule_match) {
+      groups = rule_match.groups;
+      text = (groups.action).toLowerCase();
+    }
     
     if (text.includes("movimento") || text.includes("motion")) {
         return {
@@ -1111,6 +1156,7 @@ createConflictCard(
 );*/
 
 function printUserProblems(problemsList) {
+
   for (const [index, problem] of problemsList.entries()){
     if (problem['type'] == 'conflict'){
       createConflictCard(
@@ -1271,6 +1317,14 @@ function createConflictCard(isActive, headerText, conflictInfo) {
     const container = document.createElement("div");
     container.className = "container_arrow";
 
+    const ignoreButton = document.createElement("button");
+    ignoreButton.textContent = "Ignora";
+    ignoreButton.id = conflictInfo["id_conflict"];
+
+    const solveButton = document.createElement("button");
+    solveButton.textContent = "Risolvi";
+    solveButton.id = conflictInfo["id_conflict"];
+
     const rule1_match = rule1_description.match(regex);
     const rule2_match = rule2_description.match(regex);
 
@@ -1407,7 +1461,7 @@ function createConflictCard(isActive, headerText, conflictInfo) {
         body.appendChild(conflict_rappresentation_container);
         container.appendChild(conflict_rappresentation_container);
     };
-    body.appendChild(container);
+    body.appendChild(container);    
 
     const title = document.createElement("p");
     title.className = "card-title";
@@ -1467,6 +1521,8 @@ function createConflictCard(isActive, headerText, conflictInfo) {
     };
 
     body.appendChild(accordion);
+    body.appendChild(ignoreButton);
+    body.appendChild(solveButton);
     card.appendChild(body);
     carousel.appendChild(card);
     carousel.click();

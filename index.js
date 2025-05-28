@@ -27,7 +27,7 @@ const jwt = require('jsonwebtoken')
 const {setServerConfig, createUser, getUser, verifyToken, isLogged, createGoogleUser, userInfo, verifyEmail, getProblems, getAutomations, getConfiguration, saveConfiguration,  saveSelectedConfiguration, saveAutomations, saveAutomation, deleteRule, closeDatabaseConnection} = require('./db_methods.cjs');
 const JWT_SECRET = 'sdjkfh8923yhjdksbfma@#*(&@*!^#&@bhjb2qiuhesdbhjdsfg839ujkdhfjk'
 // =======================================
-const { getEntities, getAutomationsHA, postAutomationHA, getEntitiesStates} = require('./utils.cjs');
+const { getEntities, getAutomationsHA, postAutomationHA, getEntitiesStates, toggleAutomation} = require('./utils.cjs');
 const { selectConfig } = require('./config.cjs');
 const configs = await selectConfig();
 setServerConfig(configs); //imposta la configurazione del server in db_methods.cjs
@@ -411,6 +411,26 @@ app.post('/post_chat_state', async (req, res) =>{
     console.log(error)
   }
 })
+
+app.post('/toggle_automation', verifyToken, async (req, res) =>{
+  try {
+    const conf = await getConfiguration(req.body.userId)
+    const ha_response = await toggleAutomation(
+      conf.auth.url, 
+      conf.auth.token,  
+      req.body.automationId,
+      req.body.automationEntityId, 
+      req.body.userId);
+    if (ha_response === false) {
+      return res.json({status: 'error'});
+    }else{
+      return res.json({status: 'ok', state: ha_response});
+    }
+  } catch (error) {
+    console.log('/toggle_automation error:')
+    console.log(error)
+  }
+});
 
 
  app.get('/sse', async (req, res) =>{
