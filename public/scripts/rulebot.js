@@ -409,40 +409,47 @@ async function printUserRule(rules) {
 
         // Funzionalità di cancellazione
         deleteButton.addEventListener('click', async (event) => {
-            event.stopPropagation();
-            const ruleId = deleteButton.getAttribute('ruleid');
-            const ruleName = "ID:"+ruleId+" - " +automationTitle.textContent;
+          event.stopPropagation();
+          const ruleId = deleteButton.getAttribute('ruleid');
+          const ruleName = "ID:"+ruleId+" - " +automationTitle.textContent;
 
-            // Crea l'overlay
-            const overlay = document.createElement('div');
-            overlay.className = 'overlay';
+          // Crea l'overlay
+          const overlay = document.createElement('div');
+          overlay.className = 'overlay';
 
-            // Crea il dialog
-            const dialog = document.createElement('div');
-            dialog.className = 'confirm-dialog';
-            dialog.innerHTML = `
-                <p>Sei sicuro di voler eliminare la regola "${ruleName}"?</p>
-                <div class="confirm-buttons">
-                    <button class="confirm-btn no">No</button>
-                    <button class="confirm-btn yes">Si</button>
-                </div>
-            `;
+          // Crea il dialog
+          const dialog = document.createElement('div');
+          dialog.className = 'confirm-dialog';
+          dialog.innerHTML = `
+              <h3>Conferma eliminazione</h3>
+              <p>Sei sicuro di voler eliminare la regola "${ruleName}"?</p>
+              <div class="confirm-buttons">
+                  <button class="confirm-btn no">No</button>
+                  <button class="confirm-btn yes">Si</button>
+              </div>
+          `;
 
-            overlay.appendChild(dialog);
-            document.body.appendChild(overlay);
+          overlay.appendChild(dialog);
+          document.body.appendChild(overlay);
 
-            // Gestisci i click sui bottoni
-            const buttons = dialog.querySelectorAll('.confirm-btn');
-            buttons.forEach(button => {
-                button.addEventListener('click', async () => {
-                    if (button.classList.contains('yes')) {
-                        await deleteAutomation(ruleId);
-                        deleteRule(ruleId, rules);
-                    }
-                    overlay.remove();
-                });
-            });
-        });
+          // Gestisci i click sui bottoni
+          const buttons = dialog.querySelectorAll('.confirm-btn');
+          buttons.forEach(button => {
+              button.addEventListener('click', async () => {
+                  // Aggiungi la classe fadeOut
+                  overlay.classList.add('fadeOut');
+                  
+                  // Rimuovi l'overlay dopo che l'animazione è completata
+                  setTimeout(async () => {
+                      if (button.classList.contains('yes')) {
+                          await deleteAutomation(ruleId);
+                          deleteRule(ruleId, rules);
+                      }
+                      overlay.remove();
+                  }, 200); // Stesso tempo dell'animazione CSS
+              });
+          });
+      });
       }, index * 100);
     });
 

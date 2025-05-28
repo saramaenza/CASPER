@@ -1413,6 +1413,28 @@ td {
   }
 
 /* confirmation message */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        backdrop-filter: blur(0px);
+    }
+    to {
+        opacity: 1;
+        backdrop-filter: blur(3px);
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+        backdrop-filter: blur(3px);
+    }
+    to {
+        opacity: 0;
+        backdrop-filter: blur(0px);
+    }
+}
+
 .overlay {
     position: fixed;
     top: 0;
@@ -1428,15 +1450,8 @@ td {
     animation: fadeIn 0.2s ease-in-out;
 }
 
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        backdrop-filter: blur(0px);
-    }
-    to {
-        opacity: 1;
-        backdrop-filter: blur(3px);
-    }
+.overlay.fadeOut {
+    animation: fadeOut 0.2s ease-in-out forwards;
 }
 
 .confirm-dialog {
