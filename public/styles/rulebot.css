@@ -333,6 +333,11 @@ body{
   animation: glow 2s infinite;
 }
 
+.item-indicator.inactive {
+  background: #666;
+  animation: none;
+}
+
 .item-value {
   font-size: 12px;
   color: #d0d0d0;
