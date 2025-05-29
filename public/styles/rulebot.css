@@ -10,6 +10,7 @@
   --border-input-focus: #0066FF;
   --shadow-input-focus: 0 0 20px rgba(0, 102, 255, 0.2);
   --circle-number: white;
+  --selector-hover: rgba(255, 255, 255, 0.05);
 }
 
 /* Light theme */
@@ -24,6 +25,7 @@
   --border-input-focus: #0066ff66;
   --shadow-input-focus: 0 0 10px rgb(0 102 255 / 62%);
   --circle-number: #80d6bb;
+  --selector-hover: rgb(0 102 255 / 10%);
 } 
 
 * {
@@ -771,7 +773,7 @@ td {
 }
 .selector-unselected:hover {
   font-weight: bold;
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: var(--selector-hover); 
 }
 .selector-unselected:hover {
   font-weight: normal !important;
