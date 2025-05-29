@@ -158,9 +158,8 @@ window.addEventListener('load', async ()=>{
   //goalList = await getData(`${getGoals}?id=${userId}`) //GET goal
   document.querySelector('#n_automations').innerText = rulesList.length;  // First call
   entitiesStates = await getData(`${getEntitiesStates}?id=${userId}`) 
-  console.log("Entities states loaded: ", entitiesStates);
   // Updates every 60 seconds
-  setInterval(updateEntitiesStates, 60000);
+  //setInterval(updateEntitiesStates, 60000);
 
   printUserRule(rulesList); //PRINT regole
   document.querySelector('#n_devices').innerText = devicesList['selected'].length;
@@ -204,12 +203,12 @@ function dinamicallyPopulateEntityValue(devices){
   }
 }
 
-/*
+
 logoutButton = document.querySelector('#logout');
 logoutButton.addEventListener('click', ()=>{
   Cookies.remove('auth-token');
   location.reload();
-})*/
+})
 //--------------------POST & GET FUNCTION----------------------------------
 //effettua POST generici verso il server
 async function postData(data, url) {
