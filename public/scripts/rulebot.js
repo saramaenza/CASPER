@@ -591,6 +591,12 @@ function getAutomationIconInfo(automation) {
             className: "bathroom-icon"
         };
     }
+    if(text.includes("aria condizionata") || text.includes("air conditioning") || text.includes("ac")) {
+        return {
+            icon: "❄️",
+            className: "ac-icon"
+        };
+    }
     // Default
     return {
         icon: "⚡",

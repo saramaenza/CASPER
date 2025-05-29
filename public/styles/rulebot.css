@@ -345,7 +345,7 @@ body{
 }
 
 .item-value {
-  font-size: 12px;
+  font-size: 14px;
   color: var(--text-secondary);
 }
 
@@ -933,6 +933,7 @@ td {
 .bathroom-icon { background: linear-gradient(135deg, #8B5CF6, #FF6B35); }
 .living-icon { background: linear-gradient(135deg, #FF4757, #FFD700); }
 .schedule-icon { background: linear-gradient(135deg, #0066FF, #8B5CF6); }
+.ac-icon { background: linear-gradient(135deg, #56f8d5, #3189fd); }
 .room-icon { background: linear-gradient(135deg, #0066FF, #00FF88); }
 
 .automation-title {
