@@ -11,6 +11,7 @@
   --shadow-input-focus: 0 0 20px rgba(0, 102, 255, 0.2);
   --circle-number: white;
   --selector-hover: rgba(255, 255, 255, 0.05);
+  --scroolbar-thumb-hover: rgba(255, 255, 255, 0.2);
 }
 
 /* Light theme */
@@ -26,6 +27,7 @@
   --shadow-input-focus: 0 0 10px rgb(0 102 255 / 62%);
   --circle-number: #80d6bb;
   --selector-hover: rgb(0 102 255 / 10%);
+  --scroolbar-thumb-hover: rgba(83, 83, 83, 0.08);
 } 
 
 * {
@@ -1529,13 +1531,13 @@ td {
 }
 
 ::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--border-color);
     border-radius: 4px;
     transition: all 0.3s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: var(--scroolbar-thumb-hover);
 }
 
 
