@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken')
 const secret = 'sdjkfh8923yhjdksbfma@#*(&@*!^#&@bhjb2qiuhesdbhjdsfg839ujkdhfjk'
 const { MongoClient, ObjectId } = require("mongodb");
 
+
 const uri =
   "mongodb://127.0.0.1:27017";
 let dbName = "";
@@ -328,8 +329,7 @@ const saveAutomation = async (userId, automationId, config) => {
     }
 };
 
-const deleteRule = async (userId, ruleId) => {
-    
+const deleteRule = async (userId, ruleId, haDeleteFunc) => {
     try {
         const database = client.db(dbName);
         const automations = database.collection('automations');
@@ -345,10 +345,15 @@ const deleteRule = async (userId, ruleId) => {
             { 'user_id': userId },
             { $set: { 'automation_data': newAutomations } }
         );
-        
+        const config = await getConfiguration(userId);
+        const haResponse = await haDeleteFunc(config.auth.url, config.auth.token, ruleId);
+        if (!haResponse) {
+            console.log(`Errore durante la cancellazione dell'automazione ${ruleId} su Home Assistant.`);
+            return false;
+        }
         return true;
     } catch (err) {
-        console.log('Errore in deleteHAAutomation:', err);
+        console.log('Errore in Db deleteRule:', err);
         return false;
     }
 }
