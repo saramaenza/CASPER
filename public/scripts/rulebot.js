@@ -596,6 +596,12 @@ function getAutomationIconInfo(automation) {
             className: "bathroom-icon"
         };
     }
+    if(text.includes("aria condizionata") || text.includes("air conditioning") || text.includes("ac")) {
+        return {
+            icon: "❄️",
+            className: "ac-icon"
+        };
+    }
     // Default
     return {
         icon: "⚡",
@@ -874,7 +880,7 @@ function generateTypingMsg(type){//type = user | bot
 
     const botLabel = document.createElement('div');
     botLabel.classList.add('botLabel');
-    let username = document.createTextNode("Rulebot");
+    let username = document.createTextNode("Casper");
     botLabel.appendChild(username);
     /* const Img = document.createElement("IMG");
     Img.setAttribute("src", `icons/${type}.png`);
@@ -985,7 +991,7 @@ async function generateSSEBotMessage(text) {
 
   const botLabel = document.createElement('div');
   botLabel.classList.add('botLabel');
-  let username = document.createTextNode("Rulebot");
+  let username = document.createTextNode("Casper");
   botLabel.appendChild(username);
   currentMessage = currentMessage.replace(/\*{1,3}(.*?)\*{1,3}/g, "<b>$1</b>"); //modifica *, **, *** con il grassetto
   currentMessage = currentMessage.replace(/\n/g, "<br>");
@@ -1023,7 +1029,7 @@ async function generateBotMsg(messages){
 
             const botLabel = document.createElement('div');
             botLabel.classList.add('botLabel');
-            let username = document.createTextNode("Rulebot");
+            let username = document.createTextNode("Casper");
             botLabel.appendChild(username);
             /* const botImg = document.createElement("IMG");
             botImg.setAttribute("src", "icons/bot.png");
