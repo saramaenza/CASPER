@@ -1234,12 +1234,11 @@ function createConflictCard(isActive, headerText, conflictInfo) {
     const rule1_match = rule1_description.match(regex);
     const rule2_match = rule2_description.match(regex);
 
-    type_of_conflict = "same_event_different_conditions";
+    type_of_conflict = "different_event_same_conditions";
 
     if (rule1_match && rule1_match.groups && rule2_match && rule2_match.groups) {
         const rule1 = rule1_match.groups;
         const rule2 = rule2_match.groups;
-
 
     // CARD
     const card = document.createElement("div");
@@ -1347,6 +1346,55 @@ function createConflictCard(isActive, headerText, conflictInfo) {
         row_condition.appendChild(td3_condition);
         conflictTable.appendChild(row_condition);
       }
+    } else {
+      // RIGA EVENTI
+      const row_events = document.createElement("tr");
+
+      // CELLA EVENTO 1
+      const td1_event = document.createElement("td");
+      td1_event.innerHTML = `<div class="box-event">${rule1.event}</div>`;
+
+
+      const td2_event = document.createElement("td");
+
+      // CELLA EVENTO 2
+      const td3_event = document.createElement("td");
+      td3_event.innerHTML = `<div class="box-event">${rule2.event}</div>`;
+
+      row_events.appendChild(td1_event);
+      row_events.appendChild(td2_event);
+      row_events.appendChild(td3_event);
+      conflictTable.appendChild(row_events);
+
+      if(type_of_conflict === "different_event_different_conditions" || type_of_conflict === "different_event_same_conditions") {
+        // RIGA CONDIZIONI
+        const row_condition = document.createElement("tr");
+
+        // Condition box 1
+        const td1_condition = document.createElement("td");
+        const conditionBox1 = document.createElement("div");
+        conditionBox1.className = "condition-box";
+        let condition1 = `${rule1.condition}`;
+        conditionBox1.innerHTML = `${condition1}`;
+        td1_condition.appendChild(conditionBox1);
+
+        const td2_condition = document.createElement("td");
+
+        // Condition box 2
+        const td3_condition = document.createElement("td");
+        const conditionBox2 = document.createElement("div");
+        conditionBox2.className = "condition-box";
+        let condition2 = `${rule2.condition}`;
+        conditionBox2.innerHTML = `${condition2}`;
+        td3_condition.appendChild(conditionBox2);
+
+        row_condition.appendChild(td1_condition);
+        row_condition.appendChild(td2_condition);
+        row_condition.appendChild(td3_condition);
+        conflictTable.appendChild(row_condition);
+      }
+
+
     }
 
     // RIGA AZIONI
@@ -1480,341 +1528,6 @@ function createConflictCard(isActive, headerText, conflictInfo) {
     carousel.click();
     return card;
 }
-/*
-function createConflictCard(isActive, headerText, conflictInfo) {
-    const regex = /^event(?:s|o|i)?:\s*(?<event>.*?)(?:\s*(?:condition(?:s)?|condizion(?:e|i)):\s*(?<condition>.*?))?\s*(?:action(?:s)?|azion(?:i|e)):\s*(?<action>.*)$/i;
-    const entityIDRegex = /\s*\([a-zA-Z_]+\.[a-zA-Z0-9_]+\)/g;
-    const svgArrow = () => {
-        const svgNS = "http://www.w3.org/2000/svg";
-        const svg = document.createElementNS(svgNS, "svg");
-        svg.setAttribute("class", "svg_conflict2"); // Aggiunta classe
-        svg.setAttribute("width", "18");
-        svg.setAttribute("height", "40");
-        svg.setAttribute("viewBox", "0 0 18 40");
-        svg.setAttribute("fill", "none"); // Impostato fill a none per l'elemento svg
-        const path = document.createElementNS(svgNS, "path");
-        path.setAttribute("d", "M8.75 39.9991L17.5038 25.0535L0.183666 24.9453L8.75 39.9991ZM7.50003 -0.00937502L7.34378 24.9907L10.3437 25.0094L10.5 0.00937502L7.50003 -0.00937502ZM7.34378 24.9907L7.3344 26.49L10.3343 26.5088L10.3437 25.0094L7.34378 24.9907Z");
-        path.setAttribute("fill", "#4E63CC"); // Colore del path
-        svg.appendChild(path);
-        return svg;
-    };
-    const createConflictArrowSVG = () => {
-      const svgNS = "http://www.w3.org/2000/svg";
-      const svg = document.createElementNS(svgNS, "svg");
-      svg.setAttribute("class", "svg_conflict");
-      svg.setAttribute("viewBox", "0 0 717 160");
-      svg.setAttribute("fill", "none"); // L'attributo fill sull'elemento svg radice è "none"
-
-      const path1 = document.createElementNS(svgNS, "path");
-      path1.setAttribute("d", "M21 160L41.2073 125H0.79274L21 160ZM21 75H17.5L17.5 117.5H21H24.5L24.5 75H21ZM21 117.5H17.5V128.5H21H24.5V117.5H21Z");
-      path1.setAttribute("fill", "#4E63CC");
-      svg.appendChild(path1);
-
-      const path2 = document.createElementNS(svgNS, "path");
-      path2.setAttribute("d", "M696 160L716.207 125H675.793L696 160ZM696 75H692.5V117.5H696H699.5V75H696ZM696 117.5H692.5V128.5H696H699.5V117.5H696Z");
-      path2.setAttribute("fill", "#4E63CC");
-      svg.appendChild(path2);
-
-      const line1 = document.createElementNS(svgNS, "line");
-      line1.setAttribute("x1", "17.5");
-      line1.setAttribute("y1", "71.579");
-      line1.setAttribute("x2", "699.5");
-      line1.setAttribute("y2", "71.579");
-      line1.setAttribute("stroke", "#4E63CC");
-      line1.setAttribute("stroke-width", "7");
-      svg.appendChild(line1);
-
-      const line2 = document.createElementNS(svgNS, "line");
-      line2.setAttribute("x1", "358.5");
-      line2.setAttribute("y1", "70");
-      line2.setAttribute("x2", "358.5");
-      line2.setAttribute("y2", "-3.45707e-06");
-      line2.setAttribute("stroke", "#4E63CC");
-      line2.setAttribute("stroke-width", "7");
-      svg.appendChild(line2);
-
-      return svg;
-  };
-
-    const rule1 = conflictInfo['rules'][0]
-    const rule1_id = rule1['id']
-    const rule1_name = rule1['name']
-    const rule1_description = rule1['description'].replace(entityIDRegex, ''); //rimuovo gli entityID
-    const rule2 = conflictInfo['rules'][1]
-    const rule2_id = rule2['id']
-    const rule2_name = rule2['name']
-    const rule2_description = rule2['description'].replace(entityIDRegex, '');
-
-    const type_of_conflict = conflictInfo['tag'];
-
-    const temp_mapping = new Map();
-    temp_mapping.set(rule1_id, rule1);
-    temp_mapping.set(rule2_id, rule2);
-
-    const card = document.createElement("div");
-    card.className = "card border-dark carousel__item";
-    if (isActive) {
-        card.classList.add("active");
-    }else {
-        card.classList.add("not_active");
-    }
-
-    const header = document.createElement("div");
-    header.className = "card-header";
-    header.textContent = headerText;
-    card.appendChild(header);
-
-    const body = document.createElement("div");
-    body.className = "card-body";
-
-    const spanText = document.createElement("span");
-    spanText.className = "card-text";
-    spanText.textContent = conflictInfo["possibleSolutions"]["description"];
-    body.appendChild(spanText);
-
-    const container = document.createElement("div");
-    container.className = "container_arrow";
-
-    const ignoreButton = document.createElement("button");
-    ignoreButton.textContent = "Ignora";
-    ignoreButton.setAttribute("problemid", conflictInfo["id"]);
-    ignoreButton.className = "ignore-button";
-    ignoreButton.addEventListener("click", (e) => {
-      console.log("Ignora button clicked for problem ID:", e.target.getAttribute("problemid"));
-    });
-
-    const solveButton = document.createElement("button");
-    solveButton.textContent = "Risolvi";
-    solveButton.setAttribute("problemid", conflictInfo["id"]);
-    solveButton.className = "solve-button";
-    solveButton.addEventListener("click", (e) => {
-      if (choosenSolution != null) {
-        let problemId = e.target.getAttribute("problemid");
-        let ruleId = choosenSolution.rule_id;
-        let ruleName = choosenSolution.rule_name;
-        let structured = choosenSolution.solution;
-        const message = `<solve_problem>The user want to solve the problem with ID:${problemId} by modifing the automation '${ruleName}'(Automation ID:${ruleId}) in the following way: ${structured}</solve_problem>`;
-        getBotResponse(message);
-      }
-    });
-
-    const rule1_match = rule1_description.match(regex);
-    const rule2_match = rule2_description.match(regex);
-
-    if (rule1_match && rule1_match.groups && rule2_match && rule2_match.groups) {
-        const rule1 = rule1_match.groups;
-        const rule2 = rule2_match.groups;
-
-        const conflict_rappresentation_container = document.createElement("table");
-        conflict_rappresentation_container.className = "conflict_rappresentation_container no_mt";
-
-        //costruzione del grafico per conflitti tra automazioni con lo stesso evento
-        if (type_of_conflict.includes("same_event")) {
-          const p = document.createElement("p");
-          p.textContent = rule1.event; //teoricamente dovrebbe essere uguale (almeno semanticamente) a rule2.event
-          container.appendChild(p);
-          if(type_of_conflict === "same_event_same_conditions") { 
-            container.appendChild(svgArrow()); //freccia semplice
-            const p2 = document.createElement("p");
-            p2.textContent = rule1.condition; //teoricamente dovrebbe essere uguale (almeno semanticamente) a rule2.condition
-            container.appendChild(p2);
-          }
-          container.appendChild(createConflictArrowSVG()); //freccia biforcuta
-
-          if(type_of_conflict === "same_event_different_conditions") { 
-            //riga condizioni
-            const conditionRow = document.createElement("tr");
-            const leftConditionCell = document.createElement("td");
-            const centerConditionCell = document.createElement("td");
-            const rightConditionCell = document.createElement("td");
-            leftConditionCell.style.color = "green";
-            leftConditionCell.textContent = `${rule1.condition}`;
-            rightConditionCell.style.color = "green";
-            rightConditionCell.textContent = `${rule2.condition}`;
-            conflict_rappresentation_container.appendChild(conditionRow);
-            conditionRow.appendChild(leftConditionCell);
-            conditionRow.appendChild(centerConditionCell);
-            conditionRow.appendChild(rightConditionCell);
-
-            //riga freccia
-            const arrowRow = document.createElement("tr");
-            const leftArrowCell = document.createElement("td");
-            const centerArrowCell = document.createElement("td");
-            const rightArrowCell = document.createElement("td");
-            leftArrowCell.appendChild(svgArrow());
-            rightArrowCell.appendChild(svgArrow());
-            conflict_rappresentation_container.appendChild(arrowRow);
-            arrowRow.appendChild(leftArrowCell);
-            arrowRow.appendChild(centerArrowCell);
-            arrowRow.appendChild(rightArrowCell);
-          }
-        } 
-        //costruzione del grafico per conflitti tra automazioni con eventi diversi
-        else {
-          //riga evento
-          const eventRow = document.createElement("tr");
-          const leftEventCell = document.createElement("td");
-          const centerEventCell = document.createElement("td");
-          const rightEventCell = document.createElement("td");
-          leftEventCell.innerHTML = `${rule1.event}`;
-          rightEventCell.innerHTML = `${rule2.event}`;
-          conflict_rappresentation_container.appendChild(eventRow);
-          eventRow.appendChild(leftEventCell);
-          eventRow.appendChild(centerEventCell);
-          eventRow.appendChild(rightEventCell);
-
-          //riga freccia
-          const arrowRow = document.createElement("tr");
-          const leftArrowCell = document.createElement("td");
-          const centerArrowCell = document.createElement("td");
-          const rightArrowCell = document.createElement("td");
-          leftArrowCell.appendChild(svgArrow());
-          rightArrowCell.appendChild(svgArrow());
-          conflict_rappresentation_container.appendChild(arrowRow);
-          arrowRow.appendChild(leftArrowCell);
-          arrowRow.appendChild(centerArrowCell);
-          arrowRow.appendChild(rightArrowCell);
-
-          //costruzione sezione condizioni
-          if(type_of_conflict === "different_event_different_conditions" || type_of_conflict === "different_event_same_conditions") {
-            //riga condizioni
-            const conditionRow = document.createElement("tr");
-            const leftConditionCell = document.createElement("td");
-            const centerConditionCell = document.createElement("td");
-            const rightConditionCell = document.createElement("td");
-            leftConditionCell.innerHTML = `${rule1.condition}`;
-            rightConditionCell.innerHTML = `${rule2.condition}`;
-            conflict_rappresentation_container.appendChild(conditionRow);
-            conditionRow.appendChild(leftConditionCell);
-            conditionRow.appendChild(centerConditionCell);
-            conditionRow.appendChild(rightConditionCell);
-
-            //riga freccia
-            const arrowRow = document.createElement("tr");
-            const leftArrowCell = document.createElement("td");
-            const centerArrowCell = document.createElement("td");
-            const rightArrowCell = document.createElement("td");
-            leftArrowCell.appendChild(svgArrow());
-            rightArrowCell.appendChild(svgArrow());
-            conflict_rappresentation_container.appendChild(arrowRow);
-            arrowRow.appendChild(leftArrowCell);
-            arrowRow.appendChild(centerArrowCell);
-            arrowRow.appendChild(rightArrowCell);
-          }
-        }
-        container.appendChild(conflict_rappresentation_container);
-        //riga azioni
-        const actionRow = document.createElement("tr");
-        const leftActionCell = document.createElement("td");
-        const centerImageCell = document.createElement("td");
-        const rightActionCell = document.createElement("td");
-
-        const actionWordsRule1 = (rule1.action).trim().split(/\s+/);
-        const actionVerbRule1 = actionWordsRule1[0] || "";
-        const actionRestRule1 = actionWordsRule1.slice(1).join(" ");
-        leftActionCell.innerHTML =  `<span>${actionVerbRule1}</span> ${actionRestRule1} </br> <span class="automation_name">${rule1_name}</span>`;
-        leftActionCell.style.width = "44%";
-        rightActionCell.style.width = "44%";
-        
-        centerImageCell.className = "cell_img_conf";
-        const conflictImage = document.createElement("img");
-        conflictImage.src = "img/conflict2.png";
-        centerImageCell.appendChild(conflictImage);
-
-        const actionWordsRule2 = (rule2.action).trim().split(/\s+/);
-        const actionVerbRule2 = actionWordsRule2[0] || "";
-        const actionRestRule2 = actionWordsRule2.slice(1).join(" ");
-        rightActionCell.innerHTML =  `<span>${actionVerbRule2}</span> ${actionRestRule2} </br> <span class="automation_name">${rule2_name}</span>`;
-        
-        conflict_rappresentation_container.appendChild(actionRow);
-        actionRow.appendChild(leftActionCell);
-        actionRow.appendChild(centerImageCell);
-        actionRow.appendChild(rightActionCell);
-
-        body.appendChild(conflict_rappresentation_container);
-        container.appendChild(conflict_rappresentation_container);
-    };
-    body.appendChild(container);    
-
-    const title = document.createElement("p");
-    title.className = "card-title";
-    title.textContent = "Come posso risolvere?";
-    body.appendChild(title);
-
-    const accordion = document.createElement("div");
-    accordion.className = "accordion stay-open";
-    let index = 0;
-    const recommendations = conflictInfo["possibleSolutions"]["recommendations"];
-    for (let automationID in recommendations) {
-        const item = document.createElement("div");
-        item.className = "accordion-item";
-
-        const header = document.createElement("h2");
-        header.className = "accordion-header";
-
-        const button = document.createElement("button");
-        button.className = "accordion-button";
-        button.setAttribute("onclick", "toggleStayOpen(this)");
-        button.textContent = `Modifica l'automazione  "${temp_mapping.get(automationID)["name"]}"`;
-
-        header.appendChild(button);
-        item.appendChild(header);
-
-        const collapse = document.createElement("div");
-        collapse.className = "accordion-collapse";
-        if (index === 0) collapse.classList.add("active");
-
-        const body = document.createElement("div");
-        body.className = "accordion-body";
-
-        recommendations[automationID]["alternatives"].forEach((alternative, i) => {
-            const formCheck = document.createElement("div");
-            formCheck.className = "form-check";
-
-            const input = document.createElement("input");
-            input.className = "form-check-input";
-            input.type = "radio";
-            input.name = "radioDefault";
-            input.id = `radioDefault${index}-${i}`;
-
-            const label = document.createElement("label");
-            label.className = "form-check-label";
-            label.setAttribute("for", input.id);
-            label.textContent = alternative["natural_language"];
-
-            input.addEventListener("change", () => {
-                if (input.checked) {
-                  choosenSolution = {
-                    "rule_id": automationID,
-                    "rule_name": temp_mapping.get(automationID)["name"],
-                    "solution": alternative["structured"],
-                  }
-                } else {
-                  choosenSolution = null;
-                }
-            });
-
-
-            formCheck.appendChild(input);
-            formCheck.appendChild(label);
-            body.appendChild(formCheck);
-        });
-
-        collapse.appendChild(body);
-        item.appendChild(collapse);
-        accordion.appendChild(item);
-        index++;
-    };
-
-    body.appendChild(accordion);
-    body.appendChild(ignoreButton);
-    body.appendChild(solveButton);
-    card.appendChild(body);
-    carousel.appendChild(card);
-    carousel.click();
-    return card;
-}
-*/
 
 function createChainCard(isActive, headerText, chainInfo) {
     //recommendations = {"alias_automazione1": ["opzione1", "opzione2"], "alias_automazione2": ["opzione3", "opzione4"]}
