@@ -27,7 +27,7 @@ const jwt = require('jsonwebtoken')
 const {setServerConfig, createUser, getUser, verifyToken, isLogged, createGoogleUser, userInfo, verifyEmail, getProblems, getAutomations, getConfiguration, saveConfiguration,  saveSelectedConfiguration, saveAutomations, saveAutomation, deleteRule, closeDatabaseConnection} = require('./db_methods.cjs');
 const JWT_SECRET = 'sdjkfh8923yhjdksbfma@#*(&@*!^#&@bhjb2qiuhesdbhjdsfg839ujkdhfjk'
 // =======================================
-const { getEntities, getAutomationsHA, postAutomationHA, getEntitiesStates, toggleAutomation} = require('./utils.cjs');
+const { getEntities, getAutomationsHA, postAutomationHA, getEntitiesStates, toggleAutomation, deleteAutomation} = require('./utils.cjs');
 const { selectConfig } = require('./config.cjs');
 const configs = await selectConfig();
 setServerConfig(configs); //imposta la configurazione del server in db_methods.cjs
@@ -336,7 +336,7 @@ app.use('/save_config', verifyToken, async (req, res) =>{
 
 app.use('/delete_rule', verifyToken, async (req, res) =>{
   try {
-    const response = await deleteRule(req.body.id, req.body.rule_id);
+    const response = await deleteRule(req.body.id, req.body.rule_id, deleteAutomation);
     res.json(response)
   } catch (error) {
     console.log('/delete_rule error:')

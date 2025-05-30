@@ -40,6 +40,7 @@ const initial = document.querySelector('#initial-name');
 //const profileInfo = document.querySelector('#profile-info');
 const reset = document.querySelector('#reset');
 
+let choosenSolution = null; // {"rule_name": "nome della regola", "rule_id": "id della regola", "solution": "soluzione scelta"}
 
 const sse = new EventSource("/sse");
 
@@ -245,16 +246,20 @@ async function deleteAutomation(rule_id) {
       body: JSON.stringify({rule_id, id})
     })
     .then(response => response.json())
-    .then(data => {
+    .then(async (data) => {
       resolve(data); // Risolve la promessa con i dati desiderati
+      console.log("Delete Automation response: ", data);
+      document.querySelector(`div [ruleid='${rule_id}']`).remove();
+      let rulesList = await getRulesParam() //GET regole
+      printUserRule(rulesList);
+      document.querySelector('#n_automations').innerText = rulesList.length;
     })
     .catch(error => {
       console.log(error);
       reject(error); // Reietta la promessa in caso di errore
     });
   });
-  let rulesList = await getRulesParam() //GET regole
-  printUserRule(rulesList);
+  
 }
   
   //effettua GET generici dal server
@@ -472,7 +477,8 @@ async function printUserRule(rules) {
                   setTimeout(async () => {
                       if (button.classList.contains('yes')) {
                           await deleteAutomation(ruleId);
-                          deleteRule(ruleId, rules);
+                          
+                          //deleteRule(ruleId, rules);
                       }
                       overlay.remove();
                   }, 200); // Stesso tempo dell'animazione CSS
@@ -946,7 +952,6 @@ function errorChatState(state, id){
     text.id = '';
   }
 }
-
 
 async function getBotResponse(query){
     let id = token.id;
@@ -1572,11 +1577,26 @@ function createConflictCard(isActive, headerText, conflictInfo) {
 
     const ignoreButton = document.createElement("button");
     ignoreButton.textContent = "Ignora";
-    ignoreButton.id = conflictInfo["id_conflict"];
+    ignoreButton.setAttribute("problemid", conflictInfo["id"]);
+    ignoreButton.className = "ignore-button";
+    ignoreButton.addEventListener("click", (e) => {
+      console.log("Ignora button clicked for problem ID:", e.target.getAttribute("problemid"));
+    });
 
     const solveButton = document.createElement("button");
     solveButton.textContent = "Risolvi";
-    solveButton.id = conflictInfo["id_conflict"];
+    solveButton.setAttribute("problemid", conflictInfo["id"]);
+    solveButton.className = "solve-button";
+    solveButton.addEventListener("click", (e) => {
+      if (choosenSolution != null) {
+        let problemId = e.target.getAttribute("problemid");
+        let ruleId = choosenSolution.rule_id;
+        let ruleName = choosenSolution.rule_name;
+        let structured = choosenSolution.solution;
+        const message = `<solve_problem>The user want to solve the problem with ID:${problemId} by modifing the automation '${ruleName}'(Automation ID:${ruleId}) in the following way: ${structured}</solve_problem>`;
+        getBotResponse(message);
+      }
+    });
 
     const rule1_match = rule1_description.match(regex);
     const rule2_match = rule2_description.match(regex);
@@ -1761,6 +1781,19 @@ function createConflictCard(isActive, headerText, conflictInfo) {
             label.className = "form-check-label";
             label.setAttribute("for", input.id);
             label.textContent = alternative["natural_language"];
+
+            input.addEventListener("change", () => {
+                if (input.checked) {
+                  choosenSolution = {
+                    "rule_id": automationID,
+                    "rule_name": temp_mapping.get(automationID)["name"],
+                    "solution": alternative["structured"],
+                  }
+                } else {
+                  choosenSolution = null;
+                }
+            });
+
 
             formCheck.appendChild(input);
             formCheck.appendChild(label);

@@ -217,7 +217,30 @@ async function toggleAutomation(baseUrl, token, automationId, automationEntityId
         console.error(`Errore durante il salvataggio dell'automazione:`, error);
         return false;
     }
-   
 }
 
-module.exports = { getEntities, getAutomationsHA, postAutomationHA, toggleAutomation, getEntitiesStates };
+async function deleteAutomation(baseUrl, token, automationId) {
+    const headers = {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+    };
+    try {
+        const response = await fetch(
+            `${baseUrl}/api/config/automation/config/${automationId}`, 
+            {
+                method: 'DELETE',
+                headers: headers
+            }
+        );
+        if (!response.ok) {
+            console.error(`Errore nella cancellazione dell'automazione ${automationId}: ${response.status}`);
+            return false;
+        }
+        return true;
+    } catch (error) {
+        console.error(`Errore durante la cancellazione dell'automazione:`, error);
+        return false;
+    }
+}
+
+module.exports = { getEntities, getAutomationsHA, postAutomationHA, toggleAutomation, getEntitiesStates, deleteAutomation };
