@@ -90,6 +90,7 @@ body{
   gap: 4px;
   padding-left: 12px;
   padding-right: 12px;
+  flex-direction: row; 
 }
 
 .chat-container{
@@ -120,12 +121,12 @@ body{
 #msgContainer{
     width: 100%;
     overflow-y: auto;
-    height: 78%;
+    height: calc(100vh - 200px);
     background-color: var(--bg-primary);
     backdrop-filter: blur(10px);
 }
 #inputContainer{
-    height: 10%;
+    height: 100px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -1856,4 +1857,16 @@ td {
     width: 4%; 
     height: auto;
   }
+}
+
+@media (max-width: 1200px) {
+    #rules-buttons-container {
+        flex-direction: column;
+        gap: 8px;
+        align-items: center;
+    }
+    #rules-buttons-container .selector-button {
+        width: 93%;
+        justify-content: center;
+    }
 }
