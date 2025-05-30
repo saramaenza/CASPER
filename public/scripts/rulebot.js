@@ -1156,7 +1156,7 @@ createConflictCard(
       {
         "id": "1746629662875",
         "name": "Spengi aria condizionata quando è caldo",
-        "description": "Event: quando sono le 9 Condition: se piove Action: spegni aria condizionata "
+        "description": "Event: quando sono le 9 Condition: se sono le 09:00 Action: spegni aria condizionata "
       }
     ],
     "possibleSolutions": {
@@ -1214,45 +1214,269 @@ function printUserProblems(problemsList) {
 // diversi eventi, condizioni diverse ma sovrapponibili, azioni diverse --> different_event_different_conditions
 // diversi eventi, stesse condizioni, azioni diverse --> different_event_same_conditions
 function createConflictCard(isActive, headerText, conflictInfo) {
-    //isActive = boolean (True dovrebbe essere solo la prima card generata)
-    /*conflictInfo = {
-    "id_conflict": "17422966096088_1746629662875",
-    "rules": [
-      {
-        "id": "17422966096088",
-        "name": "Accendi aria condizionata quando \u00e8 caldo",
-        "description": "Event: quando \u00e8 caldo Condition: bla bla condizione Action: Accendi aria condizionata "
-      },
-      {
-        "id": "1746629662875",
-        "name": "Spengi aria condizionata quando \u00e8 caldo",
-        "description": "Event: bla bla evento condizione Action: bla bla azione "
+    const regex = /^event(?:s|o|i)?:\s*(?<event>.*?)(?:\s*(?:condition(?:s)?|condizion(?:e|i)):\s*(?<condition>.*?))?\s*(?:action(?:s)?|azion(?:i|e)):\s*(?<action>.*)$/i;
+    const entityIDRegex = /\s*\([a-zA-Z_]+\.[a-zA-Z0-9_]+\)/g;
+
+    const rule1 = conflictInfo['rules'][0];
+    const rule1_id = rule1['id'];
+    const rule1_name = rule1['name'];
+    const rule1_description = rule1['description'].replace(entityIDRegex, '');
+    const rule2 = conflictInfo['rules'][1];
+    const rule2_id = rule2['id'];
+    const rule2_name = rule2['name'];
+    const rule2_description = rule2['description'].replace(entityIDRegex, '');
+
+    const rule1_match = rule1_description.match(regex);
+    const rule2_match = rule2_description.match(regex);
+
+    type_of_conflict = "same_event_different_conditions";
+
+    if (rule1_match && rule1_match.groups && rule2_match && rule2_match.groups) {
+        const rule1 = rule1_match.groups;
+        const rule2 = rule2_match.groups;
+
+
+    // CARD
+    const card = document.createElement("div");
+    card.className = "card";
+
+    // CARD CONTAINER
+    const cardContainer = document.createElement("div");
+    cardContainer.className = "card-container";
+
+    // CARD HEADER
+    const cardHeader = document.createElement("div");
+    cardHeader.className = "card-header";
+
+    // Problem icon
+    const problemIcon = document.createElement("div");
+    problemIcon.className = "problem-icon";
+    problemIcon.textContent = "⚠️";
+
+    // Problem content
+    const problemContent = document.createElement("div");
+    problemContent.className = "problem-content";
+
+    const problemTitle = document.createElement("div");
+    problemTitle.className = "problem-title";
+    problemTitle.textContent = headerText || "Conflitto tra automazioni";
+
+    const problemId = document.createElement("div");
+    problemId.className = "problem-id";
+    problemId.textContent = `CONFLITTO ${conflictInfo["id_conflict"] || ""}`;
+
+    problemContent.appendChild(problemTitle);
+    problemContent.appendChild(problemId);
+
+    cardHeader.appendChild(problemIcon);
+    cardHeader.appendChild(problemContent);
+
+    // CARD BODY
+    const cardBody = document.createElement("div");
+    cardBody.className = "card-body";
+
+    // Descrizione conflitto
+    const spanText = document.createElement("span");
+    spanText.className = "card-text";
+    spanText.textContent = conflictInfo["possibleSolutions"]["description"];
+    cardBody.appendChild(spanText);
+
+    // CONFLICT DIAGRAM
+    const conflictDiagram = document.createElement("div");
+    conflictDiagram.className = "conflict-diagram";
+
+    const rule1Match = rule1_description.match(regex);
+
+    // TABELLA CONFLITTO
+    const conflictTable = document.createElement("table");
+    conflictTable.className = "conflict_rappresentation_containers";
+    conflictTable.style.width = "100%";
+    conflictTable.style.borderCollapse = "collapse";
+
+    if(type_of_conflict.includes("same_event")){
+      // Titolo diagramma
+      const diagramTitle = document.createElement("div");
+      diagramTitle.className = "diagram-title";
+      // Mostra l'evento in comune (es: "quando il forno viene spento")
+
+      let eventText = "";
+      if (rule1Match && rule1Match.groups && rule1Match.groups.event) {
+          eventText = rule1Match.groups.event.trim();
       }
-    ],
-    "possibleSolutions": {
-      "description": "Questo testo rappresenta una descrizione generale del conflitto e delle possibili soluzioni.",
-      "recommendations": {
-        "17422966096088": {
-          "alternatives": [
-            {
-              "structured": "Event: Temperature rises above 26\u00b0C (sensor.temperatura_salotto_temperature) Condition: Presenza Salotto is ON (binary_sensor.presenza_salotto) Action: Turn ON aria condizionata (fan.aria_condizionata).",
-              "natural_language": "When the living room temperature rises above 26\u00b0C and someone is present in the living room, turn on the air conditioner."
-            }
-          ]
-        },
-        "1746629662875": {
-          "alternatives": [
-            {
-              "structured": "Event: Temperature drops below 24\u00b0C (sensor.temperatura_salotto_temperature) Action: Turn OFF aria condizionata (fan.aria_condizionata).",
-              "natural_language": "When the living room temperature drops below 24\u00b0C, turn off the air conditioner."
-            }
-          ]
-        }
+      diagramTitle.textContent = eventText ? eventText + "" : "Evento in comune:";
+      conflictDiagram.appendChild(diagramTitle);
+      
+      if(type_of_conflict === "same_event_same_conditions") { 
+        // RIGA CONDIZIONI
+        const conditionBox1 = document.createElement("div");
+        conditionBox1.className = "same-condition-box";
+        let condition1 = `${rule1.condition}`;
+        conditionBox1.innerHTML = `${condition1}`;
+        conflictDiagram.appendChild(conditionBox1);
       }
-    },
-    "type": "possible"
-  }*/
-    //recommendations = {"alias_automazione1": ["opzione1", "opzione2"], "alias_automazione2": ["opzione3", "opzione4"]}
+
+      if(type_of_conflict === "same_event_different_conditions") { 
+        // RIGA CONDIZIONI
+        const row_condition = document.createElement("tr");
+
+        // Condition box 1
+        const td1_condition = document.createElement("td");
+        const conditionBox1 = document.createElement("div");
+        conditionBox1.className = "condition-box";
+        let condition1 = `${rule1.condition}`;
+        conditionBox1.innerHTML = `${condition1}`;
+        td1_condition.appendChild(conditionBox1);
+
+        const td2_condition = document.createElement("td");
+
+        // Condition box 2
+        const td3_condition = document.createElement("td");
+        const conditionBox2 = document.createElement("div");
+        conditionBox2.className = "condition-box";
+        let condition2 = `${rule2.condition}`;
+        conditionBox2.innerHTML = `${condition2}`;
+        td3_condition.appendChild(conditionBox2);
+
+        row_condition.appendChild(td1_condition);
+        row_condition.appendChild(td2_condition);
+        row_condition.appendChild(td3_condition);
+        conflictTable.appendChild(row_condition);
+      }
+    }
+
+    // RIGA AZIONI
+    const row_action = document.createElement("tr");
+
+    // Action box 1
+    const td1_action = document.createElement("td");
+    const actionBox1 = document.createElement("div");
+    actionBox1.className = "action-box";
+    let action1 = "";
+    let action1Small = "";
+    if (rule1Match && rule1Match.groups && rule1Match.groups.action) {
+        action1 = rule1Match.groups.action.trim();
+        action1Small = rule1_name;
+    }
+    actionBox1.innerHTML = `${action1}<br><small>${action1Small}</small>`;
+    td1_action.appendChild(actionBox1);
+
+    // Conflict icon
+    const td2_action = document.createElement("td");
+    const conflictIcon = document.createElement("div");
+    conflictIcon.className = "conflict-icon";
+    conflictIcon.textContent = "⚡";
+    td2_action.appendChild(conflictIcon);
+
+    // Action box 2
+    const td3_action = document.createElement("td");
+    const rule2Match = rule2_description.match(regex);
+    const actionBox2 = document.createElement("div");
+    actionBox2.className = "action-box";
+    let action2 = "";
+    let action2Small = "";
+    if (rule2Match && rule2Match.groups && rule2Match.groups.action) {
+        action2 = rule2Match.groups.action.trim();
+        action2Small = rule2_name;
+    }
+    actionBox2.innerHTML = `${action2}<br><small>${action2Small}</small>`;
+    td3_action.appendChild(actionBox2);
+
+    row_action.appendChild(td1_action);
+    row_action.appendChild(td2_action);
+    row_action.appendChild(td3_action);
+    conflictTable.appendChild(row_action);
+
+    conflictDiagram.appendChild(conflictTable);
+    cardBody.appendChild(conflictDiagram);
+
+    // TITOLO SOLUZIONI
+    const title = document.createElement("p");
+    title.className = "card-title";
+    title.textContent = "Come posso risolvere?";
+    cardBody.appendChild(title);
+
+    // ACCORDION
+    const accordion = document.createElement("div");
+    accordion.className = "accordion stay-open";
+    let index = 0;
+    const recommendations = conflictInfo["possibleSolutions"]["recommendations"];
+    for (let automationID in recommendations) {
+        const item = document.createElement("div");
+        item.className = "accordion-item";
+
+        const header = document.createElement("h2");
+        header.className = "accordion-header";
+
+        const button = document.createElement("button");
+        button.className = "accordion-button";
+        button.setAttribute("onclick", "toggleStayOpen(this)");
+        button.textContent = `Modifica l'automazione "${automationID}"`;
+
+        header.appendChild(button);
+        item.appendChild(header);
+
+        const collapse = document.createElement("div");
+        collapse.className = "accordion-collapse";
+        if (index === 0) collapse.classList.add("active");
+
+        const body = document.createElement("div");
+        body.className = "accordion-body";
+
+        recommendations[automationID]["alternatives"].forEach((alternative, i) => {
+            const formCheck = document.createElement("div");
+            formCheck.className = "form-check";
+
+            const input = document.createElement("input");
+            input.className = "form-check-input";
+            input.type = "radio";
+            input.name = "radioDefault";
+            input.id = `radioDefault${index}-${i}`;
+
+            const label = document.createElement("label");
+            label.className = "form-check-label";
+            label.setAttribute("for", input.id);
+            label.textContent = alternative["natural_language"];
+
+            formCheck.appendChild(input);
+            formCheck.appendChild(label);
+            body.appendChild(formCheck);
+        });
+
+        collapse.appendChild(body);
+        item.appendChild(collapse);
+        accordion.appendChild(item);
+        index++;
+    }
+    cardBody.appendChild(accordion);
+
+    // ACTION BUTTONS
+    const actionButtons = document.createElement("div");
+    actionButtons.className = "action-buttons";
+
+    const ignoreButton = document.createElement("button");
+    ignoreButton.className = "btn btn-ignore";
+    ignoreButton.textContent = "Ignora";
+    ignoreButton.id = conflictInfo["id_conflict"];
+
+    const solveButton = document.createElement("button");
+    solveButton.className = "btn btn-resolve";
+    solveButton.textContent = "Risolvi";
+    solveButton.id = conflictInfo["id_conflict"];
+
+    actionButtons.appendChild(ignoreButton);
+    actionButtons.appendChild(solveButton);
+    cardBody.appendChild(actionButtons);
+
+    // ASSEMBLA TUTTO
+    cardContainer.appendChild(cardHeader);
+    cardContainer.appendChild(cardBody);
+    card.appendChild(cardContainer);
+    carousel.appendChild(card);
+    carousel.click();
+    return card;
+}
+/*
+function createConflictCard(isActive, headerText, conflictInfo) {
     const regex = /^event(?:s|o|i)?:\s*(?<event>.*?)(?:\s*(?:condition(?:s)?|condizion(?:e|i)):\s*(?<condition>.*?))?\s*(?:action(?:s)?|azion(?:i|e)):\s*(?<action>.*)$/i;
     const entityIDRegex = /\s*\([a-zA-Z_]+\.[a-zA-Z0-9_]+\)/g;
     const svgArrow = () => {
@@ -1557,6 +1781,7 @@ function createConflictCard(isActive, headerText, conflictInfo) {
     carousel.click();
     return card;
 }
+*/
 
 function createChainCard(isActive, headerText, chainInfo) {
     //recommendations = {"alias_automazione1": ["opzione1", "opzione2"], "alias_automazione2": ["opzione3", "opzione4"]}
@@ -1657,6 +1882,7 @@ function createChainCard(isActive, headerText, chainInfo) {
         container.appendChild(condition_action_container);
     };
     body.appendChild(container);
+  }
 
     const title = document.createElement("p");
     title.className = "card-title";
@@ -1748,61 +1974,97 @@ function toggleStayOpen(button) {
   }
 }
 
-function carousel_control_prev() {
-  let calculate = pos > 0 ? (pos - 1) % carouselCount : carouselCount;
-  if (pos > 0) translateX = pos === 1 ? 0 : translateX - 100;
-  else if (pos <= 0) {
-    translateX = 100 * (carouselCount - 1);
-    calculate = carouselCount - 1;
+// ===================== Carousel Control ======================= //
+class Carousel {
+  constructor() {
+      this.track = document.getElementById('carouselTrack');
+      this.prevBtn = document.getElementById('prevBtn');
+      this.nextBtn = document.getElementById('nextBtn');
+      
+      this.currentSlide = 0;
+      this.totalSlides = 2; // Numero totale di slide, da aggiornare dinamicamente 
+      
+      this.setupEventListeners();
+      this.updateDisplay();
+  
+  }
+  
+  setupEventListeners() {
+      this.prevBtn.addEventListener('click', () => this.prevSlide());
+      this.nextBtn.addEventListener('click', () => this.nextSlide());
+      
+      // Touch/swipe support
+      let startX = 0;
+      let currentX = 0;
+      let isDragging = false;
+      
+      this.track.addEventListener('touchstart', (e) => {
+          startX = e.touches[0].clientX;
+          isDragging = true;
+      });
+      
+      this.track.addEventListener('touchmove', (e) => {
+          if (!isDragging) return;
+          currentX = e.touches[0].clientX;
+      });
+      
+      this.track.addEventListener('touchend', () => {
+          if (!isDragging) return;
+          
+          const diffX = startX - currentX;
+          if (Math.abs(diffX) > 50) {
+              if (diffX > 0) {
+                  this.nextSlide();
+              } else {
+                  this.prevSlide();
+              }
+          }
+          
+          isDragging = false;
+      });
+      
+      // Keyboard navigation
+      document.addEventListener('keydown', (e) => {
+          if (e.key === 'ArrowLeft') this.prevSlide();
+          if (e.key === 'ArrowRight') this.nextSlide();
+      });
+  }
+  
+  nextSlide() {
+      if (this.currentSlide < this.totalSlides - 1) {
+          this.currentSlide++;
+      } else {
+          this.currentSlide = 0; // Loop back to start
+      }
+      this.updateDisplay();
+  }
+  
+  prevSlide() {
+      if (this.currentSlide > 0) {
+          this.currentSlide--;
+      } else {
+          this.currentSlide = this.totalSlides - 1; // Loop to end
+      }
+      this.updateDisplay();
+  }
+  
+  goToSlide(index) {
+      this.currentSlide = index;
+      this.updateDisplay();
+
+  }
+  
+  updateDisplay() {
+      const translateX = -this.currentSlide * 100;
+      this.track.style.transform = `translateX(${translateX}%)`;
   }
 
-  pos = slide({
-    show: calculate,
-    disable: pos,
-    translateX: translateX
-  });
 }
-
-function carousel_control_next() {
-  let calculate = (pos + 1) % carouselCount;
-  if (pos >= carouselCount - 1) {
-    calculate = 0;
-    translateX = 0;
-  } else {
-    translateX += 100;
-  }
-
-  pos = slide({
-    show: calculate,
-    disable: pos,
-    translateX: translateX
-  });
-}
-
-function slide(options) {
-  function active(_pos) {
-    carouselItems[_pos].classList.toggle("active");
-  }
-
-  function inactive(_pos) {
-    carouselItems[_pos].classList.toggle("active");
-  }
-
-  inactive(options.disable);
-  active(options.show);
-
-  document.querySelectorAll(".carousel__item").forEach((item, index) => {
-    if (index === options.show) {
-      item.classList.remove("not_active");
-      item.style.transform = `translateX(-${options.translateX}%) scale(1)`;
-    } else {
-      item.classList.add("not_active");
-      item.style.transform = `translateX(-${options.translateX}%) scale(0.9)`;
-    }
-  });
-
-  return options.show;
-}
+        
+// Initialize carousel when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    new Carousel();
+});
 
 // Send button functionality
 document.querySelector('.inputButton').addEventListener('click', function() {
