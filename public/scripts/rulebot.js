@@ -1146,7 +1146,7 @@ function displayProblemDesc(el) {
 
 
 // ===================== Carousel ======================= //
-
+/*
 createConflictCard(
   true,
   "Conflitto",
@@ -1187,7 +1187,7 @@ createConflictCard(
     },
     "type": "possible"
   }
-);
+);*/
 
 function printUserProblems(problemsList) {
 
@@ -1267,7 +1267,7 @@ function createConflictCard(isActive, headerText, conflictInfo) {
 
     const problemId = document.createElement("div");
     problemId.className = "problem-id";
-    problemId.textContent = `CONFLITTO ${conflictInfo["id_conflict"] || ""}`;
+    problemId.textContent = `ID CONFLITTO: ${conflictInfo["id_conflict"] || ""}`;
 
     problemContent.appendChild(problemTitle);
     problemContent.appendChild(problemId);
@@ -1410,7 +1410,7 @@ function createConflictCard(isActive, headerText, conflictInfo) {
         action1 = rule1Match.groups.action.trim();
         action1Small = rule1_name;
     }
-    actionBox1.innerHTML = `${action1}<br><small>${action1Small}</small>`;
+    actionBox1.innerHTML = `${action1}`;
     td1_action.appendChild(actionBox1);
 
     // Conflict icon
