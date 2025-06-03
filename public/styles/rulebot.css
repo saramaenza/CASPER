@@ -278,8 +278,8 @@ body{
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-top: 20px;
     margin-bottom: 20px;
+    margin-top: 2px;
     gap: 30px;
 }
 
@@ -593,7 +593,7 @@ td {
   background-color: var(--bg-primary);
   border: none;
   outline: none;
-  font-size: 1rem;
+  font-size: 14px;
   text-align: left;
   cursor: pointer;
   position: relative;
@@ -674,7 +674,7 @@ td {
   cursor: pointer;
   user-select: none;
   font-family: 'Nunito', sans-serif;
-  font-size: 1rem;
+  font-size: 14px;
 }
 
 .form-check-input {
@@ -730,6 +730,7 @@ td {
   padding: 0;
   box-sizing: border-box;
   margin-top: 12px;
+  transition: all 0.3s ease;
 }
 .carousel__buttons {
   margin: 10px 0;
@@ -825,6 +826,7 @@ td {
 
 .card {
   width: 100%;
+  height: 100%;;
   flex: 0 0 100%;
   font-family: 'Nunito', sans-serif;
   margin: 0;
@@ -848,6 +850,7 @@ td {
   margin: 0 auto;
   display: flex;
   flex-direction: column;
+  transition: all 0.3s ease;
 }
 
 .carousel {
@@ -921,9 +924,23 @@ td {
   display: block;
   margin-top: 2rem;
   overflow-y: auto;
+  opacity: 0;
+    animation: fadeInContent 0.3s ease-in-out forwards;
 }
 .leftbar-unselected{
   display: none !important;
+  opacity: 0;
+}
+
+@keyframes fadeInContent {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 #devices-list-container, #rules-container {
@@ -1364,6 +1381,34 @@ td {
     font-size: 14px;
     height: 1.5rem;
     width: 65px;
+}
+
+.carousel-controls .control-btn {
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 50%;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    font-size: 24px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    opacity: 0.8;
+    cursor: pointer;
+}
+
+.carousel-controls .control-btn:hover {
+  opacity: 1;
+    transform: scale(1.1);
+    background: var(--hover-bg);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+.carousel-controls .control-btn:active {
+    transform: scale(0.95);
 }
 
 .toggle-container {
