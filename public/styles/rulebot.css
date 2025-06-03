@@ -34,6 +34,8 @@
 
 * {
     transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+    scrollbar-width: auto;
+    scrollbar-color: var(--border-color) var(--bg-secondary); 
 }
 
 body{
@@ -108,7 +110,7 @@ body{
   border-right: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
+  overflow-y: hidden;
 }
 
 #chat{
@@ -432,6 +434,12 @@ body{
     animation: pulse 2s infinite;
 }
 
+.conflict-icon-td {
+  width: 10%;
+}
+.conflict_rappresentation_containers i {
+  font-size: 12px;
+}
  @keyframes pulse {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.5; }
@@ -729,7 +737,6 @@ td {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  margin-top: 12px;
   transition: all 0.3s ease;
 }
 .carousel__buttons {
@@ -831,7 +838,6 @@ td {
   font-family: 'Nunito', sans-serif;
   margin: 0;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
-  cursor: pointer;
   position: relative;
   overflow: hidden;
   min-height: 300px;
@@ -851,6 +857,7 @@ td {
   display: flex;
   flex-direction: column;
   transition: all 0.3s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .carousel {
@@ -1046,7 +1053,7 @@ td {
   display: flex;
     align-items: flex-start;
     gap: 16px;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
 }
 
 .problem-content {
@@ -1522,10 +1529,6 @@ td {
 
 .toggle-switch:hover {
   transform: translateY(-2px);
-  box-shadow: 
-      inset 5px 5px 10px rgba(174, 207, 230, 0.3),
-      inset -5px -5px 10px rgba(255, 255, 255, 1),
-      0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
 .toggle-switch.dark:hover {
@@ -1715,6 +1718,11 @@ td {
 /* Modern Scrollbar */
 ::-webkit-scrollbar {
     width: 8px;
+    display: none;
+}
+
+:hover::-webkit-scrollbar {
+    display: block;
 }
 
 ::-webkit-scrollbar-track {
@@ -1731,7 +1739,6 @@ td {
 ::-webkit-scrollbar-thumb:hover {
     background: var(--scroolbar-thumb-hover);
 }
-
 
   /*===============================================*/
   .inputButton {
