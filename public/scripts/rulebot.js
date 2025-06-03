@@ -1146,7 +1146,7 @@ function displayProblemDesc(el) {
 
 
 // ===================== Carousel ======================= //
-/*
+
 createConflictCard(
   true,
   "Conflitto",
@@ -1187,7 +1187,7 @@ createConflictCard(
     },
     "type": "possible"
   }
-);*/
+);
 
 function printUserProblems(problemsList) {
 
@@ -1431,7 +1431,8 @@ function createConflictCard(isActive, headerText, conflictInfo) {
         action2 = rule2Match.groups.action.trim();
         action2Small = rule2_name;
     }
-    actionBox2.innerHTML = `${action2}<br><small>${action2Small}</small>`;
+    //actionBox2.innerHTML = `${action2}<br><small>${action2Small}</small>`;
+    actionBox2.innerHTML = `${action2}`;
     td3_action.appendChild(actionBox2);
 
     row_action.appendChild(td1_action);
@@ -1439,6 +1440,21 @@ function createConflictCard(isActive, headerText, conflictInfo) {
     row_action.appendChild(td3_action);
     conflictTable.appendChild(row_action);
 
+    // RIGA NOMI AUTOMAZIONI
+    const row_names = document.createElement("tr");
+
+    const td1_name = document.createElement("td");
+    td1_name.innerHTML = `<i>${rule1_name}</i>`;
+    row_names.appendChild(td1_name);
+
+    const td2_name = document.createElement("td");
+    row_names.appendChild(td2_name);
+
+    const td3_name = document.createElement("td");
+    td3_name.innerHTML = `<i>${rule2_name}</i>`;
+    row_names.appendChild(td3_name);
+
+    conflictTable.appendChild(row_names);
     conflictDiagram.appendChild(conflictTable);
     cardBody.appendChild(conflictDiagram);
 
@@ -1728,7 +1744,7 @@ class Carousel {
       this.nextBtn = document.getElementById('nextBtn');
       
       this.currentSlide = 0;
-      this.totalSlides = 2; // Numero totale di slide, da aggiornare dinamicamente 
+      this.totalSlides = 5; // Numero totale di slide, da aggiornare dinamicamente TODO
       
       this.setupEventListeners();
       this.updateDisplay();

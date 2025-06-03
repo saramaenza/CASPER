@@ -56,8 +56,8 @@
                             </div>
                
                             <div class="carousel" id="carouselTrack">
-                                
-                                 <div class="card">
+                                <!---->
+                                <div class="card">
                                     <div class="card-container">
                                         <div class="card-header">
                                             <div class="problem-icon">⚠️</div>
@@ -71,7 +71,7 @@
                                                 Le automazioni 'Accendi la luce in cucina quando il forno viene spento' (id 2) e 'Spegni luce cucina quando il forno viene spento' (id 1) sono in conflitto perché entrambe si attivano quando il forno viene spento, ma una accende e l'altra spegne la stessa luce (light.luce_cucina), causando un comportamento imprevedibile.
                                             </span>
                                             <div class="conflict-diagram">
-                                                <div class="diagram-title">quando il forno viene spento:</div>
+                                                <div class="diagram-title">quando il forno viene spento</div>
                                                 <table class="conflict_rappresentation_containers">
                                                     <tr>
                                                         <td>
@@ -80,8 +80,8 @@
                                                             <small>Accendi la luce in cucina quando il forno viene spento</small>
                                                         </div>
                                                         </td>
-                                                        <td>
-                                                        <div class="conflict-icon">⚡</div>
+                                                        <td class="conflict-icon-td">
+                                                            <div class="conflict-icon">⚡</div>
                                                         </td>
                                                         <td>
                                                         <div class="action-box">
@@ -173,7 +173,7 @@
                                             <div class="problem-icon">⚠️</div>
                                             <div class="problem-content">
                                                 <div class="problem-title">Conflitto tra automazioni luce cucina</div>
-                                                <div class="problem-id">CONFLITTO 1</div>
+                                                <div class="problem-id">CONFLITTO 1.1</div>
                                             </div>
                                         </div>
                                         <div class="card-body">
@@ -181,7 +181,129 @@
                                                 Le automazioni 'Accendi la luce in cucina quando il forno viene spento' (id 2) e 'Spegni luce cucina quando il forno viene spento' (id 1) sono in conflitto perché entrambe si attivano quando il forno viene spento, ma una accende e l'altra spegne la stessa luce (light.luce_cucina), causando un comportamento imprevedibile.
                                             </span>
                                             <div class="conflict-diagram">
-                                                <div class="diagram-title">quando il forno viene spento:</div>
+                                                <div class="diagram-title">quando il forno viene spento</div>
+                                                <table class="conflict_rappresentation_containers">
+                                                    <tr>
+                                                        <td>
+                                                        <div class="action-box">
+                                                            accendi la luce in cucina
+                                                        </div>
+                                                        </td>
+                                                        <td class="conflict-icon-td">
+                                                            <div class="conflict-icon">⚡</div>
+                                                        </td>
+                                                        <td>
+                                                        <div class="action-box">
+                                                            spegni la luce della cucina
+                                                        </div>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                        <div>
+                                                            <i>Accendi la luce in cucina quando il forno viene spento</i>
+                                                        </div>
+                                                        </td>
+                                                        <td>
+                                                        </td>
+                                                        <td>
+                                                        <div>
+                                                            <i>Spegni luce cucina quando il forno viene spento</i>
+                                                        </div>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </div>
+                                            
+                                            <p class="card-title">Come posso risolvere?</p>
+                                            <div class="accordion stay-open">
+                                                <div class="accordion-item">
+                                                <h2 class="accordion-header">
+                                                    <button class="accordion-button" onclick="toggleStayOpen(this)">
+                                                    Modifica l'automazione "Accendi aria condizionata mattina"
+                                                    </button>
+                                                </h2>
+                                                <div class="accordion-collapse active">
+                                                    <div class="accordion-body">
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault1">
+                                                            <label class="form-check-label" for="radioDefault1">
+                                                            Default radio
+                                                            </label>
+                                                        </div>
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
+                                                            <label class="form-check-label" for="radioDefault2">
+                                                            Default radio
+                                                            </label>
+                                                        </div>
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
+                                                            <label class="form-check-label" for="radioDefault2">
+                                                            Default radio
+                                                            </label>
+                                                        </div>
+                                                        
+                                                    </div>
+                                                </div>
+                                                </div>
+                                            
+                                                <div class="accordion-item">
+                                                <h2 class="accordion-header">
+                                                    <button class="accordion-button" onclick="toggleStayOpen(this)">
+                                                    Modifica l'automazione "Chiudi finestre aria condizionata accesa"
+                                                    </button>
+                                                </h2>
+                                                <div class="accordion-collapse">
+                                                    <div class="accordion-body">
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault1">
+                                                            <label class="form-check-label" for="radioDefault1">
+                                                            Default radio
+                                                            </label>
+                                                        </div>
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
+                                                            <label class="form-check-label" for="radioDefault2">
+                                                            Default radio
+                                                            </label>
+                                                        </div>
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
+                                                            <label class="form-check-label" for="radioDefault2">
+                                                            Default radio
+                                                            </label>
+                                                        </div>
+                                                        
+                                                    </div>
+                                                </div>
+                                                </div>
+                                            
+                                            </div>
+                                            <div class="action-buttons">
+                                                <button class="btn btn-ignore">Ignora</button>
+                                                <button class="btn btn-resolve">Risolvi</button>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="card">
+                                    <div class="card-container">
+                                        <div class="card-header">
+                                            <div class="problem-icon">⚠️</div>
+                                            <div class="problem-content">
+                                                <div class="problem-title">Conflitto tra automazioni luce cucina</div>
+                                                <div class="problem-id">CONFLITTO 2</div>
+                                            </div>
+                                        </div>
+                                        <div class="card-body">
+                                            <span class="card-text">
+                                                Le automazioni 'Accendi la luce in cucina quando il forno viene spento' (id 2) e 'Spegni luce cucina quando il forno viene spento' (id 1) sono in conflitto perché entrambe si attivano quando il forno viene spento, ma una accende e l'altra spegne la stessa luce (light.luce_cucina), causando un comportamento imprevedibile.
+                                            </span>
+                                            <div class="conflict-diagram">
+                                                <div class="diagram-title">quando il forno viene spento</div>
                                                 <div class="condition-box">
                                                             se piove
                                                         </div>
@@ -194,8 +316,8 @@
                                                             <small>Accendi la luce in cucina quando il forno viene spento</small>
                                                         </div>
                                                         </td>
-                                                        <td>
-                                                        <div class="conflict-icon">⚡</div>
+                                                        <td class="conflict-icon-td">
+                                                            <div class="conflict-icon">⚡</div>
                                                         </td>
                                                         <td>
                                                         <div class="action-box">
@@ -279,16 +401,15 @@
 
                                         </div>
                                     </div>
-                                </div>
-                            
-                                   
+                                </div>       
+                                
                                 <div class="card">
                                     <div class="card-container">
                                         <div class="card-header">
                                             <div class="problem-icon">⚠️</div>
                                             <div class="problem-content">
                                                 <div class="problem-title">Conflitto tra automazioni luce cucina</div>
-                                                <div class="problem-id">CONFLITTO 1</div>
+                                                <div class="problem-id">CONFLITTO 2.1</div>
                                             </div>
                                         </div>
                                         <div class="card-body">
@@ -296,18 +417,45 @@
                                                 Le automazioni 'Accendi la luce in cucina quando il forno viene spento' (id 2) e 'Spegni luce cucina quando il forno viene spento' (id 1) sono in conflitto perché entrambe si attivano quando il forno viene spento, ma una accende e l'altra spegne la stessa luce (light.luce_cucina), causando un comportamento imprevedibile.
                                             </span>
                                             <div class="conflict-diagram">
-                                                <div class="diagram-title">quando il forno viene spento:</div>
-                                                <div class="conflict-visual">
-                                                    <div class="action-box">
-                                                        accendi la luce in cucina<br>
-                                                        <small>Accendi la luce in cucina quando il forno viene spento</small>
-                                                    </div>
-                                                    <div class="conflict-icon">⚡</div>
-                                                    <div class="action-box">
-                                                        spegni la luce della cucina<br>
-                                                        <small>Spegni luce cucina quando il forno viene spento</small>
-                                                    </div>
-                                                </div>
+                                                <div class="diagram-title">quando il forno viene spento</div>
+                                                <div class="condition-box">
+                                                            se piove
+                                                        </div>
+                                                <table class="conflict_rappresentation_containers">
+                                                    
+                                                    <tr>
+                                                        <td>
+                                                        <div class="action-box">
+                                                            accendi la luce in cucina<br>
+                                                        
+                                                        </div>
+                                                        </td>
+                                                        <td class="conflict-icon-td">
+                                                            <div class="conflict-icon">⚡</div>
+                                                        </td>
+                                                        <td>
+                                                        <div class="action-box">
+                                                            spegni la luce della cucina<br>
+                                                            
+                                                        </div>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                        <div>
+                                                            <i>Accendi la luce in cucina quando il forno viene spento</i>
+                                                        </div>
+                                                        </td>
+                                                        <td>
+                                                        </td>
+                                                        <td>
+                                                        <div>
+                                                            <i>Spegni luce cucina quando il forno viene spento</i>
+                                                        </div>
+                                                        </td>
+                                                    </tr>
+                                            
+                                                </table>
                                             </div>
                                             
                                             <p class="card-title">Come posso risolvere?</p>
@@ -382,9 +530,145 @@
 
                                         </div>
                                     </div>
-                                </div>
+                                </div> 
+                                   
+                                <div class="card">
+                                    <div class="card-container">
+                                        <div class="card-header">
+                                            <div class="problem-icon">⚠️</div>
+                                            <div class="problem-content">
+                                                <div class="problem-title">Conflitto tra automazioni luce cucina</div>
+                                                <div class="problem-id">CONFLITTO 3</div>
+                                            </div>
+                                        </div>
+                                        <div class="card-body">
+                                            <span class="card-text">
+                                                Le automazioni 'Accendi la luce in cucina quando il forno viene spento' (id 2) e 'Spegni luce cucina quando il forno viene spento' (id 1) sono in conflitto perché entrambe si attivano quando il forno viene spento, ma una accende e l'altra spegne la stessa luce (light.luce_cucina), causando un comportamento imprevedibile.
+                                            </span>
+                                            <div class="conflict-diagram">
+                                                <div class="diagram-title">quando il forno viene spento</div>
+                                                <table class="conflict_rappresentation_containers">
+                                                    <tr>
+                                                        <td>
+                                                        <div class="condition-box">
+                                                            se piove
+                                                        </div>
+                                                        </td>
+                                                        <td>
+                                                        </td>
+                                                        <td>
+                                                        <div class="condition-box">
+                                                            se è mattina
+                                                        </div>
+                                                        </td>
+                                                    </tr>
+                                                    
+                                                    <tr>
+                                                        <td>
+                                                        <div class="action-box">
+                                                            accendi la luce in cucina
+                                                        </div>
+                                                        </td>
+                                                        <td class="conflict-icon-td">
+                                                            <div class="conflict-icon">⚡</div>
+                                                        </td>
+                                                        <td>
+                                                        <div class="action-box">
+                                                            spegni la luce della cucina
+                                                        </div>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                        <div>
+                                                            <i>Accendi la luce in cucina quando il forno viene spento</i>
+                                                        </div>
+                                                        </td>
+                                                        <td>
+                                                        </td>
+                                                        <td>
+                                                        <div>
+                                                            <i>Spegni luce cucina quando il forno viene spento</i>
+                                                        </div>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </div>
+                                            
+                                            <p class="card-title">Come posso risolvere?</p>
+                                            <div class="accordion stay-open">
+                                                <div class="accordion-item">
+                                                <h2 class="accordion-header">
+                                                    <button class="accordion-button" onclick="toggleStayOpen(this)">
+                                                    Modifica l'automazione "Accendi aria condizionata mattina"
+                                                    </button>
+                                                </h2>
+                                                <div class="accordion-collapse active">
+                                                    <div class="accordion-body">
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault1">
+                                                            <label class="form-check-label" for="radioDefault1">
+                                                            Default radio
+                                                            </label>
+                                                        </div>
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
+                                                            <label class="form-check-label" for="radioDefault2">
+                                                            Default radio
+                                                            </label>
+                                                        </div>
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
+                                                            <label class="form-check-label" for="radioDefault2">
+                                                            Default radio
+                                                            </label>
+                                                        </div>
+                                                        
+                                                    </div>
+                                                </div>
+                                                </div>
+                                            
+                                                <div class="accordion-item">
+                                                <h2 class="accordion-header">
+                                                    <button class="accordion-button" onclick="toggleStayOpen(this)">
+                                                    Modifica l'automazione "Chiudi finestre aria condizionata accesa"
+                                                    </button>
+                                                </h2>
+                                                <div class="accordion-collapse">
+                                                    <div class="accordion-body">
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault1">
+                                                            <label class="form-check-label" for="radioDefault1">
+                                                            Default radio
+                                                            </label>
+                                                        </div>
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
+                                                            <label class="form-check-label" for="radioDefault2">
+                                                            Default radio
+                                                            </label>
+                                                        </div>
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
+                                                            <label class="form-check-label" for="radioDefault2">
+                                                            Default radio
+                                                            </label>
+                                                        </div>
+                                                        
+                                                    </div>
+                                                </div>
+                                                </div>
+                                            
+                                            </div>
+                                            <div class="action-buttons">
+                                                <button class="btn btn-ignore">Ignora</button>
+                                                <button class="btn btn-resolve">Risolvi</button>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                </div> 
                                 
-<!--
                                 <div class="card border-dark carousel__item not_active">
                                     <div class="card-header">Catena Indiretta</div>
                                     <div class="card-body">
