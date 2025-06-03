@@ -433,7 +433,7 @@ async function printUserRule(rules) {
         // Descrizione
         const automationDescription = document.createElement('div');
         automationDescription.className = 'automation-description';
-        automationDescription.textContent = element['description'] || 'Questa automazione non ha una descrizione';
+        automationDescription.textContent = removeHomeAssistantEntities(element['description']) || 'Questa automazione non ha una descrizione';
 
         // Assembla tutto
         card.appendChild(cardHeader);
@@ -1147,7 +1147,7 @@ function displayProblemDesc(el) {
 
 // ===================== Carousel ======================= //
 
-createConflictCard(
+/*createConflictCard(
   true,
   "Conflitto",
   {
@@ -1187,7 +1187,7 @@ createConflictCard(
     },
     "type": "possible"
   }
-);
+);*/
 
 function printUserProblems(problemsList) {
 
@@ -1220,21 +1220,25 @@ function printUserProblems(problemsList) {
 // diversi eventi, stesse condizioni, azioni diverse --> different_event_same_conditions
 function createConflictCard(isActive, headerText, conflictInfo) {
     const regex = /^event(?:s|o|i)?:\s*(?<event>.*?)(?:\s*(?:condition(?:s)?|condizion(?:e|i)):\s*(?<condition>.*?))?\s*(?:action(?:s)?|azion(?:i|e)):\s*(?<action>.*)$/i;
-    const entityIDRegex = /\s*\([a-zA-Z_]+\.[a-zA-Z0-9_]+\)/g;
 
     const rule1 = conflictInfo['rules'][0];
     const rule1_id = rule1['id'];
     const rule1_name = rule1['name'];
-    const rule1_description = rule1['description'].replace(entityIDRegex, '');
+    const rule1_description = removeHomeAssistantEntities(rule1['description'])
     const rule2 = conflictInfo['rules'][1];
     const rule2_id = rule2['id'];
     const rule2_name = rule2['name'];
-    const rule2_description = rule2['description'].replace(entityIDRegex, '');
+    const rule2_description = removeHomeAssistantEntities(rule2['description'])
 
     const rule1_match = rule1_description.match(regex);
     const rule2_match = rule2_description.match(regex);
 
-    type_of_conflict = "different_event_same_conditions";
+    const temp_mapping = new Map();
+    temp_mapping.set(rule1_id, rule1);
+    temp_mapping.set(rule2_id, rule2);
+
+
+    type_of_conflict = conflictInfo['tag'];
 
     if (rule1_match && rule1_match.groups && rule2_match && rule2_match.groups) {
         const rule1 = rule1_match.groups;
@@ -1267,7 +1271,7 @@ function createConflictCard(isActive, headerText, conflictInfo) {
 
     const problemId = document.createElement("div");
     problemId.className = "problem-id";
-    problemId.textContent = `CONFLITTO ${conflictInfo["id_conflict"] || ""}`;
+    problemId.textContent = `Problema ID:${conflictInfo["id_conflict"] || ""}`;
 
     problemContent.appendChild(problemTitle);
     problemContent.appendChild(problemId);
@@ -1314,8 +1318,8 @@ function createConflictCard(isActive, headerText, conflictInfo) {
         // RIGA CONDIZIONI
         const conditionBox1 = document.createElement("div");
         conditionBox1.className = "same-condition-box";
-        let condition1 = `${rule1.condition}`;
-        conditionBox1.innerHTML = `${condition1}`;
+        let condition1 = `${rule1.condition}` || "";
+        conditionBox1.textContent = `${condition1}`;
         conflictDiagram.appendChild(conditionBox1);
       }
 
@@ -1327,8 +1331,8 @@ function createConflictCard(isActive, headerText, conflictInfo) {
         const td1_condition = document.createElement("td");
         const conditionBox1 = document.createElement("div");
         conditionBox1.className = "condition-box";
-        let condition1 = `${rule1.condition}`;
-        conditionBox1.innerHTML = `${condition1}`;
+        let condition1 = rule1.condition || "Nessuna Condizione";
+        conditionBox1.textContent = condition1;
         td1_condition.appendChild(conditionBox1);
 
         const td2_condition = document.createElement("td");
@@ -1337,8 +1341,8 @@ function createConflictCard(isActive, headerText, conflictInfo) {
         const td3_condition = document.createElement("td");
         const conditionBox2 = document.createElement("div");
         conditionBox2.className = "condition-box";
-        let condition2 = `${rule2.condition}`;
-        conditionBox2.innerHTML = `${condition2}`;
+        let condition2 = rule2.condition || "Nessuna Condizione";
+        conditionBox2.textContent = condition2;
         td3_condition.appendChild(conditionBox2);
 
         row_condition.appendChild(td1_condition);
@@ -1374,7 +1378,7 @@ function createConflictCard(isActive, headerText, conflictInfo) {
         const td1_condition = document.createElement("td");
         const conditionBox1 = document.createElement("div");
         conditionBox1.className = "condition-box";
-        let condition1 = `${rule1.condition}`;
+        let condition1 = `${rule1.condition}` || "";
         conditionBox1.innerHTML = `${condition1}`;
         td1_condition.appendChild(conditionBox1);
 
@@ -1384,7 +1388,7 @@ function createConflictCard(isActive, headerText, conflictInfo) {
         const td3_condition = document.createElement("td");
         const conditionBox2 = document.createElement("div");
         conditionBox2.className = "condition-box";
-        let condition2 = `${rule2.condition}`;
+        let condition2 = `${rule2.condition}` || "";
         conditionBox2.innerHTML = `${condition2}`;
         td3_condition.appendChild(conditionBox2);
 
@@ -1408,7 +1412,6 @@ function createConflictCard(isActive, headerText, conflictInfo) {
     let action1Small = "";
     if (rule1Match && rule1Match.groups && rule1Match.groups.action) {
         action1 = rule1Match.groups.action.trim();
-        action1Small = rule1_name;
     }
     actionBox1.innerHTML = `${action1}<br><small>${action1Small}</small>`;
     td1_action.appendChild(actionBox1);
@@ -1417,7 +1420,7 @@ function createConflictCard(isActive, headerText, conflictInfo) {
     const td2_action = document.createElement("td");
     const conflictIcon = document.createElement("div");
     conflictIcon.className = "conflict-icon";
-    conflictIcon.textContent = "⚡";
+    conflictIcon.textContent = "💥"; // ⚡
     td2_action.appendChild(conflictIcon);
 
     // Action box 2
@@ -1479,7 +1482,7 @@ function createConflictCard(isActive, headerText, conflictInfo) {
         const button = document.createElement("button");
         button.className = "accordion-button";
         button.setAttribute("onclick", "toggleStayOpen(this)");
-        button.textContent = `Modifica l'automazione "${automationID}"`;
+        button.textContent = `Modifica l'automazione "${temp_mapping.get(automationID)["name"]}"`;
 
         header.appendChild(button);
         item.appendChild(header);
@@ -1612,7 +1615,7 @@ function createChainCard(isActive, headerText, chainInfo) {
         const rule1 = rule1_match.groups;
         const rule2 = rule2_match.groups;
         const p = document.createElement("p");
-        p.innerHTML = `${rule1.event}${rule1.condition ? " " + rule1.condition : ""}, <b>${rule1.action}</b> </br> <i>${rule1_name}</i>`; //teoricamente dovrebbe essere uguale (almeno semanticamente) a rule2.event
+        p.textContent = `${rule1.event}${rule1.condition ? " " + rule1.condition : ""}, <b>${rule1.action}</b> </br> <i>${rule1_name}</i>`; //teoricamente dovrebbe essere uguale (almeno semanticamente) a rule2.event
         container.appendChild(p);
        
         const condition_action_container = document.createElement("div");
@@ -1841,6 +1844,15 @@ document.querySelector('.inputButton').addEventListener('click', function() {
         }, 200);
     }
 });
+
+// ===================== Remove entity ids ======================= //
+
+// Funzione per rimuovere gli entity ID dalle stringhe
+function removeHomeAssistantEntities(text) {
+  const homeAssistantEntityRegex = /\s*\([a-zA-Z_][a-zA-Z0-9_]*\.[a-zA-Z0-9_.-]+[^)]*\)/g;
+  return text.replace(homeAssistantEntityRegex, '');
+}
+
 
 
 // ===================== Device List ======================= //
