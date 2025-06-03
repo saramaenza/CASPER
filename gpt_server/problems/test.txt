@@ -2,6 +2,7 @@
 conflitto certo:
 -- quando spengo il forno, spegni la luce in cucina
 -- quando spengo il forno, accendi la luce in cucina
+soluzione: rendi trigger opposti OR cambia azione OR cambia completamente trigger
 
 ++stesso trigger, condizioni non sovrapposte, azioni opposte -> VERIFICATO OK
 NO conflitto:
@@ -12,6 +13,7 @@ NO conflitto:
 conflitto certo: (nella stessa chat, rulebot le crea entrambe anche se si accorge che c'e qualcosa di strano, il comportamento giusto sarebbe stato sovrascrivere la prima con la seconda)
 -- quando entro in camera da letto, se la luce e accesa, spegni la televisione
 -- quando entro in camera da letto, se la luce e accesa, accendi la televisione
+soluzione: rendi trigger opposti OR cambia azione OR cambia completamente trigger OR cambia una condizione in modo che non siano sovrapponibili
 
 ++stesso trigger, 1 automazione con condizione e una no, azioni overwrite-> 
 No conflitto: -> VERIFICATO OK
@@ -20,6 +22,7 @@ No conflitto: -> VERIFICATO OK
 Conflitto certo: -> VERIFICATO, NON TROVA CONFLITTO
 -- quando entro in cucina accendi la luce (6)
 -- quando entro in cucina, accendi la luce al 35% di luminosita (12)
+soluzione: aggiungere una condizione OR escludere una delle due OR unire le due automazioni con diverse condizioni
 
 ++trigger diversi, azioni opposte con zone diverse ->
 No conflitto: VERIFICATO OK
@@ -30,11 +33,13 @@ No conflitto: VERIFICATO OK
 conflitto possibile: VERIFICATO OK
 -- quando la qualita dell'aria e bassa, accendi il purificatore
 -- quando esco da casa, spegni il purificatore
+soluzione: e' un possibile conflitto, valuta possibili soluzioni 
 
 ++trigger diversi, azioni sussunte -> 
 conflitto possibile: VERIFICATO OK
--- (quando esco da casa spegni tutte le luci) (13)
--- (quando sono le 5 accendi la luce del salotto) (14)
+-- quando esco da casa spegni tutte le luci (13)
+-- quando sono le 5 accendi la luce del salotto (14)
+soluzione: aggiungere una condizione OR escludere dispositivo dell'azione specifica dai dispositivi dell'azione generale
 
 ++stesso trigger, 2 condizioni sovrapposte, azioni opposte ->
 No conflitto:

@@ -38,7 +38,7 @@ class State(TypedDict):
 graph_builder = StateGraph(State)
 
 prompt_template = ChatPromptTemplate([
-    ("system", prompts.rulebot)
+    ("system", prompts.casper)
 ])
 
 def chatbot(state: State, config: dict):

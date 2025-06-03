@@ -1,0 +1,62 @@
+conflitto:stesso trigger, azioni opposte
+esempio:
+-quando spengo il forno, spegni la luce in cucina
+-quando spengo il forno, accendi la luce in cucina
+soluzione: rendi trigger opposti OR cambia azione OR cambia completamente trigger
+
+conflitto:stesso trigger, condizioni sovrapposte, azioni opposte
+esempio:
+-quando entro in camera da letto, se la luce e accesa, spegni la televisione
+-quando entro in camera da letto, se la luce e accesa, accendi la televisione
+soluzione: rendi trigger opposti OR cambia azione OR cambia completamente trigger OR cambia una condizione in modo che non siano sovrapponibili
+
+conflitto:stesso trigger, 1 automazione con condizione e una no, azioni overwrite
+esempio:
+-quando entro in cucina accendi la luce
+-quando entro in cucina, accendi la luce al 35% di luminosita
+soluzione: aggiungere una condizione OR escludere una delle due OR unire le due automazioni con diverse condizioni
+
+conflitto:trigger diversi, azioni opposte
+esempio:
+-quando la qualita dell'aria e bassa, accendi il purificatore
+-quando esco da casa, spegni il purificatore
+soluzione: e' un possibile conflitto, valuta possibili soluzioni 
+
+conflitto:trigger diversi, azioni sussunte
+esempio:
+-quando esco da casa spegni tutte le luci (13)
+-quando sono le 5 accendi la luce del salotto (14)
+soluzione: aggiungere una condizione OR escludere dispositivo dell'azione specifica dai dispositivi dell'azione generale
+
+### EN ###
+conflict: same trigger, opposite actions
+example:
+-when I switch off the oven, switch off the light in the kitchen
+-when I switch off the oven, switch on the light in the kitchen
+solution: make opposite triggers OR change action OR change trigger completely
+
+conflict: same trigger, overlapping conditions, opposite actions
+example:
+-when I enter the bedroom, if the light is on, turn off the TV
+-when I enter the bedroom, if the light is on, turn on the television
+solution: make opposite triggers OR change action OR completely change trigger OR change a condition so that they do not overlap
+
+conflict: same trigger, 1 automation with condition and one not, overwrite actions
+example:
+-when I enter the kitchen, switch on the light
+-when I enter the kitchen, switch on the light at 35% brightness
+solution: add an OR condition exclude one of the two OR merge the two automations with different conditions
+
+conflict: different triggers, opposite actions
+example:
+-when air quality is low, switch on the purifier
+-when I leave the house, switch off the purifier
+solution: it is a possible conflict, evaluate possible solutions
+
+conflict:different triggers, subsumed actions
+example:
+-when I leave the house turn off all the lights
+-when it is 5 o'clock turn on the living room light
+solution: add condition OR exclude specific action device from general action devices
+
+Translated with DeepL.com (free version)
