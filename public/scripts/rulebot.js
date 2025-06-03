@@ -1146,8 +1146,8 @@ function displayProblemDesc(el) {
 
 
 // ===================== Carousel ======================= //
-
-/*createConflictCard(
+/*
+createConflictCard(
   true,
   "Conflitto",
   {
@@ -1413,7 +1413,7 @@ function createConflictCard(isActive, headerText, conflictInfo) {
     if (rule1Match && rule1Match.groups && rule1Match.groups.action) {
         action1 = rule1Match.groups.action.trim();
     }
-    actionBox1.innerHTML = `${action1}<br><small>${action1Small}</small>`;
+    actionBox1.innerHTML = `${action1}`;
     td1_action.appendChild(actionBox1);
 
     // Conflict icon
