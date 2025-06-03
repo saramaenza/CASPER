@@ -1271,7 +1271,7 @@ function createConflictCard(isActive, headerText, conflictInfo) {
 
     const problemId = document.createElement("div");
     problemId.className = "problem-id";
-    problemId.textContent = `Problema ID:${conflictInfo["id_conflict"] || ""}`;
+    problemId.textContent = `Problema ID: ${conflictInfo["id"] || ""}`;
 
     problemContent.appendChild(problemTitle);
     problemContent.appendChild(problemId);
