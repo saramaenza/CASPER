@@ -1747,11 +1747,20 @@ class Carousel {
       this.nextBtn = document.getElementById('nextBtn');
       
       this.currentSlide = 0;
-      this.totalSlides = 5; // Numero totale di slide, da aggiornare dinamicamente TODO
+      this.totalSlides = 0;
       
       this.setupEventListeners();
       this.updateDisplay();
-  
+  }
+
+  async initializeProblems() {
+    try {
+      this.problemsList = await getProblems();
+      this.totalSlides = this.problemsList.length;
+      this.updateDisplay();
+    } catch (error) {
+      console.error('Error loading problems:', error);
+    }
   }
   
   setupEventListeners() {
