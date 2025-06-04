@@ -1054,6 +1054,7 @@ td {
     align-items: flex-start;
     gap: 16px;
     margin-bottom: 12px;
+    justify-content: space-between;
 }
 
 .problem-content {
@@ -1144,6 +1145,7 @@ td {
   position: relative;
   cursor: pointer;
   transition: all 0.3s ease;
+  top: 10px;
 }
 
 .toggle-switch.active {
@@ -1176,8 +1178,8 @@ td {
 
 .status-indicator {
   position: absolute;
-  top: 15px;
-  right: 15px;
+  top: 10px;
+  right: 10px;
   width: 8px;
   height: 8px;
   border-radius: 50%;
