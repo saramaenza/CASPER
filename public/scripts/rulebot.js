@@ -1190,26 +1190,44 @@ createConflictCard(
 );*/
 
 function printUserProblems(problemsList) {
+  const carouselControls = document.getElementById('carousel-controls');
+  const carouselMessages = document.getElementById('carousel-messages');
+  
+  if (!problemsList || problemsList.length === 0) {
+      // Nascondi i controlli e mostra il messaggio
+      carouselControls.style.display = 'none';
+      carouselMessages.innerHTML = `
+          <div class="no-problems-message">
+              Non sono presenti problemi nella tua smart home 😊
+              <br>
+              <span class="no-problems-submessage">Se hai bisogno di aiuto, chiedi a Casper!</span>
+          </div>
+      `;
+  } else {
+    // Mostra i controlli e nascondi il messaggio
+      carouselControls.style.display = 'flex';
+      carouselMessages.innerHTML = '';
 
-  for (const [index, problem] of problemsList.entries()){
-    if (problem['type'] == 'conflict'){
-      createConflictCard(
-        index == 0,
-        `Conflitto ${problem['id']}`,
-        problem
-      )
-    }
-    else if (problems['type'].split('-')[0] == 'chain'){
-      createChainCard(
-        index == 0,
-        `Catena ${problem['id']}`,
-        problem
-      )
-    }else{
-      //TODO: aggiungere i problemi di tipo "energy"
-      console.log("Nessun problema associato a questo account");
-    }
-  }   
+      for (const [index, problem] of problemsList.entries()){
+        if (problem['type'] == 'conflict'){
+          createConflictCard(
+            index == 0,
+            `Conflitto ${problem['id']}`,
+            problem
+          )
+        }
+        else if (problems['type'].split('-')[0] == 'chain'){
+          createChainCard(
+            index == 0,
+            `Catena ${problem['id']}`,
+            problem
+          )
+        }else{
+          //TODO: aggiungere i problemi di tipo "energy"
+          console.log("Nessun problema associato a questo account");
+        }
+      }   
+  }
 }
 
 // stesso evento, no condizioni, azioni diverse --> same_event_no_conditions

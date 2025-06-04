@@ -1060,6 +1060,21 @@ td {
     flex: 1;
 }
 
+.no-problems-message {
+    text-align: center;
+    padding: 20px;
+    color: var(--text-primary);
+    font-size: 1.2em;
+    width: 100%;
+}
+
+#carousel-messages {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100px;
+}
+
 .problem-icon {
     width: 40px;
     height: 40px;
