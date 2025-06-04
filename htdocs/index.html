@@ -11,30 +11,84 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
-    
-    <div class="container">
-        <div class="error-info"><h4>❗ Questo è un errore</h4></div>
-        <form>
-            <h3>Accedi</h3>
-        
-            <label for="email" id="email-label">Indirizzo email</label>
-            <input type="text" placeholder="@" id="email" class="input-field" name="email" required>
-        
-            <label for="password" id="pass-label">Password</label>
-            <input type="password" placeholder="Password" id="password" class="input-field" name="password" required>
-
-            <!--<div class="social languages">
-                <div class="go flag flag-selected" lang="it" id="it"><img src="./icons/it-flag.png" alt="italiano"></div>
-                <div class="fb flag" lang="en" id="en"><img src="./icons/uk-flag.png" alt="inglese"></div>
-             <div class="go"><i class="fab fa-google"></i>  Google</div>
-            <div class="fb"><i class="fab fa-facebook"></i>  Facebook</div> 
-            </div>-->
-            <button type='submit' id="login">Accedi</button>
-            <!-- <div class="g_id_signin" data-type="standard" data-size="big"></div>-->
-            <div class="link-container"><a class ="alternative "href="/registration">Oppure registrati</a></div>
-        </form>
-        
+    <!-- Animated Background -->
+    <div class="background-animation">
+        <div class="floating-orb orb-1"></div>
+        <div class="floating-orb orb-2"></div>
+        <div class="floating-orb orb-3"></div>
     </div>
+    <div class="background-pattern"></div>
+
+    <!-- Login Container -->
+    <div class="login-container fade-in">
+        <!-- Header -->
+        <div class="login-header">
+            <div id="logo">
+                <img src="img/logo.png">
+            </div>
+            <h1 class="login-title">CASPER</h1>
+            <p class="login-subtitle">Accedi</p>
+        </div>
+
+        <!-- Login Form -->
+        <form class="login-form" id="loginForm">
+            <!-- Email Input -->
+            <div class="input-group slide-in" style="animation-delay: 0.2s;">
+                
+                <label class="input-label" for="email" id="email-label">Indirizzo email</label>
+                <input 
+                    type="email" 
+                    id="email" 
+                    class="input-field" 
+                    placeholder="inserisci il tuo indirizzo email"
+                    name="email"
+                    required
+                >
+                <div class="input-icon"><i class="far fa-envelope"></i></div>
+            </div>
+
+            <!-- Password Input -->
+            <div class="input-group slide-in" style="animation-delay: 0.3s;">
+                <label class="input-label" for="password" id="pass-label">Password</label>
+                <input 
+                    type="password" 
+                    id="password" 
+                    class="input-field" 
+                    placeholder="inserisci la tua password"
+                    name="password"
+                    required
+                >
+                <div class="password-toggle" onclick="togglePassword()">
+                    <i class="far fa-eye"></i>
+                </div>
+            </div>
+
+            <!-- Form Options -->
+            <div class="form-options slide-in" style="animation-delay: 0.4s;">
+                <div class="checkbox-group">
+                    <div class="custom-checkbox" onclick="toggleRememberMe()"></div>
+                    <label class="checkbox-label">Ricordami</label>
+                </div>
+                <a href="#" class="forgot-password">Hai dimenticato la password?</a>
+            </div>
+
+            <!-- Login Button -->
+            <button type="submit" id="login" class="login-button slide-in" style="animation-delay: 0.5s;">
+                Accedi
+            </button>
+        </form>
+
+        <div class="error-info">
+            <h4></h4>
+        </div>
+
+        <!-- Register Link -->
+        <div class="register-link slide-in" style="animation-delay: 0.6s;">
+            <span class="register-text">Non hai ancora un account?</span>
+            <a href="/registration" class="register-button">Oppure registrati</a>
+        </div>
+    </div>
+
     <script src="/scripts/login.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/js-cookie@2.2.1/src/js.cookie.min.js" type="module"></script>
     <script src="/scripts/langSwitch.js"></script>
