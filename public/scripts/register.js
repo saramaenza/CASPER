@@ -321,3 +321,117 @@ document.querySelectorAll('.register-button, .terms-link, .login-button-link').f
 
 // Initialize
 validateForm();
+
+// Gestisce il click sul toggle tema
+toggleSwitch.addEventListener('click', function() {
+    //body.classList.toggle('dark');
+    toggleSwitch.classList.toggle('dark');
+    toggleBall.classList.toggle('dark');
+});
+
+// Aggiunge effetto hover con il mouse
+toggleSwitch.addEventListener('mouseenter', function() {
+    this.style.transform = 'translateY(-2px) scale(1.02)';
+});
+
+toggleSwitch.addEventListener('mouseleave', function() {
+    this.style.transform = 'translateY(0) scale(1)';
+});
+
+// Funzione per impostare il tema
+function setTheme(isDark = false) {
+    const root = document.documentElement;
+    const toggleSwitch = document.getElementById('toggleSwitch');
+    const toggleBall = document.getElementById('toggleBall');
+    
+    if (isDark) {
+        root.removeAttribute('data-theme');
+        toggleSwitch.classList.add('dark');
+        toggleBall.classList.add('dark');
+    } else {
+        root.setAttribute('data-theme', 'light');
+        toggleSwitch.classList.remove('dark');
+        toggleBall.classList.remove('dark');
+    }
+}
+
+// Funzione per rilevare il tema di sistema e impostare il tema dell'app
+function setSystemTheme() {
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+    
+    function updateTheme(e) {
+        const isDark = e.matches;
+        setTheme(isDark);
+    }
+    
+    // Imposta il tema iniziale in base alle preferenze di sistema
+    updateTheme(prefersDark);
+    
+    // Ascolta i cambiamenti del tema di sistema
+    prefersDark.addEventListener('change', updateTheme);
+}
+
+function addEntryAnimations() {
+    // Header animations
+    const header = document.querySelector('.register-header');
+    header.style.opacity = '0';
+    header.style.transform = 'translateY(-20px)';
+    
+    // Form elements animations
+    const formElements = document.querySelectorAll('.input-group, .registerButton, .login-link');
+    formElements.forEach((el, index) => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateX(-20px)';
+    });
+    
+    // Trigger animations after a short delay
+    setTimeout(() => {
+        header.style.opacity = '1';
+        header.style.transform = 'translateY(0)';
+        
+        formElements.forEach((el, index) => {
+            setTimeout(() => {
+                el.style.opacity = '1';
+                el.style.transform = 'translateX(0)';
+            }, 100 * (index + 1));
+        });
+    }, 100);
+}
+
+// Enhanced input animations
+function enhanceInputAnimations() {
+    document.querySelectorAll('.input-field').forEach(input => {
+        input.addEventListener('focus', function() {
+            this.parentElement.style.transform = 'scale(1.02) translateY(-2px)';
+            this.parentElement.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+        });
+        
+        input.addEventListener('blur', function() {
+            this.parentElement.style.transform = 'scale(1) translateY(0)';
+        });
+    });
+}
+
+// Add smooth transitions for validation messages
+function enhanceValidationMessages() {
+    const messages = document.querySelectorAll('.error-message, .success-message');
+    messages.forEach(message => {
+        message.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+    });
+}
+
+// Inizializza quando il DOM è caricato
+document.addEventListener('DOMContentLoaded', () => {
+    // Imposta il tema iniziale basato sulle preferenze di sistema
+    setSystemTheme();
+    addEntryAnimations();
+    enhanceInputAnimations();
+    enhanceValidationMessages();
+    
+    // Mantieni la funzionalità del toggle manuale
+    document.getElementById('toggleSwitch').addEventListener('click', function() {
+        const root = document.documentElement;
+        const isDark = root.getAttribute('data-theme') === 'light';
+        setTheme(isDark);
+    });
+});

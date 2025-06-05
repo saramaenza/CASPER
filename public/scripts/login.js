@@ -145,22 +145,6 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
-// Dynamic background color based on time
-function updateBackgroundBasedOnTime() {
-    const hour = new Date().getHours();
-    const body = document.body;
-    
-    if (hour >= 6 && hour < 12) {
-        // Morning
-        body.style.background = 'linear-gradient(135deg, #0A0B0F 0%, #1A1B23 50%, #0F1419 100%)';
-    } else if (hour >= 12 && hour < 18) {
-        // Afternoon
-        body.style.background = 'linear-gradient(135deg, #0F1419 0%, #1A1B23 50%, #0A0B0F 100%)';
-    } else {
-        // Evening/Night
-        body.style.background = 'linear-gradient(135deg, #0A0B0F 0%, #1A1B23 50%, #0F1419 100%)';
-    }
-}
 
 // Aggiungi questa nuova funzione per caricare le credenziali salvate
 function loadSavedCredentials() {
@@ -178,4 +162,134 @@ function loadSavedCredentials() {
 document.addEventListener('DOMContentLoaded', () => {
     loadSavedCredentials();
     updateBackgroundBasedOnTime();
+    addEntryAnimations();
+    enhanceInputAnimations();
+    enhanceErrorMessages();
+
+    // Enhance button hover effects
+    document.querySelectorAll('.login-button, .forgot-password, .register-button').forEach(element => {
+        element.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+        element.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-2px)';
+            this.style.boxShadow = '0 5px 15px rgba(0, 102, 255, 0.3)';
+        });
+        
+        element.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+            this.style.boxShadow = 'none';
+        });
+    });
 });
+
+// Gestisce il click sul toggle tema
+toggleSwitch.addEventListener('click', function() {
+    //body.classList.toggle('dark');
+    toggleSwitch.classList.toggle('dark');
+    toggleBall.classList.toggle('dark');
+});
+
+// Aggiunge effetto hover con il mouse
+toggleSwitch.addEventListener('mouseenter', function() {
+    this.style.transform = 'translateY(-2px) scale(1.02)';
+});
+
+toggleSwitch.addEventListener('mouseleave', function() {
+    this.style.transform = 'translateY(0) scale(1)';
+});
+
+// Funzione per impostare il tema
+function setTheme(isDark = false) {
+    const root = document.documentElement;
+    const toggleSwitch = document.getElementById('toggleSwitch');
+    const toggleBall = document.getElementById('toggleBall');
+    
+    if (isDark) {
+        root.removeAttribute('data-theme');
+        toggleSwitch.classList.add('dark');
+        toggleBall.classList.add('dark');
+    } else {
+        root.setAttribute('data-theme', 'light');
+        toggleSwitch.classList.remove('dark');
+        toggleBall.classList.remove('dark');
+    }
+}
+
+// Funzione per rilevare il tema di sistema e impostare il tema dell'app
+function setSystemTheme() {
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+    
+    function updateTheme(e) {
+        const isDark = e.matches;
+        setTheme(isDark);
+    }
+    
+    // Imposta il tema iniziale in base alle preferenze di sistema
+    updateTheme(prefersDark);
+    
+    // Ascolta i cambiamenti del tema di sistema
+    prefersDark.addEventListener('change', updateTheme);
+}
+
+// Inizializza quando il DOM è caricato
+document.addEventListener('DOMContentLoaded', () => {
+    // Imposta il tema iniziale basato sulle preferenze di sistema
+    setSystemTheme();
+    
+    // Mantieni la funzionalità del toggle manuale
+    document.getElementById('toggleSwitch').addEventListener('click', function() {
+        const root = document.documentElement;
+        const isDark = root.getAttribute('data-theme') === 'light';
+        setTheme(isDark);
+    });
+});
+
+function addEntryAnimations() {
+    // Header animations
+    const header = document.querySelector('.login-header');
+    header.style.opacity = '0';
+    header.style.transform = 'translateY(-20px)';
+
+    // Form elements animations
+    const formElements = document.querySelectorAll('.input-group, .form-options, .login-button, .register-link');
+    formElements.forEach((el, index) => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateX(-20px)';
+    });
+
+    // Trigger animations after a short delay
+    requestAnimationFrame(() => {
+        header.style.transition = 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
+        header.style.opacity = '1';
+        header.style.transform = 'translateY(0)';
+
+        formElements.forEach((el, index) => {
+            setTimeout(() => {
+                el.style.transition = 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
+                el.style.opacity = '1';
+                el.style.transform = 'translateX(0)';
+            }, 100 * (index + 1));
+        });
+    });
+}
+
+// Enhance existing input animations
+function enhanceInputAnimations() {
+    document.querySelectorAll('.input-field').forEach(input => {
+        input.addEventListener('focus', function() {
+            this.parentElement.style.transform = 'scale(1.02) translateY(-2px)';
+            this.parentElement.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+            this.parentElement.style.zIndex = '1';
+        });
+
+        input.addEventListener('blur', function() {
+            this.parentElement.style.transform = 'scale(1) translateY(0)';
+            this.parentElement.style.zIndex = '0';
+        });
+    });
+}
+
+// Add error message animations
+function enhanceErrorMessages() {
+    const errContainer = document.querySelector('.error-info');
+    errContainer.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+}

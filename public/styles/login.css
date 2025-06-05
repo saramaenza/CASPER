@@ -1,4 +1,54 @@
+:root {
+  /* Dark theme (default) */
+  --bg-primary: linear-gradient(135deg, #1a2230 0%, #28384a 50%, #344557 100%);
+  --bg-secondary: linear-gradient(135deg, #0066FF, #8B5CF6);
+  --bg-tertiary:  linear-gradient(135deg, #00FF88, #0066FF);
+  --bg-quaternary: linear-gradient(135deg, #FF6B35, #8B5CF6);
+  --bg-image: radial-gradient(circle at 25% 25%, #0066FF 2px, transparent 2px),
+        radial-gradient(circle at 75% 75%, #00FF88 1px, transparent 1px);
+  --bg-container: #28384ab0;
+  --bg-input: #2F4156;
+  --color-password-bar: #d0d0d0c0;
+  --text-primary: #FFFFFF;
+  --text-secondary: #d0d0d0;
+  --border-color: rgba(255, 255, 255, 0.1);
+  --glow-icon: #00FF88;
+  --hover-bg: #00e1ff0d;
+  --border-input-focus: #0066FF;
+  --shadow-input-focus: 0 0 20px rgba(0, 102, 255, 0.2);
+  --circle-number: white;
+  --selector-hover: rgba(255, 255, 255, 0.05);
+  --scroolbar-thumb-hover: rgba(255, 255, 255, 0.2);
+  --bg-botMsg: #2f4156;
+}
+
+/* Light theme */
+:root[data-theme='light'] {
+  --bg-primary: linear-gradient(135deg, #e4eefb 0%, #f2f7fe 50%, #ffffff 100%);
+  --bg-secondary: linear-gradient(135deg, #0066FF, #8B5CF6);
+  --bg-tertiary: linear-gradient(135deg, #00FF88, #0066FF);
+  --bg-quaternary: linear-gradient(135deg, #FF6B35, #8B5CF6);
+  --bg-image: radial-gradient(circle at 25% 25%, #0066FF 2px, transparent 2px),
+        radial-gradient(circle at 75% 75%, #00FF88 1px, transparent 1px);
+  --bg-container: #f2f7fab0;
+  --bg-input: #ffffff;
+  --color-password-bar: #666666c0;
+  --text-primary: #28384a;
+  --text-secondary: #666666;
+  --border-color: #00000014;
+  --glow-icon: #34b97b;
+  --hover-bg: #0066ff1a;
+  --border-input-focus: #0066ff66;
+  --shadow-input-focus: 0 0 10px #0066ff9e;
+  --circle-number: #80d6bb;
+  --selector-hover: #0066ff1a;
+  --scroolbar-thumb-hover: #53535314;
+  --bg-botMsg: #ffffffe6;
+} 
+
+
 * {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
     margin: 0;
     padding: 0;
     box-sizing: border-box;
@@ -6,8 +56,8 @@
 
 body {
     font-family: 'Nunito', sans-serif;
-    background: linear-gradient(135deg, #0A0B0F 0%, #1A1B23 50%, #0F1419 100%);
-    color: #FFFFFF;
+    background: var(--bg-primary);
+    color: var(--text-primary);
     min-height: 100vh;
     display: flex;
     align-items: center;
@@ -37,7 +87,7 @@ body {
 .orb-1 {
     width: 200px;
     height: 200px;
-    background: linear-gradient(135deg, #0066FF, #8B5CF6);
+    background: var(--bg-secondary);
     top: 20%;
     left: 10%;
     animation-delay: 0s;
@@ -46,7 +96,7 @@ body {
 .orb-2 {
     width: 150px;
     height: 150px;
-    background: linear-gradient(135deg, #00FF88, #0066FF);
+    background: var(--bg-tertiary);
     top: 60%;
     right: 15%;
     animation-delay: 2s;
@@ -55,7 +105,7 @@ body {
 .orb-3 {
     width: 100px;
     height: 100px;
-    background: linear-gradient(135deg, #FF6B35, #8B5CF6);
+    background: var(--bg-quaternary);
     bottom: 20%;
     left: 20%;
     animation-delay: 4s;
@@ -75,18 +125,16 @@ body {
     width: 100%;
     height: 100%;
     opacity: 0.02;
-    background-image: 
-        radial-gradient(circle at 25% 25%, #0066FF 2px, transparent 2px),
-        radial-gradient(circle at 75% 75%, #00FF88 1px, transparent 1px);
+    background-image: var(--bg-image);
     background-size: 80px 80px;
     z-index: -1;
 }
 
  /* Register Container */
 .register-container {
-    background: rgba(26, 27, 35, 0.6);
+    background: var(--bg-container);
     backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border-color);
     border-radius: 24px;
     padding: 50px 40px;
     width: 100%;
@@ -125,9 +173,9 @@ body {
 
 /* Login Container */
 .login-container {
-    background: rgba(26, 27, 35, 0.6);
+    background: var(--bg-container);
     backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border-color);
     border-radius: 24px;
     padding: 50px 40px;
     width: 100%;
@@ -157,7 +205,7 @@ body {
 }
 
 .login-header {
-    margin-bottom: 40px;
+    margin-bottom: 80px;
 }
 
 .register-header {
@@ -178,14 +226,15 @@ body {
 .login-title, .register-title {
     font-size: 28px;
     font-weight: 700;
-    background:white;
+    background:var(--text-primary);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     margin-bottom: 8px;
+    margin-top: 3px;
 }
 
 .login-subtitle, .register-subtitle {
-    color: #888;
+    color: var(--text-secondary);
     font-size: 14px;
     font-weight: 400;
 }
@@ -205,6 +254,8 @@ body {
 
 .input-group {
     position: relative;
+    display: flex;
+    flex-direction: column;
 }
 
 
@@ -216,7 +267,7 @@ body {
     display: block;
     font-size: 14px;
     font-weight: 500;
-    color: #CCC;
+    color: var(--text-secondary);
     margin-bottom: 8px;
     transition: color 0.3s ease;
 }
@@ -224,21 +275,21 @@ body {
 .input-field {
     width: 100%;
     padding: 16px 20px;
-    background: rgba(45, 46, 55, 0.6);
+    background: var(--bg-input);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border-color);
     border-radius: 16px;
-    color: #FFFFFF;
+    color: var(--text-primary);
     font-size: 16px;
     outline: none;
     transition: all 0.3s ease;
     position: relative;
+    padding-right: 45px
 }
 
 .input-field:focus {
     border-color: #0066FF;
     box-shadow: 0 0 20px rgba(0, 102, 255, 0.2);
-    background: rgba(45, 46, 55, 0.8);
 }
 
 .input-field:focus + .input-icon {
@@ -252,46 +303,54 @@ body {
 .input-icon {
     position: absolute;
     right: 16px;
-    top: 65%;
+    top: calc(50% + 12px);
     transform: translateY(-50%);
-    color: #666;
+    color: var(--text-secondary);
     font-size: 18px;
     transition: all 0.3s ease;
     pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 20px;
+    width: 20px;
 }
 
+#registerForm .password-toggle1,
+#registerForm .password-toggle2,
 #loginForm .password-toggle {
     position: absolute;
     right: 16px;
-    top: 50%;
     transform: translateY(-50%);
-    color: #666;
+    color: var(--text-secondary);
     font-size: 18px;
     cursor: pointer;
     transition: color 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 20px;
+    width: 20px;
 }
-
 #registerForm .password-toggle1 {
-    position: absolute;
-    right: 16px;
-    transform: translateY(-50%);
-    color: #666;
-    font-size: 18px;
-    cursor: pointer;
-    transition: color 0.3s ease;
-    margin-top: -7%;
+    top: calc(41%); 
 }
 
-#registerForm .password-toggle2 {
-    position: absolute;
-    right: 16px;
-    transform: translateY(-50%);
-    color: #666;
-    font-size: 18px;
-    cursor: pointer;
-    transition: color 0.3s ease;
-    margin-top: -7%;
+#registerForm .password-toggle2,
+#loginForm .password-toggle {
+    top: calc(50% + 12px); 
 }
+
+
+.input-icon i, 
+.password-toggle i,
+.password-toggle1 i,
+.password-toggle2 i {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    transition: all 0.2s ease;
+}
+
 
 /* Password Strength Indicator */
 .password-strength {
@@ -301,7 +360,7 @@ body {
 
 .strength-bar {
     height: 4px;
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--color-password-bar);
     border-radius: 2px;
     overflow: hidden;
     margin-bottom: 8px;
@@ -324,31 +383,12 @@ body {
     color: #888;
 }
 
-.input-icon i, 
-.password-toggle i,
-.password-toggle1 i,
-.password-toggle2 i {
-    font-size: 1rem;
-    color: rgba(255, 255, 255, 0.4);
-    transition: all 0.2s ease;
-}
-
 .input-field:focus + .input-icon i,
 .password-toggle:hover i,
 .password-toggle1:hover i,
 .password-toggle2:hover i {
     color: #0066FF;
 }
-
-#loginForm .password-toggle1 {
-    position: absolute;
-    right: 16px;
-    top: 65%;
-    transform: translateY(-50%);
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
 
 .password-toggle:hover, .password-toggle1:hover, .password-toggle2:hover {
     color: #0066FF;
@@ -396,20 +436,8 @@ body {
 
 .checkbox-label {
     font-size: 14px;
-    color: #CCC;
+    color: var(--text-secondary);
     cursor: pointer;
-}
-
-.forgot-password {
-    color: #0066FF;
-    text-decoration: none;
-    font-size: 14px;
-    font-weight: 500;
-    transition: color 0.3s ease;
-}
-
-.forgot-password:hover {
-    color: #00FF88;
 }
 
 /* Login Button */
@@ -793,4 +821,145 @@ body {
 
 .message-overlay.show .message-box {
     transform: scale(1);
+}
+
+/*toggle theme*/
+.toggle-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+}
+.toggle-switch-theme {
+  width: 80px;
+  height: 40px;
+  border: 1px solid var(--border-color);
+  background: linear-gradient(145deg, #e8f4f8, #d1e7dd);
+  border-radius: 20px;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 
+      inset 5px 5px 10px rgba(174, 207, 230, 0.2),
+      inset -5px -5px 10px rgba(255, 255, 255, 0.9),
+      0 5px 20px rgba(0, 0, 0, 0.1);
+}
+
+.toggle-switch-theme.dark {
+  background: linear-gradient(145deg, #2c2c54, #1a1a2e);
+  box-shadow: 
+      inset 5px 5px 10px rgba(0, 0, 0, 0.3),
+      inset -5px -5px 10px rgba(70, 70, 120, 0.2),
+      0 5px 20px rgba(0, 0, 0, 0.3);
+}
+
+.toggle-ball {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    background: linear-gradient(145deg, #ffd700, #ffed4e);
+    box-shadow: 
+        0 3px 10px rgba(255, 215, 0, 0.4),
+        inset 1px 1px 5px rgba(255, 255, 255, 0.3),
+        inset -1px -1px 5px rgba(255, 180, 0, 0.2);
+}
+
+.toggle-ball.dark {
+  transform: translateX(40px);
+  background: linear-gradient(145deg, #f0f0f0, #e0e0e0);
+  box-shadow: 
+      0 3px 10px rgba(240, 240, 240, 0.3),
+      inset 1px 1px 5px rgba(255, 255, 255, 0.4),
+      inset -1px -1px 5px rgba(200, 200, 200, 0.2);
+}
+
+.sun-icon, .moon-icon {
+  position: absolute;
+  transition: all 0.3s ease;
+}
+
+.sun-icon {
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
+}
+
+.toggle-ball.dark .sun-icon {
+  opacity: 0;
+  transform: rotate(180deg) scale(0.8);
+}
+
+.moon-icon {
+  opacity: 0;
+  transform: rotate(-180deg) scale(0.8);
+}
+
+.toggle-ball.dark .moon-icon {
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
+}
+
+.toggle-bg-icons {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  transition: all 0.4s ease;
+  font-size: 12px;
+  opacity: 0.6;
+}
+
+.sun-bg {
+  left: 10px;
+  opacity: 1;
+}
+
+.moon-bg {
+  right: 10px;
+  opacity: 0.3;
+}
+
+.toggle-switch-theme.dark .sun-bg {
+  opacity: 0.3;
+}
+
+.toggle-switch-theme.dark .moon-bg {
+  opacity: 1;
+}
+
+@keyframes twinkle {
+  0% { opacity: 0.3; transform: scale(1); }
+  100% { opacity: 1; transform: scale(1.2); }
+}
+
+.toggle-switch:hover {
+  transform: translateY(-2px);
+}
+
+.toggle-switch.dark:hover {
+  box-shadow: 
+      inset 5px 5px 10px rgba(0, 0, 0, 0.4),
+      inset -5px -5px 10px rgba(70, 70, 120, 0.3),
+      0 8px 25px rgba(0, 0, 0, 0.4);
+}
+.logout-btn:hover {
+    background: rgba(255, 71, 87, 0.2);
+    color: var(--text-primary);
+    border-color: rgba(255, 71, 87, 0.3);
+    opacity: 1;
+    transform: scale(1.05);
+}
+
+/* Add media query for mobile responsiveness */
+@media screen and (max-width: 768px) {
+    .toggle-container {
+        top: 15px;
+        right: 15px;
+    }
 }
