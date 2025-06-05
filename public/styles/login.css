@@ -5,7 +5,7 @@
 }
 
 body {
-    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-family: 'Nunito', sans-serif;
     background: linear-gradient(135deg, #0A0B0F 0%, #1A1B23 50%, #0F1419 100%);
     color: #FFFFFF;
     min-height: 100vh;
@@ -15,6 +15,8 @@ body {
     position: relative;
     overflow: hidden;
 }
+
+/* Animated Background */
 .background-animation {
     position: fixed;
     top: 0;
@@ -80,6 +82,47 @@ body {
     z-index: -1;
 }
 
+ /* Register Container */
+.register-container {
+    background: rgba(26, 27, 35, 0.6);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    padding: 50px 40px;
+    width: 100%;
+    max-width: 480px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+    position: relative;
+    overflow: hidden;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.register-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.register-container::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+}
+
+.register-container::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #0066FF, #8B5CF6);
+    border-radius: 3px;
+}
+
+.register-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #0066FF, #00FF88, #8B5CF6);
+    border-radius: 24px 24px 0 0;
+}
+
 /* Login Container */
 .login-container {
     background: rgba(26, 27, 35, 0.6);
@@ -106,12 +149,19 @@ body {
 }
 
 /* Header */
-.login-header {
+.login-header,.register-header {
     text-align: center;
-    margin-bottom: 60px;
     height: 80px;
     align-items: center;
     justify-content: center;
+}
+
+.login-header {
+    margin-bottom: 40px;
+}
+
+.register-header {
+    margin-bottom: 80px;
 }
 
 #logo img {
@@ -125,12 +175,7 @@ body {
     height: 100%;
 }
 
-@keyframes pulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-}
-
-.login-title {
+.login-title, .register-title {
     font-size: 28px;
     font-weight: 700;
     background:white;
@@ -139,21 +184,32 @@ body {
     margin-bottom: 8px;
 }
 
-.login-subtitle {
+.login-subtitle, .register-subtitle {
     color: #888;
     font-size: 14px;
     font-weight: 400;
 }
 
 /* Form */
-.login-form {
+.login-form, .register-form {
     display: flex;
     flex-direction: column;
     gap: 24px;
 }
 
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
 .input-group {
     position: relative;
+}
+
+
+#registerForm .input-group {
+    margin-top: 10px;
 }
 
 .input-label {
@@ -204,20 +260,87 @@ body {
     pointer-events: none;
 }
 
-/* Aggiungi questi stili per le icone minimaliste */
+#loginForm .password-toggle {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #666;
+    font-size: 18px;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+#registerForm .password-toggle1 {
+    position: absolute;
+    right: 16px;
+    transform: translateY(-50%);
+    color: #666;
+    font-size: 18px;
+    cursor: pointer;
+    transition: color 0.3s ease;
+    margin-top: -7%;
+}
+
+#registerForm .password-toggle2 {
+    position: absolute;
+    right: 16px;
+    transform: translateY(-50%);
+    color: #666;
+    font-size: 18px;
+    cursor: pointer;
+    transition: color 0.3s ease;
+    margin-top: -7%;
+}
+
+/* Password Strength Indicator */
+.password-strength {
+    margin-top: 8px;
+    padding: 8px 0;
+}
+
+.strength-bar {
+    height: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+
+.strength-fill {
+    height: 100%;
+    width: 0%;
+    transition: all 0.3s ease;
+    border-radius: 2px;
+}
+
+.strength-weak { background: linear-gradient(90deg, #FF6B35, #FF8A50); width: 25%; }
+.strength-fair { background: linear-gradient(90deg, #FFD700, #FFA500); width: 50%; }
+.strength-good { background: linear-gradient(90deg, #00FF88, #00CC70); width: 75%; }
+.strength-strong { background: linear-gradient(90deg, #0066FF, #8B5CF6); width: 100%; }
+
+.strength-text {
+    font-size: 12px;
+    color: #888;
+}
+
 .input-icon i, 
-.password-toggle i {
+.password-toggle i,
+.password-toggle1 i,
+.password-toggle2 i {
     font-size: 1rem;
     color: rgba(255, 255, 255, 0.4);
     transition: all 0.2s ease;
 }
 
 .input-field:focus + .input-icon i,
-.password-toggle:hover i {
+.password-toggle:hover i,
+.password-toggle1:hover i,
+.password-toggle2:hover i {
     color: #0066FF;
 }
 
-.password-toggle {
+#loginForm .password-toggle1 {
     position: absolute;
     right: 16px;
     top: 65%;
@@ -226,7 +349,8 @@ body {
     transition: all 0.3s ease;
 }
 
-.password-toggle:hover {
+
+.password-toggle:hover, .password-toggle1:hover, .password-toggle2:hover {
     color: #0066FF;
 }
 
@@ -328,6 +452,52 @@ body {
     transform: translateY(0);
 }
 
+  /* Register Button */
+.registerButton {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, #0066FF, #8B5CF6);
+    border: none;
+    border-radius: 16px;
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    margin-top: 20px;
+}
+
+.registerButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.registerButton:not(:disabled)::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
+}
+
+.registerButton:not(:disabled):hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 102, 255, 0.4);
+}
+
+.registerButton:not(:disabled):hover::before {
+    left: 100%;
+}
+
+.registerButton:active {
+    transform: translateY(0);
+}
+
 /* Register Link */
 .register-link {
     text-align: center;
@@ -352,6 +522,47 @@ body {
 .register-button:hover {
     color: #00FF88;
     text-decoration: underline;
+}
+
+/* Login Link */
+.login-link {
+    text-align: center;
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.login-text {
+    color: #888;
+    font-size: 14px;
+}
+
+.login-button-link {
+    color: #0066FF;
+    text-decoration: none;
+    font-weight: 600;
+    margin-left: 6px;
+    transition: color 0.3s ease;
+}
+
+.login-button-link:hover {
+    color: #00FF88;
+    text-decoration: underline;
+}
+
+/* Validation Messages */
+.error-message {
+    color: #FF6B35;
+    font-size: 12px;
+    margin-top: 4px;
+    display: none;
+}
+
+.success-message {
+    color: #00FF88;
+    font-size: 12px;
+    margin-top: 4px;
+    display: none;
 }
 
 /* Loading State */
@@ -468,4 +679,118 @@ body {
     border-radius: 50%;
     font-size: 0.8rem;
     font-weight: bold;
+}
+
+/* Responsive */
+@media (max-width: 580px) {
+    .register-container {
+        margin: 20px;
+        padding: 40px 30px;
+    }
+    
+    .register-title {
+        font-size: 24px;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+}
+
+/* Animations */
+.fade-in {
+    animation: fadeIn 0.6s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.slide-in {
+    animation: slideIn 0.8s ease-out;
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateX(-30px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+/*loading*/
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #0066FF;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Show message in overlay*/
+.message-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.message-box {
+    background: var(--bg-secondary);
+    padding: 25px 40px;
+    border-radius: 12px;
+    text-align: center;
+    transform: scale(0.9);
+    transition: all 0.3s ease;
+}
+
+.message-box.success {
+    border: 2px solid #4CAF50;
+}
+
+.message-box.error {
+    border: 2px solid #f44336;
+}
+
+.message-box h3 {
+    margin: 0 0 10px 0;
+    color: var(--text-primary);
+}
+
+.message-overlay.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.message-overlay.show .message-box {
+    transform: scale(1);
 }

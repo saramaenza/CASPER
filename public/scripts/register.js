@@ -10,17 +10,6 @@ let passCorrespond = false;
 
 const base_link = window.location.origin;
 
-/* Il controllo di corrispondenza tra le password è solo client-side, il che sporca la funzione registerUser */
-confirmPassword.addEventListener("keyup", (event) => {
-    if(password.value != confirmPassword.value){
-        confirmPassword.style.borderColor = 'red'
-        passCorrespond = false;
-    }else{
-        password.style.borderColor = 'green'
-        confirmPassword.style.borderColor = 'green'
-        passCorrespond = true;
-    }
-  })
 
 document.addEventListener("keydown", (event) => {
     if(event.key == 'Enter'){
@@ -29,19 +18,22 @@ document.addEventListener("keydown", (event) => {
       }
   })
 
+// register form submit handler
 async function registerUser(event) {
-    event.preventDefault()
+    event.preventDefault();
+    const loadingOverlay = document.querySelector('.loading-overlay');
+    const messageOverlay = document.querySelector('.message-overlay');
+    const messageBox = messageOverlay.querySelector('.message-box');
+    const messageText = messageBox.querySelector('h3');
+    // Show loading spinner
+    loadingOverlay.style.display = 'flex';
+
     const name = document.getElementById('name').value
     let surname = document.getElementById('surname').value
     const password = document.getElementById('password').value
     const email = document.getElementById('email').value
 
     if(surname == '') surname = null;
-    if (!passCorrespond){
-        errContainer.style.visibility = 'initial'
-        errMessage.innerText = '❗ Le due password non corrispondono';
-        return
-    }
     const result = await fetch('/register', {
         method: 'POST',
         headers: {
@@ -56,26 +48,276 @@ async function registerUser(event) {
     }).then((res) => res.json())
 
     if (result.status === 'ok') {
-        errContainer.style.visibility = 'initial'
-        // everythign went fine
-        //errContainer.setAttribute('style', 'background-color: #279f27s');
-        errMessage.innerHTML = '✔ Registrazione avvenuta con successo.'
-        //errMessage.innerHTML = '✔ Registrazione avvenuta con successo. </br> Conferma la tua mail per procedere con il login (controlla anche la cartella SPAM)'
-        errContainer.style.backgroundColor = '#5a935a'
-        errContainer.style.border = '3px solid #5a935a'
+        // Show success message
+        messageBox.className = 'message-box success';
+        messageText.textContent = 'Registrazione avvenuta con successo! ✅';
+        messageOverlay.classList.add('show');
+
         setTimeout(() => {
             window.location.replace(base_link);
         }, 3000);
         
         /* alert('Success') */
     } else {
-        errContainer.style.visibility = 'initial'
-        if(result.error === 'Name too short') errMessage.innerText = '❗ Il nome inserito è troppo breve';
-        if(result.error === 'Invalid name') errMessage.innerText = '❗ Il nome inserito non è valido. Prova senza lettere accentate';
-        if(result.error === 'Invalid email') errMessage.innerText = "❗ L'indirizzo email inserito non è valido";
-        if(result.error === 'Email already in use') errMessage.innerText = '❗ Email già in uso';
-        if(result.error === 'Invalid password') errMessage.innerText = '❗ Password non valida';
-        if(result.error === "Password too small. Should be atleast 6 characters") errMessage.innerText = '❗ Password troppo breve. Deve contenere almeno 6 caratteri'
-        /* alert(result.error) */
+        loadingOverlay.style.display = 'none';
+
+        // Show error message
+        messageBox.className = 'message-box error';
+        messageText.textContent = `Si è verificato un errore imprevisto ❌`;
+        messageOverlay.classList.add('show');
+        
+        // Reset form after delay
+        setTimeout(() => {
+            messageOverlay.classList.remove('show');
+            document.getElementById('registerForm').reset();
+        }, 3000);
     }
 }
+
+// Password visibility toggle
+function togglePassword(fieldId) {
+    const passwordField = document.getElementById(fieldId);
+    const toggleIcon = passwordField.nextElementSibling;
+    
+    if (passwordField.type === 'password') {
+        passwordField.type = 'text';
+        toggleIcon.innerHTML = '<i class="far fa-eye-slash"></i>';
+    } else {
+        passwordField.type = 'password';
+        toggleIcon.innerHTML = '<i class="far fa-eye"></i>';
+    }
+}
+
+// Password strength checker
+function checkPasswordStrength(password) {
+    const strengthBar = document.getElementById('strengthBar');
+    const strengthText = document.getElementById('strengthText');
+    
+    let strength = 0;
+    let feedback = '';
+    
+    if (password.length >= 8) strength++;
+    if (/[a-z]/.test(password)) strength++;
+    if (/[A-Z]/.test(password)) strength++;
+    if (/[0-9]/.test(password)) strength++;
+    if (/[^A-Za-z0-9]/.test(password)) strength++;
+    
+    // Remove previous classes
+    strengthBar.className = 'strength-fill';
+    
+    switch (strength) {
+        case 0:
+        case 1:
+            strengthBar.classList.add('strength-weak');
+            feedback = 'Password debole';
+            break;
+        case 2:
+            strengthBar.classList.add('strength-fair');
+            feedback = 'Password discreta';
+            break;
+        case 3:
+        case 4:
+            strengthBar.classList.add('strength-good');
+            feedback = 'Password buona';
+            break;
+        case 5:
+            strengthBar.classList.add('strength-strong');
+            feedback = 'Password forte';
+            break;
+    }
+    
+    strengthText.textContent = feedback;
+    return strength;
+}
+
+// Password strength checker
+function checkPasswordStrength(password) {
+    const strengthBar = document.getElementById('strengthBar');
+    const strengthText = document.getElementById('strengthText');
+    
+    let strength = 0;
+    let feedback = '';
+    
+    if (password.length >= 8) strength++;
+    if (/[a-z]/.test(password)) strength++;
+    if (/[A-Z]/.test(password)) strength++;
+    if (/[0-9]/.test(password)) strength++;
+    if (/[^A-Za-z0-9]/.test(password)) strength++;
+    
+    // Remove previous classes
+    strengthBar.className = 'strength-fill';
+    
+    switch (strength) {
+        case 0:
+        case 1:
+            strengthBar.classList.add('strength-weak');
+            feedback = 'Password debole';
+            break;
+        case 2:
+            strengthBar.classList.add('strength-fair');
+            feedback = 'Password discreta';
+            break;
+        case 3:
+        case 4:
+            strengthBar.classList.add('strength-good');
+            feedback = 'Password buona';
+            break;
+        case 5:
+            strengthBar.classList.add('strength-strong');
+            feedback = 'Password forte';
+            break;
+    }
+    
+    strengthText.textContent = feedback;
+    return strength;
+}
+
+function validateName(name) {
+    const nameRegex = /^[A-Za-zÀ-ÿ\s'-]+$/;
+    return nameRegex.test(name);
+}
+
+// Form validation
+function validateForm() {
+    const firstName = document.getElementById('name').value;
+    const lastName = document.getElementById('surname').value;
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    const registerBtn = document.getElementById('reg-form');
+    
+    let isValid = true;
+    
+    // Check if names are valid
+    if (firstName && !validateName(firstName)) {
+        document.getElementById('firstNameError').textContent = 'Nome non valido';
+        document.getElementById('firstNameError').style.display = 'block';
+        isValid = false;
+    } else {
+        document.getElementById('firstNameError').style.display = 'none';
+    }
+    
+    if (lastName && !validateName(lastName)) {
+        document.getElementById('lastNameError').textContent = 'Cognome non valido';
+        document.getElementById('lastNameError').style.display = 'block';
+        isValid = false;
+    } else {
+        document.getElementById('lastNameError').style.display = 'none';
+    }
+    
+    // Enable/disable register button
+    if (firstName && lastName && email && password && confirmPassword && 
+        password === confirmPassword && validateName(firstName) && validateName(lastName)) {
+        registerBtn.disabled = false;
+    } else {
+        registerBtn.disabled = true;
+    }
+}
+
+// Email validation
+function validateEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+}
+
+// Add real-time validation for name and surname
+document.getElementById('name').addEventListener('input', function() {
+    const name = this.value;
+    const errorEl = document.getElementById('firstNameError');
+    
+    if (name && !validateName(name)) {
+        errorEl.textContent = 'Nome non valido';
+        errorEl.style.display = 'block';
+    } else {
+        errorEl.style.display = 'none';
+    }
+    validateForm();
+});
+
+document.getElementById('surname').addEventListener('input', function() {
+    const surname = this.value;
+    const errorEl = document.getElementById('lastNameError');
+    
+    if (surname && !validateName(surname)) {
+        errorEl.textContent = 'Cognome non valido';
+        errorEl.style.display = 'block';
+    } else {
+        errorEl.style.display = 'none';
+    }
+    validateForm();
+});
+
+document.getElementById('email').addEventListener('blur', function() {
+    const email = this.value;
+    const errorEl = document.getElementById('emailError');
+    const successEl = document.getElementById('emailSuccess');
+    
+    if (email && !validateEmail(email)) {
+        errorEl.textContent = 'Email non valida';
+        errorEl.style.display = 'block';
+        successEl.style.display = 'none';
+    } else if (email && validateEmail(email)) {
+        errorEl.style.display = 'none';
+        successEl.textContent = 'Email valida';
+        successEl.style.display = 'block';
+    } else {
+        errorEl.style.display = 'none';
+        successEl.style.display = 'none';
+    }
+    validateForm();
+});
+
+document.getElementById('password').addEventListener('input', function() {
+    const password = this.value;
+    checkPasswordStrength(password);
+    validateForm();
+});
+
+document.getElementById('confirmPassword').addEventListener('input', function() {
+    const password = document.getElementById('password').value;
+    const confirmPassword = this.value;
+    const errorEl = document.getElementById('confirmPasswordError');
+    const successEl = document.getElementById('confirmPasswordSuccess');
+    
+    if (confirmPassword && password !== confirmPassword) {
+        errorEl.textContent = 'Le password non coincidono';
+        errorEl.style.display = 'block';
+        successEl.style.display = 'none';
+    } else if (confirmPassword && password === confirmPassword) {
+        errorEl.style.display = 'none';
+        successEl.textContent = 'Password confermata';
+        successEl.style.display = 'block';
+    } else {
+        errorEl.style.display = 'none';
+        successEl.style.display = 'none';
+    }
+    validateForm();
+});
+
+// Input focus animations
+document.querySelectorAll('.input-field').forEach(input => {
+    input.addEventListener('focus', function() {
+        this.parentElement.style.transform = 'scale(1.02)';
+        this.parentElement.style.transition = 'transform 0.3s ease';
+    });
+    
+    input.addEventListener('blur', function() {
+        this.parentElement.style.transform = 'scale(1)';
+    });
+});
+
+// Enhanced hover effects
+document.querySelectorAll('.register-button, .terms-link, .login-button-link').forEach(element => {
+    element.addEventListener('mouseenter', function() {
+        if (!this.disabled) {
+            this.style.transform = 'translateY(-1px)';
+        }
+    });
+    
+    element.addEventListener('mouseleave', function() {
+        this.style.transform = 'translateY(0)';
+    });
+});
+
+// Initialize
+validateForm();

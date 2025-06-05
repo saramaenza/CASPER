@@ -3,7 +3,7 @@
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>Rulebot - Signup</title>
+		<title>Casper - Registrazione</title>
 		<link rel="stylesheet" href="styles/login.css">
 		<link rel="icon" href="img/favicon.png" type="image/png">
     <!-- <link rel="preconnect" href="https://fonts.gstatic.com">
@@ -12,32 +12,135 @@
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 	<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400&display=swap" rel="stylesheet">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 	</head>
+
 	<body>
-		<div class="container">
-			<div class="error-info"><h4>❗ Questo è un errore</h4></div>
-			<form class="register">
-				<h3>Registrati</h3>
-			
-				<label for="name" id="name-label">Nome</label>
-				<input type="text" placeholder="Nome" id="name" class="input-field" name="nome">
-
-				<label for="cognome" id="surname-label">Cognome</label>
-				<input type="text" placeholder="Cognome" id="surname" class="input-field" name="cognome">
-
-				<label for="email" id="email-label">Indirizzo email</label>
-				<input type="email" placeholder="@" id="email" class="input-field" name="email">
-
-				<label for="password" id="pass-label">Password</label>
-				<input type="password" placeholder="Password" id="password" class="input-field" name="password">
-
-				<label for="re-password" id="re-pass-label">Conferma Password</label>
-				<input type="password" placeholder="Riscrivi la Password" id="re-password" class="input-field" name="re-password">
-				
-				<button id="reg-form">Registrati</button>
-				<div class="link-container"><a class ="alternative "href="/">Oppure accedi</a></div>
-			</form>
+		<!-- Animated Background -->
+		<div class="background-animation">
+			<div class="floating-orb orb-1"></div>
+			<div class="floating-orb orb-2"></div>
+			<div class="floating-orb orb-3"></div>
 		</div>
-        <script src="scripts/register.js"></script>
-    </body>
+		<div class="background-pattern"></div>
+
+		<!-- Register Container -->
+		<div class="register-container fade-in">
+			<!-- Header -->
+			<div class="register-header">
+				<div id="logo">
+					<img src="img/logo.png">
+				</div>
+				<h1 class="register-title">CASPER</h1>
+				<p class="register-subtitle">Registrati</p>
+			</div>
+
+			<!-- Register Form -->
+			<form class="register-for" id="registerForm">
+				<!-- Name and Surname -->
+				<div class="form-row slide-in" style="animation-delay: 0.2s;">
+					<div class="input-group">
+						<label class="input-label" for="firstName">Nome</label>
+						<input 
+							type="text" 
+							id="name" 
+							name="nome"
+							class="input-field" 
+							placeholder="Nome"
+							required
+						>
+						<div class="input-icon"><i class="far fa-user"></i></div>
+						<div class="error-message" id="firstNameError"></div>
+					</div>
+					<div class="input-group">
+						<label class="input-label" for="lastName">Cognome</label>
+						<input 
+							type="text" 
+							id="surname" 
+							class="input-field" 
+							placeholder="Cognome"
+							name="cognome"
+							required
+						>
+						<div class="input-icon"><i class="far fa-user"></i></div>
+						<div class="error-message" id="lastNameError"></div>
+					</div>
+				</div>
+
+				<!-- Email Input -->
+				<div class="input-group slide-in" style="animation-delay: 0.3s;">
+					<label class="input-label" for="email">Indirizzo email</label>
+					<input 
+						type="email" 
+						id="email" 
+						class="input-field" 
+						name="email"
+						placeholder="Inserisci il tuo indirizzo email"
+						required
+					>
+					<div class="input-icon"><i class="far fa-envelope"></i></div>
+					<div class="error-message" id="emailError"></div>
+					<div class="success-message" id="emailSuccess"></div>
+				</div>
+
+				<!-- Password Input -->
+				<div class="input-group slide-in" style="animation-delay: 0.4s;">
+					<label class="input-label" for="password">Password</label>
+					<input 
+						type="password" 
+						id="password" 
+						class="input-field" 
+						placeholder="Crea una password sicura"
+						name="password"
+						required
+					>
+					<div class="password-toggle1" onclick="togglePassword('password')"><i class="far fa-eye"></i></div>
+					<div class="password-strength">
+						<div class="strength-bar">
+							<div class="strength-fill" id="strengthBar"></div>
+						</div>
+						<div class="strength-text" id="strengthText">Inserisci una password</div>
+					</div>
+					<div class="error-message" id="passwordError"></div>
+				</div>
+
+				<!-- Confirm Password Input -->
+				<div class="input-group slide-in" style="animation-delay: 0.5s;">
+					<label class="input-label" for="confirmPassword">Conferma Password</label>
+					<input 
+						type="password" 
+						id="confirmPassword" 
+						class="input-field" 
+						id="re-password" 
+						placeholder="Riscrivi la password"
+						required
+					>
+					<div class="password-toggle2" onclick="togglePassword('confirmPassword')"><i class="far fa-eye"></i></div>
+					<div class="error-message" id="confirmPasswordError"></div>
+					<div class="success-message" id="confirmPasswordSuccess"></div>
+				</div>
+
+				<!-- Register Button -->
+				<button type="submit" class="registerButton" id="reg-form" disabled style="animation-delay: 0.7s;">
+					Crea Account
+				</button>
+			</form>
+
+			<!-- Login Link -->
+			<div class="login-link slide-in" style="animation-delay: 0.8s;">
+				<span class="login-text">Hai già un account?</span>
+				<a href="/" class="login-button-link">Accedi</a>
+			</div>
+		</div>
+		<div class="loading-overlay">
+			<div class="spinner"></div>
+		</div>
+		<div class="message-overlay">
+			<div class="message-box">
+			<h3></h3>
+			</div>
+		</div>
+	</body>
+	<script src="scripts/register.js"></script>
+	
 </html>
