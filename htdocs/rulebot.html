@@ -1366,7 +1366,60 @@
             <div id="chat">
                 <div class="chat-header">
                     <div id="logo">
-                        <img src="img/logo.png">
+                         <svg style="width:60px" xmlns="http://www.w3.org/2000/svg" viewBox="-1.5 -13.125 11 12.63">
+                            <defs>
+                                <linearGradient id="myGradient" x1="0%" y1="0%" x2="100%" y2="0%" gradientUnits="userSpaceOnUse">
+                                    <stop offset="0%" stop-color="#0066FF">
+                                        <animate attributeName="stop-color" 
+                                                values="#0066FF;#00FF88;#8B5CF6;#0066FF"
+                                                dur="8s" 
+                                                repeatCount="indefinite"/>
+                                        <animate attributeName="stop-opacity" 
+                                                values="1;0.85;1"
+                                                dur="4s" 
+                                                repeatCount="indefinite"/>
+                                    </stop>
+                                    <stop offset="40%" stop-color="#00FF88">
+                                        <animate attributeName="stop-color" 
+                                                values="#00FF88;#8B5CF6;#0066FF;#00FF88"
+                                                dur="8s" 
+                                                repeatCount="indefinite"/>
+                                        <animate attributeName="stop-opacity" 
+                                                values="0.85;1;0.85"
+                                                dur="5s" 
+                                                repeatCount="indefinite"/>
+                                    </stop>
+                                    <stop offset="70%" stop-color="#8B5CF6">
+                                        <animate attributeName="stop-color" 
+                                                values="#8B5CF6;#0066FF;#00FF88;#8B5CF6"
+                                                dur="8s" 
+                                                repeatCount="indefinite"/>
+                                        <animate attributeName="stop-opacity" 
+                                                values="1;0.85;1"
+                                                dur="5s" 
+                                                repeatCount="indefinite"/>
+                                    </stop>
+                                </linearGradient>
+                                <clipPath id="housePath">
+                                    <path d="M 0 0 L 8 0 C 9 0 9 -1 9 -1 C 9 -1 9 -1 9 -1 V -8 Q 9 -9 8 -10 C 3 -14 5 -14 0 -10 Q -1 -9 -1 -8 V -1 Q -1 0 0 0"/>
+                                </clipPath>
+                            </defs>
+                            <image 
+                                href="img/favicon.png" 
+                                x="-0.4" 
+                                y="-11.2" 
+                                width="9" 
+                                clip-path="url(#housePath)"
+                                preserveAspectRatio="xMidYMid slice"/>
+
+                            <path d="M 0 -1 L 7.998 -1.022 Q 9 -1 9 -2 V -8 Q 9 -9 8 -10 C 3.022 -13.5 5 -13.5 0 -10 Q -1 -9 -1 -8 V -2.06 Q -1 -1 0 -1"
+                                stroke="url(#myGradient)" 
+                                stroke-width="0.5" 
+                                fill="none"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"/>
+          
+                        </svg>
                         <div class="agent-info">
                             <div class="agent-name">CASPER</div>
                             <div class="status-indicator-chat"></div>
