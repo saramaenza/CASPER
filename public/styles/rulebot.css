@@ -781,14 +781,13 @@ td {
 .agent-info {
   flex: 1;
   color:var(--text-primary);
-  font-weight: 600;
   margin-left: 10px;
 }
 
 .agent-name {
-    font-size: 18px;
-    font-weight: 600;
+    font-size: 25px;
     margin-bottom: 2px;
+    font-family: 'Lilita One', cursive;
 }
 
 .agent-status {

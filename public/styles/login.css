@@ -224,13 +224,14 @@ body {
 }
 
 .login-title, .register-title {
-    font-size: 28px;
-    font-weight: 700;
+    font-size: 30px;
+    font-weight: 500;
     background:var(--text-primary);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     margin-bottom: 8px;
     margin-top: 3px;
+    font-family: 'Lilita One', cursive;
 }
 
 .login-subtitle, .register-subtitle {
