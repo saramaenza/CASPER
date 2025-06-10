@@ -806,7 +806,7 @@ function getIcon(name, type = 'variable') {
         if (text.includes('umidità') || text.includes('humidity')) {
             return '💧';
         }
-        if (text.includes('luminosità') || text.includes('brightness')) {
+        if (text.includes('luminosità') || text.includes('brightness') || text.includes('illuminance')) {
             return '☀️';
         }
         if (text.includes('movimento') || text.includes('motion')) {
