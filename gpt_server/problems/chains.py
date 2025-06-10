@@ -156,7 +156,6 @@ class ChainsDetector:
         device_action1 = action1_details['device_action']
         type_action1 = action1_details['type_action']
 
-
         trigger2_list = rule2.get("triggers", []) or rule2.get("trigger", []) # Ensure it's a list
         if not isinstance(trigger2_list, list): trigger2_list = [trigger2_list] # if it's a single dict
         if not trigger2_list:
@@ -188,6 +187,7 @@ class ChainsDetector:
                     is_match = True
             elif device_action1 == device_trigger2:
                 is_match = True
+            type_action1 = type_action1.split('.')[-1] if '.' in type_action1 else type_action1
             if is_match and self.check_operator(type_action1, type_trigger2):
             #if is_match and True: # Temporarily removed operator check for testing
                 #print(rule1.get("alias"), rule1.get("description"), rule2.get("alias"), rule2.get("description"))
