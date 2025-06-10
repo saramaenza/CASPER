@@ -15,6 +15,7 @@
   --bg-botMsg: #2f4156;
   --increase-color: #4CAF50;
   --decrease-color: #f44336;
+  --action-conflict: #fffefe;
 }
 
 /* Light theme */
@@ -34,10 +35,14 @@
   --bg-botMsg: #ffffffe6;
   --increase-color: #2E7D32;
   --decrease-color: #C62828;
+  --action-conflict: #9a3d34;
 } 
 
 * {
-    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+    transition: background-color 0.3s ease, 
+                color 0.3s ease, 
+                border-color 0.3s ease,
+                scrollbar-color 0.3s ease;
     scrollbar-width: auto;
     scrollbar-color: var(--border-color) var(--bg-secondary); 
 }
@@ -275,6 +280,30 @@ body{
   width: 100%;
   height: inherit;
 }
+#problems-main-container {
+    scrollbar-width: auto;
+    scrollbar-color: var(--border-color) var(--bg-secondary);
+}
+#problems-main-container::-webkit-scrollbar {
+    width: 8px;
+    display: none;
+}
+
+#problems-main-container:hover::-webkit-scrollbar {
+    display: block;
+}
+
+#problems-main-container::-webkit-scrollbar-track {
+    background: var(--bg-secondary);
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+}
+
+#problems-main-container::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+}
 #problems-main-container h3{
   width: 90%;
   margin: 17px auto;
@@ -394,7 +423,7 @@ body{
     border-radius: 8px;
     padding: 8px 12px;
     font-size: 14px;
-    color: #9a3d34;
+    color: var(--action-conflict); 
     text-align: center;
     min-width: 120px;
 }
