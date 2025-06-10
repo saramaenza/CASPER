@@ -1363,7 +1363,9 @@ function createChainCard(isActive, headerText, chainInfo) {
 
         const variableName = document.createElement("div");
         variableName.className = "card-chain-variable";
-        variableName.textContent = chainInfo.chain_variable;
+        // Aggiungi una freccia in base al tipo di effetto
+        const symbol = chainInfo.effect_type === "increase" ? "<span class='plus'>+</span>" : "<span class='minus'>-</span>";
+        variableName.innerHTML = `${symbol} ${chainInfo.chain_variable}`;
 
         variableCard.appendChild(variableIcon);
         variableCard.appendChild(variableName);

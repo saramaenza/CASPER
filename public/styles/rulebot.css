@@ -13,6 +13,8 @@
   --selector-hover: rgba(255, 255, 255, 0.05);
   --scroolbar-thumb-hover: rgba(255, 255, 255, 0.2);
   --bg-botMsg: #2f4156;
+  --increase-color: #4CAF50;
+  --decrease-color: #f44336;
 }
 
 /* Light theme */
@@ -30,6 +32,8 @@
   --selector-hover: #0066ff1a;
   --scroolbar-thumb-hover: #bdbdbd14;
   --bg-botMsg: #ffffffe6;
+  --increase-color: #2E7D32;
+  --decrease-color: #C62828;
 } 
 
 * {
@@ -556,6 +560,21 @@ body{
   font-style: italic;
   margin-bottom: 8px;
   font-size: 14px;
+  font-weight: bold;
+}
+
+.plus {
+    color: var(--increase-color);
+    font-size: 18px;
+    font-style: normal;
+    font-weight: bold;
+}
+
+.minus {
+    color: var(--decrease-color);
+    font-size: 18px;
+    font-style: normal;
+    font-weight: bold;
 }
 
 .card-chain-subtitle {

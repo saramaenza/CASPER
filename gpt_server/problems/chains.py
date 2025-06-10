@@ -235,8 +235,8 @@ class ChainsDetector:
         if not trigger2_list:
             return
 
-        for variables_type in context_var_action.values(): # increase/decrease
-            for variable in variables_type: # e.g., "temperature", "humidity"
+        for var_type, variables in context_var_action.items(): # increase/decrease
+            for variable in variables: # e.g., "temperature", "humidity"
                 for trigger2_item in trigger2_list:
                     if not isinstance(trigger2_item, dict): continue
 
@@ -260,7 +260,7 @@ class ChainsDetector:
                                 "type": "indirect-chain",
                                 "unique_id": unique_id_chain,
                                 "chain_variable": variable, 
-                                "increase_decrease": variables_type, # e.g., "increase" or "decrease"
+                                "effect_type": var_type, # e.g., "increase" or "decrease"
                                 "rules": [
                                     {
                                         "id": id_automation1,
