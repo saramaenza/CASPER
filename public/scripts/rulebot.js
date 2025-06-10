@@ -819,7 +819,10 @@ function getIcon(name, type = 'variable') {
             return '🚪';
         }
         if (text.includes('finestra') || text.includes('window')) {
-            return '🪟';
+            return '🪟'; //TODO: sistema
+        }
+        if (text.includes("rumore") || text.includes("sound_pressure")){
+          return '🔊';
         }
         return '📊'; // Default variable icon
     }
@@ -1855,19 +1858,22 @@ class Carousel {
       
       this.currentSlide = 0;
       this.totalSlides = 0;
-      
+
       this.setupEventListeners();
-      this.updateDisplay();
+      this.init().then(() => {
+            this.updateDisplay();
+        });
   }
 
-  async initializeProblems() {
-    try {
-      this.problemsList = await getProblems();
-      this.totalSlides = this.problemsList.length;  
-      this.updateDisplay();
-    } catch (error) {
-      console.error('Error loading problems:', error);
-    }
+  async init() {
+      try {
+          let problemsList = await getProblems();
+          this.totalSlides = problemsList.length;
+          this.updateDisplay();
+      } catch (error) {
+          console.error('Error initializing carousel:', error);
+          this.totalSlides = 0;
+      }
   }
   
   setupEventListeners() {

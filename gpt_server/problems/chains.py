@@ -41,9 +41,13 @@ class ChainsDetector:
         return None
 
     def get_event_type(self, e: Dict[str, Any]) -> str:
-        type_event = e.get('type')
+        type_event = e.get('type') or e.get("type_action")
         service = e.get("service")
-
+        if isinstance(type_event, str) and '.' in type_event:
+            type_event = type_event.split('.')[-1]
+        
+        if type_event == "set_preset_mode":
+            type_event = "turn_on"
         if service == "switch.turn_on": 
             return "turn_on"
         if service == "switch.turn_off":
@@ -226,7 +230,7 @@ class ChainsDetector:
 
         if not domain1: # domain1 is essential for get_context_variables
             return
-        type_action1 = self.get_event_type(action1_details)  
+        #type_action1 = self.get_event_type(action1_details)  
         context_var_action = self.get_context_variables(domain1, type_action1)
         
         trigger2_list = rule2.get("triggers", []) or rule2.get("trigger", [])
