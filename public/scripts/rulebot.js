@@ -648,7 +648,7 @@ async function printUserDevices(devicesList) {
 
     let categoryIcon = document.createElement('div');
     categoryIcon.classList.add('category-icon');
-    categoryIcon.textContent = getCategoryIcon(key);
+    categoryIcon.textContent = getIcon(key, 'room');
     categoryIcon.className = "automation-icon room-icon";
 
     const roomNameText = document.createElement('span');
@@ -751,41 +751,78 @@ async function printUserDevices(devicesList) {
  
 }
 
-function getCategoryIcon(roomName) {
-  const name = roomName.toLowerCase();
-  
-  if (name.includes("cucina") || name.includes("kitchen")) {
-      return "🍳";
-  }
-  if (name.includes("camera") || name.includes("bedroom")) {
-      return "🛏️";
-  }
-  if (name.includes("bagno") || name.includes("bathroom")) {
-      return "🚿";
-  }
-  if (name.includes("salotto") || name.includes("living")) {
-      return "🛋️";
-  }
-  if (name.includes("studio") || name.includes("office")) {
-      return "💼";
-  }
-  if (name.includes("garage")) {
-      return "🚗";
-  }
-  if (name.includes("giardino") || name.includes("garden")) {
-      return "🌳";
-  }
-  if (name.includes("corridoio") || name.includes("hallway")) {
-      return "🚪";
-  }
-  if (name.includes("cantina") || name.includes("cellar")) {
-      return "🍷";
-  }
-  if (name.includes("fuori") || name.includes("outside")) {
-    return "☀️";
-  }
-  // Icona di default per altre stanze
-  return "🏠";
+function getIcon(name, type = 'variable') {
+    // Convert to lowercase for case-insensitive comparison
+    const text = name.toLowerCase();
+    
+    // Common patterns for both types
+    if (text.includes('temperatura') || text.includes('temperature') || text.includes('climate')) {
+        return '🌡️';
+    }
+    if (text.includes('luce') || text.includes('light')) {
+        return '💡';
+    }
+    if (text.includes('pioggia') || text.includes('rain') || text.includes('weather')) {
+        return '🌧️';
+    }
+
+    // Room specific icons
+    if (type === 'room') {
+        if (text.includes("cucina") || text.includes("kitchen")) {
+            return "🍳";
+        }
+        if (text.includes("camera") || text.includes("bedroom")) {
+            return "🛏️";
+        }
+        if (text.includes("bagno") || text.includes("bathroom")) {
+            return "🚿";
+        }
+        if (text.includes("salotto") || text.includes("living")) {
+            return "🛋️";
+        }
+        if (text.includes("studio") || text.includes("office")) {
+            return "💼";
+        }
+        if (text.includes("garage")) {
+            return "🚗";
+        }
+        if (text.includes("giardino") || text.includes("garden")) {
+            return "🌳";
+        }
+        if (text.includes("corridoio") || text.includes("hallway")) {
+            return "🚪";
+        }
+        if (text.includes("cantina") || text.includes("cellar")) {
+            return "🍷";
+        }
+        if (text.includes("fuori") || text.includes("outside")) {
+            return "☀️";
+        }
+        return "🏠"; // Default room icon
+    }
+
+    // Variable specific icons
+    if (type === 'variable') {
+        if (text.includes('umidità') || text.includes('humidity')) {
+            return '💧';
+        }
+        if (text.includes('luminosità') || text.includes('brightness')) {
+            return '☀️';
+        }
+        if (text.includes('movimento') || text.includes('motion')) {
+            return '🏃';
+        }
+        if (text.includes('presenza') || text.includes('presence')) {
+            return '👤';
+        }
+        if (text.includes('porta') || text.includes('door')) {
+            return '🚪';
+        }
+        if (text.includes('finestra') || text.includes('window')) {
+            return '🪟';
+        }
+        return '📊'; // Default variable icon
+    }
 }
 
 //cancella una regola dalla lista
@@ -1146,48 +1183,7 @@ function displayProblemDesc(el) {
 
 
 // ===================== Carousel ======================= //
-/*
-createConflictCard(
-  true,
-  "Conflitto",
-  {
-    "id_conflict": "17422966096088_1746629662875",
-    "rules": [
-      {
-        "id": "17422966096088",
-        "name": "Accendi aria condizionata quando è caldo",
-        "description": "Event: quando è caldo Condition: se piove Action: accendi aria condizionata "
-      },
-      {
-        "id": "1746629662875",
-        "name": "Spengi aria condizionata quando è caldo",
-        "description": "Event: quando sono le 9 Condition: se sono le 09:00 Action: spegni aria condizionata "
-      }
-    ],
-    "possibleSolutions": {
-      "description": "Questo testo rappresenta una descrizione generale del conflitto e delle possibili soluzioni.",
-      "recommendations": {
-        "17422966096088": {
-          "alternatives": [
-            {
-              "structured": "Event: Temperature rises above 26°C (sensor.temperatura_salotto_temperature) Condition: Presenza Salotto is ON (binary_sensor.presenza_salotto) Action: Turn ON aria condizionata (fan.aria_condizionata).",
-              "natural_language": "When the living room temperature rises above 26°C and someone is present in the living room, turn on the air conditioner."
-            }
-          ]
-        },
-        "1746629662875": {
-          "alternatives": [
-            {
-              "structured": "Event: Temperature drops below 24°C (sensor.temperatura_salotto_temperature) Action: Turn OFF aria condizionata (fan.aria_condizionata).",
-              "natural_language": "When the living room temperature drops below 24°C, turn off the air conditioner."
-            }
-          ]
-        }
-      }
-    },
-    "type": "possible"
-  }
-);*/
+
 
 function printUserProblems(problemsList) {
   const carouselControls = document.getElementById('carousel-controls');
@@ -1207,6 +1203,7 @@ function printUserProblems(problemsList) {
     // Mostra i controlli e nascondi il messaggio
       carouselControls.style.display = 'flex';
       carouselMessages.innerHTML = '';
+      carouselMessages.style.display = 'none';
 
       for (const [index, problem] of problemsList.entries()){
         if (problem['type'] == 'conflict'){
@@ -1216,7 +1213,7 @@ function printUserProblems(problemsList) {
             problem
           )
         }
-        else if (problems['type'].split('-')[0] == 'chain'){
+        else if (problem['type'].split('-')[0] == 'chain'){
           createChainCard(
             index == 0,
             `Catena ${problem['id']}`,
@@ -1230,6 +1227,255 @@ function printUserProblems(problemsList) {
   }
 }
 
+function createChainCard(isActive, headerText, chainInfo) {
+    const regex = /^event(?:s|o|i)?:\s*(?<event>.*?)(?:\s*(?:condition(?:s)?|condizion(?:e|i)):\s*(?<condition>.*?))?\s*(?:action(?:s)?|azion(?:i|e)):\s*(?<action>.*)$/i;
+
+    const rule1 = chainInfo['rules'][0];
+    const rule1_id = rule1['id'];
+    const rule1_name = rule1['name'];
+    const rule2 = chainInfo['rules'][1];
+    const rule2_id = rule2['id'];
+    const rule2_name = rule2['name'];
+
+    const rule1_match = rule1['description'].match(regex);
+    const rule2_match = rule2['description'].match(regex);
+
+    // Early return if invalid format
+    if (!rule1_match?.groups || !rule2_match?.groups) {
+        console.warn('Invalid rule format detected');
+        return null;
+    }
+
+    // CARD
+    const card = document.createElement("div");
+    card.className = "card";
+
+    // CARD CONTAINER
+    const cardContainer = document.createElement("div");
+    cardContainer.className = "card-container";
+
+    // CARD HEADER
+    const cardHeader = document.createElement("div");
+    cardHeader.className = "card-header";
+
+    // Problem icon
+    const problemIcon = document.createElement("div");
+    problemIcon.className = "problem-icon";
+    problemIcon.textContent = "⚠️";
+
+    // Problem content
+    const problemContent = document.createElement("div");
+    problemContent.className = "problem-content";
+
+    const problemTitle = document.createElement("div");
+    problemTitle.className = "problem-title";
+    problemTitle.textContent = headerText || "Catena tra automazioni";
+
+    const problemId = document.createElement("div");
+    problemId.className = "problem-id";
+    problemId.textContent = `Problema ID: ${chainInfo["unique_id"] || ""}`;
+
+    problemContent.appendChild(problemTitle);
+    problemContent.appendChild(problemId);
+    cardHeader.appendChild(problemIcon);
+    cardHeader.appendChild(problemContent);
+
+    // CARD BODY
+    const cardBody = document.createElement("div");
+    cardBody.className = "card-body";
+
+    // Description
+    const spanText = document.createElement("span");
+    spanText.className = "card-text";
+    spanText.textContent = chainInfo["possibleSolutions"]["description"];
+    cardBody.appendChild(spanText);
+
+    // CONFLICT DIAGRAM
+    const conflictDiagram = document.createElement("div");
+    conflictDiagram.className = "conflict-diagram";
+
+    // Create automation flow container
+    const automationFlow = document.createElement("div");
+    automationFlow.className = "automation-flow";
+
+    // First automation card
+    const firstAutomation = document.createElement("div");
+    firstAutomation.className = "automation-chain-card";
+
+    // Icon for first automation
+    const firstIcon = document.createElement("div");
+    const firstIconInfo = getAutomationIconInfo({"description": rule1_match.groups.action});
+    firstIcon.className = `card-icon ${firstIconInfo.className}`;
+    firstIcon.textContent = firstIconInfo.icon;
+
+    // Title and subtitle for first automation
+    const firstTitle = document.createElement("div");
+    firstTitle.className = "card-chain-title";
+    firstTitle.textContent = `${rule1_match.groups.event}${rule1_match.groups.condition ? `, ${rule1_match.groups.condition}` : ''}, ${rule1_match.groups.action}`;
+
+    const firstSubtitle = document.createElement("div");
+    firstSubtitle.className = "card-chain-subtitle";
+    firstSubtitle.textContent = rule1_name;
+
+    // Assemble first automation card
+    firstAutomation.appendChild(firstIcon);
+    firstAutomation.appendChild(firstTitle);
+    firstAutomation.appendChild(firstSubtitle);
+
+    // First arrow
+    const firstArrow = document.createElement("div");
+    firstArrow.className = "flow-arrow";
+    firstArrow.textContent = "→";
+
+    // Variable card (created outside if statement)
+    const variableCard = document.createElement("div");
+    variableCard.className = "variable-chain-card";
+
+    // Second arrow (created outside if statement)
+    const secondArrow = document.createElement("div");
+    secondArrow.className = "flow-arrow";
+    secondArrow.textContent = "→";
+
+    // Second automation card
+    const secondAutomation = document.createElement("div");
+    secondAutomation.className = "automation-chain-card";
+
+    // Icon for second automation
+    const secondIcon = document.createElement("div");
+    const secondIconInfo = getAutomationIconInfo({"description": rule2_match.groups.action});
+    secondIcon.className = `card-icon ${secondIconInfo.className}`;
+    secondIcon.textContent = secondIconInfo.icon;
+
+    // Title and subtitle for second automation
+    const secondTitle = document.createElement("div");
+    secondTitle.className = "card-chain-title";
+    secondTitle.textContent = `${rule2_match.groups.event}${rule2_match.groups.condition ? `, ${rule2_match.groups.condition}` : ''}, ${rule2_match.groups.action}`;
+
+    const secondSubtitle = document.createElement("div");
+    secondSubtitle.className = "card-chain-subtitle";
+    secondSubtitle.textContent = rule2_name;
+
+    // Populate variable card if indirect chain
+    if(chainInfo.type == "indirect-chain") {
+        const variableIcon = document.createElement("div");
+        variableIcon.className = "card-icon";
+        variableIcon.textContent = getIcon(chainInfo.chain_variable, 'variable');
+
+        const variableName = document.createElement("div");
+        variableName.className = "card-chain-variable";
+        variableName.textContent = chainInfo.chain_variable;
+
+        variableCard.appendChild(variableIcon);
+        variableCard.appendChild(variableName);
+    }
+
+    // Assemble second automation card
+    secondAutomation.appendChild(secondIcon);
+    secondAutomation.appendChild(secondTitle);
+    secondAutomation.appendChild(secondSubtitle);
+
+    // Assemble the flow
+    automationFlow.appendChild(firstAutomation);
+    automationFlow.appendChild(firstArrow);
+    
+    // Only append variable card and second arrow for indirect chains
+    if(chainInfo.type == "indirect-chain") {
+        automationFlow.appendChild(variableCard);
+        automationFlow.appendChild(secondArrow);
+    }
+    
+    automationFlow.appendChild(secondAutomation);
+
+    // Add to diagram
+    conflictDiagram.appendChild(automationFlow);
+    cardBody.appendChild(conflictDiagram);
+
+    // SOLUTIONS TITLE
+    const title = document.createElement("p");
+    title.className = "card-title";
+    title.textContent = "Come posso risolvere?";
+    cardBody.appendChild(title);
+
+    // ACCORDION
+    const accordion = document.createElement("div");
+    accordion.className = "accordion stay-open";
+    
+    const recommendations = chainInfo["possibleSolutions"]["recommendations"];
+    for (let automationID in recommendations) {
+        const item = document.createElement("div");
+        item.className = "accordion-item";
+
+        const header = document.createElement("h2");
+        header.className = "accordion-header";
+
+        const button = document.createElement("button");
+        button.className = "accordion-button";
+        button.setAttribute("onclick", "toggleStayOpen(this)");
+        button.textContent = `Modifica l'automazione "${automationID === rule1_id ? rule1_name : rule2_name}"`;
+
+        header.appendChild(button);
+        item.appendChild(header);
+
+        const collapse = document.createElement("div");
+        collapse.className = "accordion-collapse";
+
+        const body = document.createElement("div");
+        body.className = "accordion-body";
+
+        recommendations[automationID]["alternatives"].forEach((alternative, i) => {
+            const formCheck = document.createElement("div");
+            formCheck.className = "form-check";
+
+            const input = document.createElement("input");
+            input.className = "form-check-input";
+            input.type = "radio";
+            input.name = `radio-${automationID}`;
+            input.id = `radio-${automationID}-${i}`;
+
+            const label = document.createElement("label");
+            label.className = "form-check-label";
+            label.setAttribute("for", input.id);
+            label.textContent = alternative["natural_language"];
+
+            formCheck.appendChild(input);
+            formCheck.appendChild(label);
+            body.appendChild(formCheck);
+        });
+
+        collapse.appendChild(body);
+        item.appendChild(collapse);
+        accordion.appendChild(item);
+    }
+    cardBody.appendChild(accordion);
+
+    // ACTION BUTTONS
+    const actionButtons = document.createElement("div");
+    actionButtons.className = "action-buttons";
+
+    const ignoreButton = document.createElement("button");
+    ignoreButton.className = "btn btn-ignore";
+    ignoreButton.textContent = "Ignora";
+    ignoreButton.id = chainInfo["id_chain"];
+
+    const solveButton = document.createElement("button");
+    solveButton.className = "btn btn-resolve";
+    solveButton.textContent = "Risolvi";
+    solveButton.id = chainInfo["id_chain"];
+
+    actionButtons.appendChild(ignoreButton);
+    actionButtons.appendChild(solveButton);
+    cardBody.appendChild(actionButtons);
+
+    // ASSEMBLE EVERYTHING
+    cardContainer.appendChild(cardHeader);
+    cardContainer.appendChild(cardBody);
+    card.appendChild(cardContainer);
+    carousel.appendChild(card);
+    carousel.click();
+
+    return card;
+}
+
 // stesso evento, no condizioni, azioni diverse --> same_event_no_conditions
 // stesso evento, stesse condizioni, azioni diverse --> same_event_same_conditions
 // stesso evento, condizioni diverse ma sovrapponibili --> same_event_different_conditions
@@ -1239,28 +1485,33 @@ function printUserProblems(problemsList) {
 function createConflictCard(isActive, headerText, conflictInfo) {
     const regex = /^event(?:s|o|i)?:\s*(?<event>.*?)(?:\s*(?:condition(?:s)?|condizion(?:e|i)):\s*(?<condition>.*?))?\s*(?:action(?:s)?|azion(?:i|e)):\s*(?<action>.*)$/i;
 
-    const rule1 = conflictInfo['rules'][0];
-    const rule1_id = rule1['id'];
-    const rule1_name = rule1['name'];
-    const rule1_description = removeHomeAssistantEntities(rule1['description'])
-    const rule2 = conflictInfo['rules'][1];
-    const rule2_id = rule2['id'];
-    const rule2_name = rule2['name'];
-    const rule2_description = removeHomeAssistantEntities(rule2['description'])
+    const rule_1 = conflictInfo['rules'][0];
+    const rule1_id = rule_1['id'];
+    const rule1_name = rule_1['name'];
+    const rule1_description = removeHomeAssistantEntities(rule_1['description'])
+    const rule_2 = conflictInfo['rules'][1];
+    const rule2_id = rule_2['id'];
+    const rule2_name = rule_2['name'];
+    const rule2_description = removeHomeAssistantEntities(rule_2['description'])
 
     const rule1_match = rule1_description.match(regex);
     const rule2_match = rule2_description.match(regex);
 
     const temp_mapping = new Map();
-    temp_mapping.set(rule1_id, rule1);
-    temp_mapping.set(rule2_id, rule2);
+    temp_mapping.set(rule1_id, rule_1);
+    temp_mapping.set(rule2_id, rule_2);
 
 
-    type_of_conflict = conflictInfo['tag'];
+    type_of_conflict = conflictInfo['tag']; 
 
-    if (rule1_match && rule1_match.groups && rule2_match && rule2_match.groups) {
-        const rule1 = rule1_match.groups;
-        const rule2 = rule2_match.groups;
+    //if (rule1_match && rule1_match.groups && rule2_match && rule2_match.groups) {}
+    if (!rule1_match?.groups || !rule2_match?.groups) {
+        console.warn('Invalid rule format detected');
+        return null;
+    }
+
+    const rule1 = rule1_match.groups;
+    const rule2 = rule2_match.groups;
 
     // CARD
     const card = document.createElement("div");
@@ -1478,7 +1729,7 @@ function createConflictCard(isActive, headerText, conflictInfo) {
     conflictTable.appendChild(row_names);
     conflictDiagram.appendChild(conflictTable);
     cardBody.appendChild(conflictDiagram);
-
+  
     // TITOLO SOLUZIONI
     const title = document.createElement("p");
     title.className = "card-title";
@@ -1556,176 +1807,12 @@ function createConflictCard(isActive, headerText, conflictInfo) {
     actionButtons.appendChild(ignoreButton);
     actionButtons.appendChild(solveButton);
     cardBody.appendChild(actionButtons);
+    
 
     // ASSEMBLA TUTTO
     cardContainer.appendChild(cardHeader);
     cardContainer.appendChild(cardBody);
     card.appendChild(cardContainer);
-    carousel.appendChild(card);
-    carousel.click();
-    return card;
-}
-
-function createChainCard(isActive, headerText, chainInfo) {
-    //recommendations = {"alias_automazione1": ["opzione1", "opzione2"], "alias_automazione2": ["opzione3", "opzione4"]}
-    const regex = /^event(?:s|o|i)?:\s*(?<event>.*?)(?:\s*(?:condition(?:s)?|condizion(?:e|i)):\s*(?<condition>.*?))?\s*(?:action(?:s)?|azion(?:i|e)):\s*(?<action>.*)$/i;
-
-    const rule1 = chainInfo['rules'][0]
-    const rule1_id = rule1['id']
-    const rule1_name = rule1['name']
-    const rule2 = chainInfo['rules'][1]
-    const rule2_id = rule2['id']
-    const rule2_name = rule2['name']
-    const type_of_chain = chainInfo["type"].split("-")[0]; //direct, indirect, etc.
-    
-    const svgArrow = () => {
-        const svgNS = "http://www.w3.org/2000/svg";
-        const svg = document.createElementNS(svgNS, "svg");
-        svg.setAttribute("width", "18");
-        svg.setAttribute("height", "40");
-        svg.setAttribute("viewBox", "0 0 18 40");
-        svg.setAttribute("fill", "none");
-        const path = document.createElementNS(svgNS, "path");
-        if (type_of_chain === "direct") {
-            svg.setAttribute("class", "svg_conflict2");
-            path.setAttribute("d", "M8.75 39.9991L17.5038 25.0535L0.183666 24.9453L8.75 39.9991ZM7.50003 -0.00937502L7.34378 24.9907L10.3437 25.0094L10.5 0.00937502L7.50003 -0.00937502ZM7.34378 24.9907L7.3344 26.49L10.3343 26.5088L10.3437 25.0094L7.34378 24.9907Z");
-        } else {
-            svg.setAttribute("class", "svg_chain");
-            path.setAttribute("d", "M9 39.9991L17.7538 25.0535L0.433666 24.9453L9 39.9991ZM7.75003 -0.00937502L7.73701 2.07396L10.7369 2.09271L10.75 0.00937502L7.75003 -0.00937502ZM7.71097 6.24063L7.68492 10.4073L10.6849 10.4261L10.7109 6.25938L7.71097 6.24063ZM7.65888 14.574L7.63284 18.7407L10.6328 18.7594L10.6588 14.5927L7.65888 14.574ZM7.6068 22.9073L7.59378 24.9907L10.5937 25.0094L10.6067 22.9261L7.6068 22.9073ZM7.59378 24.9907L7.58596 26.2406L10.5859 26.2593L10.5937 25.0094L7.59378 24.9907ZM7.57034 28.7404L7.55471 31.2403L10.5547 31.259L10.5703 28.7592L7.57034 28.7404ZM7.53909 33.7401L7.52347 36.24L10.5234 36.2587L10.539 33.7589L7.53909 33.7401ZM9 39.9991L17.7538 25.0535L0.433666 24.9453L9 39.9991ZM7.75003 -0.00937502L7.73701 2.07396L10.7369 2.09271L10.75 0.00937502L7.75003 -0.00937502ZM7.71097 6.24063L7.68492 10.4073L10.6849 10.4261L10.7109 6.25938L7.71097 6.24063ZM7.65888 14.574L7.63284 18.7407L10.6328 18.7594L10.6588 14.5927L7.65888 14.574ZM7.6068 22.9073L7.59378 24.9907L10.5937 25.0094L10.6067 22.9261L7.6068 22.9073ZM7.59378 24.9907L7.58596 26.2406L10.5859 26.2593L10.5937 25.0094L7.59378 24.9907ZM7.57034 28.7404L7.55471 31.2403L10.5547 31.259L10.5703 28.7592L7.57034 28.7404ZM7.53909 33.7401L7.52347 36.24L10.5234 36.2587L10.539 33.7589L7.53909 33.7401Z");
-        }
-        path.setAttribute("fill", "#4E63CC");
-        svg.appendChild(path);
-        return svg;
-    };
-
-    const temp_mapping = new Map();
-    temp_mapping.set(rule1_id, rule1);
-    temp_mapping.set(rule2_id, rule2);
-
-    const card = document.createElement("div");
-    card.className = "card border-dark carousel__item";
-    if (isActive) {
-        card.classList.add("active");
-    }else {
-        card.classList.add("not_active");
-    }
-
-    const header = document.createElement("div");
-    header.className = "card-header";
-    header.textContent = headerText;
-    card.appendChild(header);
-
-    const body = document.createElement("div");
-    body.className = "card-body";
-
-    const spanText = document.createElement("span");
-    spanText.className = "card-text";
-    spanText.textContent = chainInfo["possibleSolutions"]["description"];
-    body.appendChild(spanText);
-
-    const container = document.createElement("div");
-    container.className = "container_arrow";
-
-    const rule1_match = rule1['description'].match(regex);
-    const rule2_match = rule2['description'].match(regex);
-
-    if (rule1_match && rule1_match.groups && rule2_match && rule2_match.groups) {
-        const rule1 = rule1_match.groups;
-        const rule2 = rule2_match.groups;
-        const p = document.createElement("p");
-        p.textContent = `${rule1.event}${rule1.condition ? " " + rule1.condition : ""}, <b>${rule1.action}</b> </br> <i>${rule1_name}</i>`; //teoricamente dovrebbe essere uguale (almeno semanticamente) a rule2.event
-        container.appendChild(p);
-       
-        const condition_action_container = document.createElement("div");
-        condition_action_container.className = "container_action";
-        const rule1_anonym_div = document.createElement("div");
-        
-        rule1_anonym_div.appendChild(svgArrow());
-
-        if(type_of_chain === "indirect") { 
-          const chain_variable = chainInfo["chain_variable"]
-          const chain_variable_p = document.createElement("p");
-          chain_variable_p.className = "chain_variable";
-          chain_variable_p.innerHTML = `<i>${chain_variable}</i>`;
-          rule1_anonym_div.appendChild(chain_variable_p);
-          condition_action_container.appendChild(rule1_anonym_div);
-
-          rule1_anonym_div.appendChild(svgArrow());
-        }
-        
-        const action = document.createElement("p");
-        action.innerHTML = `<b>${rule2.event}</b>${rule2.condition ? " " + rule2.condition : ""}, ${rule2.action} </br> <i>${rule2_name}</i>`;
-        rule1_anonym_div.appendChild(action);
-        condition_action_container.appendChild(rule1_anonym_div);
-        
-        const rule2_anonym_div = document.createElement("div");
-
-        condition_action_container.appendChild(rule2_anonym_div);
-        
-        container.appendChild(condition_action_container);
-    };
-    body.appendChild(container);
-  }
-
-    const title = document.createElement("p");
-    title.className = "card-title";
-    title.textContent = "Come posso risolvere?";
-    body.appendChild(title);
-
-    const accordion = document.createElement("div");
-    accordion.className = "accordion stay-open";
-    let index = 0;
-    const recommendations = chainInfo["possibleSolutions"]["recommendations"];
-    for (let automationID in recommendations) {
-        const item = document.createElement("div");
-        item.className = "accordion-item";
-
-        const header = document.createElement("h2");
-        header.className = "accordion-header";
-
-        const button = document.createElement("button");
-        button.className = "accordion-button";
-        button.setAttribute("onclick", "toggleStayOpen(this)");
-        button.textContent = `Modifica l'automazione  "${temp_mapping.get(automationID)["name"]}"`;
-
-        header.appendChild(button);
-        item.appendChild(header);
-
-        const collapse = document.createElement("div");
-        collapse.className = "accordion-collapse";
-        if (index === 0) collapse.classList.add("active");
-
-        const body = document.createElement("div");
-        body.className = "accordion-body";
-
-        recommendations[automationID]["alternatives"].forEach((alternative, i) => {
-            const formCheck = document.createElement("div");
-            formCheck.className = "form-check";
-
-            const input = document.createElement("input");
-            input.className = "form-check-input";
-            input.type = "radio";
-            input.name = "radioDefault";
-            input.id = `radioDefault${index}-${i}`;
-
-            const label = document.createElement("label");
-            label.className = "form-check-label";
-            label.setAttribute("for", input.id);
-            label.textContent = alternative["natural_language"];
-
-            formCheck.appendChild(input);
-            formCheck.appendChild(label);
-            body.appendChild(formCheck);
-        });
-
-        collapse.appendChild(body);
-        item.appendChild(collapse);
-        accordion.appendChild(item);
-        index++;
-    };
-
-    body.appendChild(accordion);
-    card.appendChild(body);
     carousel.appendChild(card);
     carousel.click();
     return card;
@@ -1774,7 +1861,7 @@ class Carousel {
   async initializeProblems() {
     try {
       this.problemsList = await getProblems();
-      this.totalSlides = this.problemsList.length;
+      this.totalSlides = this.problemsList.length;  
       this.updateDisplay();
     } catch (error) {
       console.error('Error loading problems:', error);
@@ -1953,6 +2040,7 @@ function setSystemTheme() {
     prefersDark.addEventListener('change', updateTheme);
 }
 
+
 // Inizializza quando il DOM è caricato
 document.addEventListener('DOMContentLoaded', () => {
     // Imposta il tema iniziale basato sulle preferenze di sistema
@@ -1964,4 +2052,48 @@ document.addEventListener('DOMContentLoaded', () => {
         const isDark = root.getAttribute('data-theme') === 'light';
         setTheme(isDark);
     });
+/*
+    createChainCard(
+  true,
+  "Catena 5564",
+  {
+    "unique_id": "17422966096088_1746629662875",
+    "rules": [
+      {
+        "id": "17422966096088",
+        "name": "Accendi aria condizionata quando è caldo",
+        "description": "Event: quando è caldo Condition: se piove Action: accendi aria condizionata "
+      },
+      {
+        "id": "1746629662875",
+        "name": "Spengi aria condizionata quando è caldo",
+        "description": "Event: quando sono le 9 Condition: se sono le 09:00 Action: spegni aria condizionata "
+      }
+    ],
+    "possibleSolutions": {
+      "description": "Questo testo rappresenta una descrizione generale della catena e delle possibili soluzioni.",
+      "recommendations": {
+        "17422966096088": {
+          "alternatives": [
+            {
+              "structured": "Event: Temperature rises above 26°C (sensor.temperatura_salotto_temperature) Condition: Presenza Salotto is ON (binary_sensor.presenza_salotto) Action: Turn ON aria condizionata (fan.aria_condizionata).",
+              "natural_language": "When the living room temperature rises above 26°C and someone is present in the living room, turn on the air conditioner."
+            }
+          ]
+        },
+        "1746629662875": {
+          "alternatives": [
+            {
+              "structured": "Event: Temperature drops below 24°C (sensor.temperatura_salotto_temperature) Action: Turn OFF aria condizionata (fan.aria_condizionata).",
+              "natural_language": "When the living room temperature drops below 24°C, turn off the air conditioner."
+            }
+          ]
+        }
+      }
+    },
+    "type": "direct-chain",
+    "chain_variable": "humidity"
+  }
+);*/
+
 });

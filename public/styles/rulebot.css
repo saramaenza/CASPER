@@ -28,7 +28,7 @@
   --shadow-input-focus: 0 0 10px #0066ff9e;
   --circle-number: #80d6bb;
   --selector-hover: #0066ff1a;
-  --scroolbar-thumb-hover: #53535314;
+  --scroolbar-thumb-hover: #bdbdbd14;
   --bg-botMsg: #ffffffe6;
 } 
 
@@ -467,6 +467,9 @@ body{
 .conflict-icon-td {
   width: 10%;
 }
+.conflict_rappresentation_containers {
+  width: 100%;
+}
 .conflict_rappresentation_containers i, .conflict-diagram i {
   font-size: 12px;
 }
@@ -527,6 +530,10 @@ body{
   align-items: center;
   justify-content: center;
   font-size: 20px;
+}
+
+.card-icon img {
+  width: 30px;
 }
 
 .card-icon.light {
