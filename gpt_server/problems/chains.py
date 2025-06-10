@@ -30,14 +30,6 @@ class ChainsDetector:
     #         # Log error or raise
     #         return []
 
-    def _load_devices_variables(self) -> Dict[str, Any]:
-        # with open('C:\\LaboratorySite\\www\\demo\\explaintap\\main\\list_devices_variables.json', 'r') as file:
-        with open('list_devices_variables.json', 'r') as file:
-            return json.load(file)
-        
-    
-    
-  
     # Search for the entity ID of the automation based on the ID of the automation's 'attributes' element
     # This function operates on data that might come from get_all_states.
     # Consider if it should be a static method or if 'data' should be fetched internally.
@@ -133,7 +125,7 @@ class ChainsDetector:
     def get_context_variables(self, action_domain: str, event_type: str) -> OrderedDict:
         domain_data = self.list_devices_variables.get("list_of_domains", {}).get(action_domain, {})
         for item in domain_data.get("possibleValues", []):
-            if item.get("value") == event_type:
+            if self.check_operator(item.get("value"), event_type):
                 return OrderedDict([
                     ("decrease", item.get("decrease_variable", [])),
                     ("increase", item.get("increase_variable", []))
@@ -229,13 +221,12 @@ class ChainsDetector:
                                action1_details: Dict[str, Any],
                                 rule1_name: str, id_automation1: str,
                                rule2_entity_id: str):
-        
-        type_action1 = action1_details['type_action']
+        type_action1 = action1_details['type_action'].split('.')[-1] if '.' in action1_details['type_action'] else action1_details['type_action']
         domain1 = action1_details['domain']
 
         if not domain1: # domain1 is essential for get_context_variables
             return
-
+        type_action1 = self.get_event_type(action1_details)  
         context_var_action = self.get_context_variables(domain1, type_action1)
         
         trigger2_list = rule2.get("triggers", []) or rule2.get("trigger", [])
@@ -269,6 +260,7 @@ class ChainsDetector:
                                 "type": "indirect-chain",
                                 "unique_id": unique_id_chain,
                                 "chain_variable": variable, 
+                                "increase_decrease": variables_type, # e.g., "increase" or "decrease"
                                 "rules": [
                                     {
                                         "id": id_automation1,

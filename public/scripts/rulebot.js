@@ -1213,7 +1213,7 @@ function printUserProblems(problemsList) {
             problem
           )
         }
-        else if (problem['type'].split('-')[0] == 'chain'){
+        else if (problem['type'].split('-')[1] == 'chain'){
           createChainCard(
             index == 0,
             `Catena ${problem['id']}`,
@@ -2091,7 +2091,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
     },
-    "type": "direct-chain",
+    "type": "indirect-chain",
     "chain_variable": "humidity"
   }
 );*/
