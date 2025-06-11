@@ -1562,6 +1562,7 @@ function createChainCard(isActive, headerText, chainInfo) {
 function createConflictCard(isActive, headerText, conflictInfo) {
     const regex = /^event(?:s|o|i)?:\s*(?<event>.*?)(?:\s*(?:condition(?:s)?|condizion(?:e|i)):\s*(?<condition>.*?))?\s*(?:action(?:s)?|azion(?:i|e)):\s*(?<action>.*)$/i;
 
+    // Estrai le informazioni delle regole
     const rule_1 = conflictInfo['rules'][0];
     const rule1_id = rule_1['id'];
     const rule1_name = rule_1['name'];
@@ -1578,10 +1579,8 @@ function createConflictCard(isActive, headerText, conflictInfo) {
     temp_mapping.set(rule1_id, rule_1);
     temp_mapping.set(rule2_id, rule_2);
 
+    type_of_conflict = conflictInfo['tag'];
 
-    type_of_conflict = conflictInfo['tag']; 
-
-    //if (rule1_match && rule1_match.groups && rule2_match && rule2_match.groups) {}
     if (!rule1_match?.groups || !rule2_match?.groups) {
         console.warn('Invalid rule format detected');
         return null;
@@ -1607,7 +1606,7 @@ function createConflictCard(isActive, headerText, conflictInfo) {
     problemIcon.className = "problem-icon";
     problemIcon.textContent = "⚠️";
 
-    // Problem content
+    // Problem content 
     const problemContent = document.createElement("div");
     problemContent.className = "problem-content";
 
@@ -1621,7 +1620,6 @@ function createConflictCard(isActive, headerText, conflictInfo) {
 
     problemContent.appendChild(problemTitle);
     problemContent.appendChild(problemId);
-
     cardHeader.appendChild(problemIcon);
     cardHeader.appendChild(problemContent);
 
@@ -1639,174 +1637,138 @@ function createConflictCard(isActive, headerText, conflictInfo) {
     const conflictDiagram = document.createElement("div");
     conflictDiagram.className = "conflict-diagram";
 
-    const rule1Match = rule1_description.match(regex);
-
     // TABELLA CONFLITTO
     const conflictTable = document.createElement("table");
     conflictTable.className = "conflict_rappresentation_containers";
     conflictTable.style.width = "100%";
     conflictTable.style.borderCollapse = "collapse";
+    conflictTable.style.tableLayout = "fixed";
+
+ 
 
     if(type_of_conflict.includes("same_event")){
-      // Titolo diagramma
-      const diagramTitle = document.createElement("div");
-      diagramTitle.className = "diagram-title";
-      // Mostra l'evento in comune (es: "quando il forno viene spento")
+        // Titolo diagramma
+        const diagramTitle = document.createElement("div");
+        diagramTitle.className = "diagram-title";
+        let eventText = "";
+        if (rule1_match.groups && rule1_match.groups.event) {
+            eventText = rule1_match.groups.event.trim().replace(/\.$/, '');
+        }
+        diagramTitle.textContent = eventText ? eventText : "Evento in comune:";
+        conflictDiagram.appendChild(diagramTitle);
+        
+        if(type_of_conflict === "same_event_same_conditions") { 
+            const conditionBox1 = document.createElement("div");
+            conditionBox1.className = "same-condition-box";
+            let condition1 = `${rule1.condition}` || "";
+            conditionBox1.textContent = `${condition1}`;
+            conflictDiagram.appendChild(conditionBox1);
+        }
 
-      let eventText = "";
-      if (rule1Match && rule1Match.groups && rule1Match.groups.event) {
-          eventText = rule1Match.groups.event.trim();
-      }
-      diagramTitle.textContent = eventText ? eventText + "" : "Evento in comune:";
-      conflictDiagram.appendChild(diagramTitle);
-      
-      if(type_of_conflict === "same_event_same_conditions") { 
-        // RIGA CONDIZIONI
-        const conditionBox1 = document.createElement("div");
-        conditionBox1.className = "same-condition-box";
-        let condition1 = `${rule1.condition}` || "";
-        conditionBox1.textContent = `${condition1}`;
-        conflictDiagram.appendChild(conditionBox1);
-      }
-
-      if(type_of_conflict === "same_event_different_conditions") { 
-        // RIGA CONDIZIONI
-        const row_condition = document.createElement("tr");
-
-        // Condition box 1
-        const td1_condition = document.createElement("td");
-        const conditionBox1 = document.createElement("div");
-        conditionBox1.className = "condition-box";
-        let condition1 = rule1.condition || "Nessuna Condizione";
-        conditionBox1.textContent = condition1;
-        td1_condition.appendChild(conditionBox1);
-
-        const td2_condition = document.createElement("td");
-
-        // Condition box 2
-        const td3_condition = document.createElement("td");
-        const conditionBox2 = document.createElement("div");
-        conditionBox2.className = "condition-box";
-        let condition2 = rule2.condition || "Nessuna Condizione";
-        conditionBox2.textContent = condition2;
-        td3_condition.appendChild(conditionBox2);
-
-        row_condition.appendChild(td1_condition);
-        row_condition.appendChild(td2_condition);
-        row_condition.appendChild(td3_condition);
-        conflictTable.appendChild(row_condition);
-      }
+        if(type_of_conflict === "same_event_different_conditions") { 
+            const row_condition = document.createElement("tr");
+            
+            // Condition boxes
+            for(let i = 0; i < 3; i++) {
+                const td = document.createElement("td");
+                if(i === 0) {
+                    const conditionBox1 = document.createElement("div");
+                    conditionBox1.className = "condition-box";
+                    conditionBox1.textContent = rule1.condition || "Nessuna Condizione";
+                    td.appendChild(conditionBox1);
+                } else if(i === 2) {
+                    const conditionBox2 = document.createElement("div");
+                    conditionBox2.className = "condition-box";
+                    conditionBox2.textContent = rule2.condition || "Nessuna Condizione";
+                    td.appendChild(conditionBox2);
+                }
+                row_condition.appendChild(td);
+            }
+            conflictTable.appendChild(row_condition);
+        }
     } else {
-      // RIGA EVENTI
-      const row_events = document.createElement("tr");
+        // RIGA EVENTI
+        const row_events = document.createElement("tr");
+        
+        // Celle eventi
+        for(let i = 0; i < 3; i++) {
+            const td = document.createElement("td");
+            if(i === 0) {
+                td.innerHTML = `<div class="box-event">${rule1.event}</div>`;
+            } else if(i === 2) {
+                td.innerHTML = `<div class="box-event">${rule2.event}</div>`;
+            }
+            row_events.appendChild(td);
+        }
+        conflictTable.appendChild(row_events);
 
-      // CELLA EVENTO 1
-      const td1_event = document.createElement("td");
-      td1_event.innerHTML = `<div class="box-event">${rule1.event}</div>`;
-
-
-      const td2_event = document.createElement("td");
-
-      // CELLA EVENTO 2
-      const td3_event = document.createElement("td");
-      td3_event.innerHTML = `<div class="box-event">${rule2.event}</div>`;
-
-      row_events.appendChild(td1_event);
-      row_events.appendChild(td2_event);
-      row_events.appendChild(td3_event);
-      conflictTable.appendChild(row_events);
-
-      if(type_of_conflict === "different_event_different_conditions" || type_of_conflict === "different_event_same_conditions") {
-        // RIGA CONDIZIONI
-        const row_condition = document.createElement("tr");
-
-        // Condition box 1
-        const td1_condition = document.createElement("td");
-        const conditionBox1 = document.createElement("div");
-        conditionBox1.className = "condition-box";
-        let condition1 = `${rule1.condition}` || "";
-        conditionBox1.innerHTML = `${condition1}`;
-        td1_condition.appendChild(conditionBox1);
-
-        const td2_condition = document.createElement("td");
-
-        // Condition box 2
-        const td3_condition = document.createElement("td");
-        const conditionBox2 = document.createElement("div");
-        conditionBox2.className = "condition-box";
-        let condition2 = `${rule2.condition}` || "";
-        conditionBox2.innerHTML = `${condition2}`;
-        td3_condition.appendChild(conditionBox2);
-
-        row_condition.appendChild(td1_condition);
-        row_condition.appendChild(td2_condition);
-        row_condition.appendChild(td3_condition);
-        conflictTable.appendChild(row_condition);
-      }
-
-
+        if(type_of_conflict === "different_event_different_conditions" || 
+           type_of_conflict === "different_event_same_conditions") {
+            const row_condition = document.createElement("tr");
+            
+            // Celle condizioni
+            for(let i = 0; i < 3; i++) {
+                const td = document.createElement("td");
+                if(i === 0) {
+                    const conditionBox1 = document.createElement("div");
+                    conditionBox1.className = "condition-box";
+                    conditionBox1.innerHTML = `${rule1.condition}` || "";
+                    td.appendChild(conditionBox1);
+                } else if(i === 2) {
+                    const conditionBox2 = document.createElement("div");
+                    conditionBox2.className = "condition-box";
+                    conditionBox2.innerHTML = `${rule2.condition}` || "";
+                    td.appendChild(conditionBox2);
+                }
+                row_condition.appendChild(td);
+            }
+            conflictTable.appendChild(row_condition);
+        }
     }
 
     // RIGA AZIONI
     const row_action = document.createElement("tr");
-
-    // Action box 1
-    const td1_action = document.createElement("td");
-    const actionBox1 = document.createElement("div");
-    actionBox1.className = "action-box";
-    let action1 = "";
-    let action1Small = "";
-    if (rule1Match && rule1Match.groups && rule1Match.groups.action) {
-        action1 = rule1Match.groups.action.trim();
+    
+    // Celle azioni
+    for(let i = 0; i < 3; i++) {
+        const td = document.createElement("td");
+        if(i === 0) {
+            const actionBox1 = document.createElement("div");
+            actionBox1.className = "action-box";
+            actionBox1.innerHTML = rule1_match.groups.action?.trim().replace(/\.$/, '') || "";
+            td.appendChild(actionBox1);
+        } else if(i === 1) {
+            const conflictIcon = document.createElement("div");
+            conflictIcon.className = "conflict-icon";
+            conflictIcon.textContent = "💥";
+            td.appendChild(conflictIcon);
+        } else {
+            const actionBox2 = document.createElement("div");
+            actionBox2.className = "action-box";
+            actionBox2.innerHTML = rule2_match.groups.action?.trim().replace(/\.$/, '') || "";
+            td.appendChild(actionBox2);
+        }
+        row_action.appendChild(td);
     }
-    actionBox1.innerHTML = `${action1}`;
-    td1_action.appendChild(actionBox1);
-
-    // Conflict icon
-    const td2_action = document.createElement("td");
-    const conflictIcon = document.createElement("div");
-    conflictIcon.className = "conflict-icon";
-    conflictIcon.textContent = "💥"; // ⚡
-    td2_action.appendChild(conflictIcon);
-
-    // Action box 2
-    const td3_action = document.createElement("td");
-    const rule2Match = rule2_description.match(regex);
-    const actionBox2 = document.createElement("div");
-    actionBox2.className = "action-box";
-    let action2 = "";
-    let action2Small = "";
-    if (rule2Match && rule2Match.groups && rule2Match.groups.action) {
-        action2 = rule2Match.groups.action.trim();
-        action2Small = rule2_name;
-    }
-    //actionBox2.innerHTML = `${action2}<br><small>${action2Small}</small>`;
-    actionBox2.innerHTML = `${action2}`;
-    td3_action.appendChild(actionBox2);
-
-    row_action.appendChild(td1_action);
-    row_action.appendChild(td2_action);
-    row_action.appendChild(td3_action);
     conflictTable.appendChild(row_action);
 
     // RIGA NOMI AUTOMAZIONI
     const row_names = document.createElement("tr");
-
-    const td1_name = document.createElement("td");
-    td1_name.innerHTML = `<i>${rule1_name}</i>`;
-    row_names.appendChild(td1_name);
-
-    const td2_name = document.createElement("td");
-    row_names.appendChild(td2_name);
-
-    const td3_name = document.createElement("td");
-    td3_name.innerHTML = `<i>${rule2_name}</i>`;
-    row_names.appendChild(td3_name);
-
+    for(let i = 0; i < 3; i++) {
+        const td = document.createElement("td");
+        if(i === 0) {
+            td.innerHTML = `<i>${rule1_name}</i>`;
+        } else if(i === 2) {
+            td.innerHTML = `<i>${rule2_name}</i>`;
+        }
+        row_names.appendChild(td);
+    }
     conflictTable.appendChild(row_names);
+    
+    // Assembla il diagramma
     conflictDiagram.appendChild(conflictTable);
     cardBody.appendChild(conflictDiagram);
-  
+
     // TITOLO SOLUZIONI
     const title = document.createElement("p");
     title.className = "card-title";
@@ -1817,6 +1779,8 @@ function createConflictCard(isActive, headerText, conflictInfo) {
     const accordion = document.createElement("div");
     accordion.className = "accordion stay-open";
     let index = 0;
+    
+    // Aggiungi le raccomandazioni
     const recommendations = conflictInfo["possibleSolutions"]["recommendations"];
     for (let automationID in recommendations) {
         const item = document.createElement("div");
@@ -1884,7 +1848,6 @@ function createConflictCard(isActive, headerText, conflictInfo) {
     actionButtons.appendChild(ignoreButton);
     actionButtons.appendChild(solveButton);
     cardBody.appendChild(actionButtons);
-    
 
     // ASSEMBLA TUTTO
     cardContainer.appendChild(cardHeader);
@@ -1892,6 +1855,7 @@ function createConflictCard(isActive, headerText, conflictInfo) {
     card.appendChild(cardContainer);
     carousel.appendChild(card);
     carousel.click();
+    
     return card;
 }
 
