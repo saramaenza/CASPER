@@ -19,11 +19,11 @@
     },
     {
         "name": "africa",
-        "base_url": "http://africa.isti.cnr.it",
+        "base_url": "https://africa.isti.cnr.it",
         "cert_path": "C:/Certbot/live/africa.isti.cnr.it/cert.pem",
         "key_path": "C:/Certbot/live/africa.isti.cnr.it/privkey.pem",
         "fullchain_path": "C:/Certbot/live/africa.isti.cnr.it/chain.pem",
-        "port": "8888",
+        "port": "443",
         "db_name": "casper"
     },
     {

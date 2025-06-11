@@ -230,3 +230,25 @@ def remove_tmp_data(user_id):
         print(e)
         print("----------------")
         return e
+
+def get_credentials(user_id):
+    """
+    Restituisce le credenziali dell'utente specificato.
+    """
+    try:
+        collection = db["config"]
+        auth = collection.find_one({"user_id": user_id})
+        if auth is not None:
+            return {
+                "url": auth['auth']['url'],
+                "key": auth['auth']['token']
+            }
+        else:
+            return None
+    except Exception as e:
+        print("--> Get Credentials Error <--")
+        print(user_id)
+        print(e)
+        print("----------------")
+        return None
+

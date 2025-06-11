@@ -2,7 +2,7 @@ from typing import List
 import requests
 import json
 import os
-from datetime import datetime
+import datetime
 from langchain_core.tools import InjectedToolArg, tool
 from langchain_core.messages import HumanMessage, SystemMessage
 from typing_extensions import Annotated, TypedDict
@@ -14,8 +14,8 @@ import db_functions as _db
 import utils
 from detect_problem import problem_detector
 
-url = os.environ["HASS_URL"]
-key = os.environ["HASS_API_KEY"]
+#url = os.environ["HASS_URL"]
+#key = os.environ["HASS_API_KEY"]
 
 
 class Command(TypedDict):
@@ -37,11 +37,12 @@ def do_instant_actions(
             - body: A dictionary containing the request body parameters. If provided as a JSON string, it will be loaded.
     """
     try:
+        auth = _db.get_credentials(user_id)
         utils.update_chat_state(action="add-state", state="Eseguo azioni", session_id=session_id, user_id=user_id, id='do-instant-action')
-        headers = {'Content-Type': 'application/json', 'Authorization': f"Bearer {key}"}
+        headers = {'Content-Type': 'application/json', 'Authorization': f"Bearer {auth['key']}"}
         responses = []
         for item in commands:
-            endpoint = url + item['endpoint']
+            endpoint = auth['url'] + item['endpoint']
             body = item['body'] if isinstance(item['body'], dict) else json.loads(item['body'])
             response = requests.post(endpoint, json=body, headers=headers)
             responses.append({
@@ -71,7 +72,7 @@ def generate_automation(
     utils.update_chat_state(action="add-state", state="Genero l'automazione", session_id=session_id, user_id=user_id, id='generate-automation')
     formatted_prompt = prompts.automation_generator.format(
         home_devices=_db.get_devices(user_id),
-        time_date= datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        time_date= datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     )
     messages = [
     SystemMessage(formatted_prompt),
@@ -166,6 +167,43 @@ def get_problem(
 
 
 
+@tool()
+def get_entity_log(
+    user_id: Annotated[str, InjectedToolArg],
+    session_id: Annotated[str, InjectedToolArg],
+    entity_id: Annotated[list[str], "The ID or IDs of the entity(ies) to retrieve the log for."],
+    period: Annotated[int, "The period to retrieve the log for in hours. Minimum 1 hour, maximum 24 hours."] = 2,
+) -> str:
+    """
+    Get the log of the specified entity(ies) for the given period (optional, default 2 hours).
+    """
+    try:
+        utils.update_chat_state(action="add-state", state="Recupero i log...", session_id=session_id, user_id=user_id, id='get-entity-log')
+        credentials = _db.get_credentials(user_id)
+        if not credentials:
+            utils.update_chat_state(action="error-state", state="Credenziali non trovate", session_id=session_id, user_id=user_id, id='get-entity-log')
+            return "Credenziali non trovate. Assicurati di aver configurato correttamente il tuo account."
+        url = credentials['url']
+        key = credentials['key']
+        now = (datetime.datetime.now() - datetime.timedelta(hours=period)).strftime("%Y-%m-%dT%H:%M:%S+02:00")
+        formatted_period = requests.utils.quote(now)
+        formatted_now = requests.utils.quote(now)
+        response = requests.get(
+            f"{url}/api/history/period/{formatted_period}?end_time={formatted_now}&filter_entity_id={','.join(entity_id)}&minimal_response&no_attributes",
+            headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"}
+        )
+        if response.status_code != 200:
+            utils.update_chat_state(action="error-state", state="Errore durante il recupero del log", session_id=session_id, user_id=user_id, id='get-entity-log')
+            return f"Errore durante il recupero del log: {response.status_code} - {response.text}"
+        logs = response.json()
+        if not logs:
+            utils.update_chat_state(action="confirm-state", state="Nessun log trovato per l'entità specificata", session_id=session_id, user_id=user_id, id='get-entity-log')
+            return "Nessun log trovato per l'entità specificata."
+        utils.update_chat_state(action="confirm-state", state="Log recuperati con successo", session_id=session_id, user_id=user_id, id='get-entity-log')
+        return f"{logs}"
+    except Exception as e:
+        utils.update_chat_state(action="error-state", state="Errore durante il recupero del log", session_id=session_id, user_id=user_id, id='get-entity-log')
+        return f"Errore durante il recupero del log: {e}"
 
 
 
@@ -174,16 +212,17 @@ def get_problem(
 
 
 #### Deprecated functions
+"""
 @tool()
 def conflict_check(
     automation_id: Annotated[str, "The ID of the automation to check"],
     user_id: Annotated[str, InjectedToolArg],
     session_id: Annotated[str, InjectedToolArg]
 ) -> str:
-    """
-    Check if the automation has any conflicts or activation chains with other automations.
-    This is a mandatory step before saving the automation.
-    """
+    
+    #Check if the automation has any conflicts or activation chains with other automations.
+    #This is a mandatory step before saving the automation.
+    
     try:
         utils.update_chat_state(action="add-state", state="Controllo conflitti e catene", session_id=session_id, user_id=user_id, id='conflict-check')
         data = _db.get_tmp_data(user_id)
@@ -224,10 +263,10 @@ def energy_check(
     user_id: Annotated[str, InjectedToolArg],
     session_id: Annotated[str, InjectedToolArg]
 ) -> str:
-    """
-    Check if the automation has any energy consumption issues.
-    This is a mandatory step before saving the automation.
-    """
+   
+    #Check if the automation has any energy consumption issues.
+    #This is a mandatory step before saving the automation.
+  
     try:
         utils.update_chat_state(action="add-state", state="Controllo problemi energetici", session_id=session_id, user_id=user_id, id='energy-check')
         data = _db.get_tmp_data(user_id)
@@ -260,10 +299,10 @@ def save_automation(
     user_id: Annotated[str, InjectedToolArg],
     session_id: Annotated[str, InjectedToolArg]
 ) -> str:
-    """
-    Save the automation in the database.
-    This function should be called after the checks are done and the automation is ready to be saved.
-    """
+  
+    #Save the automation in the database.
+    #This function should be called after the checks are done and the automation is ready to be saved.
+
     try:
         utils.update_chat_state(action="add-state", state="Salvo l'automazione", session_id=session_id, user_id=user_id, id='save-automation')
         data = _db.get_tmp_data(user_id)
@@ -285,3 +324,4 @@ def save_automation(
         return f"Errore durante il salvataggio dell'automazione: {e}"
 
 
+"""
