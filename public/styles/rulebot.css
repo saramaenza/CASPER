@@ -352,7 +352,6 @@ body{
   align-items: center;
   gap: 12px; 
   margin-bottom: 1px;
-  cursor: pointer;
   transition: all 0.15s;
   border-radius: 6px;
   padding: 8px 12px;
@@ -645,6 +644,7 @@ body{
   overflow: hidden;
   margin-bottom: 5px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  cursor: pointer;
 }
 
 .category-title::before {
@@ -2036,7 +2036,19 @@ td {
     }
   }
 
-@media (max-width: 1280px) {
+@media (max-width: 1470px) {
+  #rules-buttons-container {
+      flex-direction: column;
+      gap: 8px;
+      align-items: center;
+  }
+  #rules-buttons-container .selector-button {
+      width: 93%;
+      justify-content: center;
+  }
+}
+
+@media (max-width: 1250px) {
   .id_badge {
     width: 30%;
   }
@@ -2095,14 +2107,3 @@ td {
   }
 }
 
-@media (max-width: 1200px) {
-    #rules-buttons-container {
-        flex-direction: column;
-        gap: 8px;
-        align-items: center;
-    }
-    #rules-buttons-container .selector-button {
-        width: 93%;
-        justify-content: center;
-    }
-}

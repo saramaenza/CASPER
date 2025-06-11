@@ -823,7 +823,7 @@ async function printUserDevices(devicesList) {
  
 }
 
-function getIcon(name, type = 'variable') {
+function getIcon(name, type) {
     // Convert to lowercase for case-insensitive comparison
     const text = name.toLowerCase();
     // Room specific icons
@@ -1423,6 +1423,14 @@ function createChainCard(isActive, headerText, chainInfo) {
 
     // Populate variable card if indirect chain
     if(chainInfo.type == "indirect-chain") {
+        const variableTranslations = {
+          'temperature': 'temperatura',
+          'humidity': 'umidità',
+          'illuminance': 'illuminazione',
+          'sound_pressure': 'rumore',
+          'aqi': 'qualità aria',
+          'energy': 'energia'
+        };
         const variableIcon = document.createElement("div");
         variableIcon.className = "card-icon";
         variableIcon.textContent = getIcon(chainInfo.chain_variable, 'variable');
@@ -1431,7 +1439,8 @@ function createChainCard(isActive, headerText, chainInfo) {
         variableName.className = "card-chain-variable";
         // Aggiungi una freccia in base al tipo di effetto
         const symbol = chainInfo.effect_type === "increase" ? "<span class='plus'>+</span>" : "<span class='minus'>-</span>";
-        variableName.innerHTML = `${symbol} ${chainInfo.chain_variable}`;
+        const translatedVariable = variableTranslations[chainInfo.chain_variable] || chainInfo.chain_variable;
+        variableName.innerHTML = `${symbol} ${translatedVariable}`;
 
         variableCard.appendChild(variableIcon);
         variableCard.appendChild(variableName);
