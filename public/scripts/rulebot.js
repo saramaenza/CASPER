@@ -560,12 +560,6 @@ function getAutomationIconInfo(automation) {
       text = (groups.action).toLowerCase();
     }
     
-    if (text.includes("movimento") || text.includes("motion")) {
-        return {
-            icon: "🏃",
-            className: "motion-icon"
-        };
-    }
     if (text.includes("luce") || text.includes("light") || text.includes("lampadina")) {
         return {
             icon: "💡",
@@ -584,22 +578,100 @@ function getAutomationIconInfo(automation) {
             className: "corridor-icon"
         };
     }
-    if (text.includes("ventilatore") || text.includes("fan")) {
+    if (text.includes("ventilatore") || text.includes("fan") || text.includes("purificatore") || text.includes("air purifier")) {
         return {
             icon: "💨",
             className: "living-icon"
-        };
-    }
-    if (text.includes("pioggia") || text.includes("rain") || text.includes("weather")) {
-        return {
-            icon: "🌧️",
-            className: "bathroom-icon"
         };
     }
     if(text.includes("aria condizionata") || text.includes("air conditioning") || text.includes("ac")) {
         return {
             icon: "❄️",
             className: "ac-icon"
+        };
+    }
+    if (text.includes("lavatrice") || text.includes("washing machine")) {
+        return {
+            icon: "🧺",
+            className: "washer-icon"
+        };
+    }
+    if (text.includes("lavastoviglie") || text.includes("dishwasher")) {
+        return {
+            icon: "🍽️",
+            className: "dishwasher-icon"
+        };
+    }
+    if (text.includes("asciugatrice") || text.includes("dryer")) {
+        return {
+            icon: "👕",
+            className: "dryer-icon"
+        };
+    }
+    if (text.includes("computer") || text.includes("pc") || text.includes("laptop")) {
+        return {
+            icon: "💻",
+            className: "computer-icon"
+        };
+    }
+    if (text.includes("frigo") || text.includes("frigorifero") || text.includes("refrigerator")) {
+        return {
+            icon: "🧊",
+            className: "fridge-icon"
+        };
+    }
+    if (text.includes("tv") || text.includes("televisione") || text.includes("television")) {
+        return {
+            icon: "📺",
+            className: "tv-icon"
+        };
+    }
+    if (text.includes("termostato") || text.includes("thermostat")) {
+        return {
+            icon: "🌡️",
+            className: "thermostat-icon" 
+        };
+    }
+    if (text.includes("altoparlante") || text.includes("speaker") || text.includes("audio")) {
+        return {
+            icon: "🔈",
+            className: "speaker-icon"
+        };
+    }
+    if (text.includes("telecamera") || text.includes("camera")) {
+        return {
+            icon: "📹",
+            className: "camera-icon"
+        };
+    }
+    if (text.includes("allarme") || text.includes("alarm")) {
+      return {
+          icon: "🚨",
+          className: "alarm-icon"
+      };
+    }
+    if (text.includes("irrigazione") || text.includes("irrigation") || text.includes("sprinkler")) {
+        return {
+            icon: "💧",
+            className: "irrigation-icon"
+      };
+    }
+    if (text.includes("campanello") || text.includes("doorbell")) {
+        return {
+            icon: "🔔",
+            className: "doorbell-icon"
+        };
+    }
+    if (text.includes("cancello") || text.includes("gate")) {
+        return {
+            icon: "🔐",
+            className: "gate-icon"
+        };
+    }
+    if (text.includes("presa") || text.includes("plug") || text.includes("socket")) {
+        return {
+            icon: "🔌",
+            className: "plug-icon"
         };
     }
     // Default
@@ -754,18 +826,6 @@ async function printUserDevices(devicesList) {
 function getIcon(name, type = 'variable') {
     // Convert to lowercase for case-insensitive comparison
     const text = name.toLowerCase();
-    
-    // Common patterns for both types
-    if (text.includes('temperatura') || text.includes('temperature') || text.includes('climate')) {
-        return '🌡️';
-    }
-    if (text.includes('luce') || text.includes('light')) {
-        return '💡';
-    }
-    if (text.includes('pioggia') || text.includes('rain') || text.includes('weather')) {
-        return '🌧️';
-    }
-
     // Room specific icons
     if (type === 'room') {
         if (text.includes("cucina") || text.includes("kitchen")) {
@@ -780,7 +840,7 @@ function getIcon(name, type = 'variable') {
         if (text.includes("salotto") || text.includes("living")) {
             return "🛋️";
         }
-        if (text.includes("studio") || text.includes("office")) {
+        if (text.includes("studio") || text.includes("office") || text.includes("ufficio")) {
             return "💼";
         }
         if (text.includes("garage")) {
@@ -803,6 +863,9 @@ function getIcon(name, type = 'variable') {
 
     // Variable specific icons
     if (type === 'variable') {
+        if (text.includes('temperatura') || text.includes('temperature') || text.includes('climate')) {
+            return '🌡️';
+        }
         if (text.includes('umidità') || text.includes('humidity')) {
             return '💧';
         }
@@ -815,14 +878,14 @@ function getIcon(name, type = 'variable') {
         if (text.includes('presenza') || text.includes('presence')) {
             return '👤';
         }
-        if (text.includes('porta') || text.includes('door')) {
-            return '🚪';
-        }
-        if (text.includes('finestra') || text.includes('window')) {
-            return '🪟'; //TODO: sistema
-        }
         if (text.includes("rumore") || text.includes("sound_pressure")){
           return '🔊';
+        }
+        if (text.includes("aqi") || text.includes("qualità dell'aria") || (text.includes("air quality index"))){
+          return '🌫️';
+        }
+        if (text.includes("energy") || text.includes("energia")){
+          return '⚡';
         }
         return '📊'; // Default variable icon
     }
