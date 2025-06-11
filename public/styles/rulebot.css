@@ -1681,6 +1681,15 @@ td {
       inset -1px -1px 5px rgba(200, 200, 200, 0.2);
 }
 
+.problem-icon img,
+.conflict-icon img,
+.automation-icon img {
+    height: 1em;
+    width: 1em;
+    margin: 0 .05em 0 .1em;
+    vertical-align: -0.1em;
+}
+
 .sun-icon, .moon-icon {
   position: absolute;
   transition: all 0.3s ease;
@@ -1747,6 +1756,9 @@ td {
       inset 5px 5px 10px rgba(0, 0, 0, 0.4),
       inset -5px -5px 10px rgba(70, 70, 120, 0.3),
       0 8px 25px rgba(0, 0, 0, 0.4);
+}
+.logout-btn {
+  padding: 8px 15px;
 }
 .logout-btn:hover {
     background: rgba(255, 71, 87, 0.2);
