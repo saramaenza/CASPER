@@ -1927,7 +1927,7 @@ td {
     font-family: 'Nunito', sans-serif;
 }
 
-.confirm-btn.no {
+.confirm-btn.no, .confirm-btn.ok {
     background: var(--bg-primary);
     color: var(--text-primary);
     border: 1px solid var(--border-color);
@@ -1935,7 +1935,7 @@ td {
 }
 
 .confirm-btn:hover {
-    transform: translateY(-1px);
+    transform: scale(1.05);
 }
 
 /* Modern Scrollbar */

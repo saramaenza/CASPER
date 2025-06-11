@@ -414,7 +414,12 @@ async function printUserRule(rules) {
         // Toggle switch
         const toggleSwitch = document.createElement('div');
         toggleSwitch.className = `toggle-switch ${automationState}`; // aggiungi/rimuovi 'active' per stato ON/OFF
-        toggleSwitch.setAttribute('entity', element['alias'].toLowerCase().split(' ').join('_'));
+        toggleSwitch.setAttribute('entity', element['alias'].toLowerCase()
+          .replace(/°/g, 'deg')
+          .replace(/[^a-zA-Z0-9\s]/g, '_')
+          .split(' ')
+          .join('_')
+          .replace(/__/g, '_'));
         toggleSwitch.setAttribute('ruleid', element['id']);
         toggleSwitch.setAttribute('title', 'Accendi/Spegni Automazione');
 
@@ -529,9 +534,38 @@ async function printUserRule(rules) {
               this.getAttribute('entity')
             )
             if (toggleCall.status === "error") {
-              alert(`Errore durante il cambio di stato dell'automazione`);
+              // Crea l'overlay
+              const overlay = document.createElement('div');
+              overlay.className = 'overlay';
+
+              // Crea il dialog
+              const dialog = document.createElement('div');
+              dialog.className = 'confirm-dialog';
+              dialog.innerHTML = `
+                  <h3>Errore</h3>
+                  <p>Errore durante il cambio di stato dell'automazione</p>
+                  <div class="confirm-buttons">
+                      <button class="confirm-btn ok">OK</button>
+                  </div>
+              `;
+
+              overlay.appendChild(dialog);
+              document.body.appendChild(overlay);
+
+              // Gestisci il click sul bottone OK
+              const okButton = dialog.querySelector('.ok');
+              okButton.addEventListener('click', () => {
+                  // Aggiungi la classe fadeOut
+                  overlay.classList.add('fadeOut');
+                  
+                  // Rimuovi l'overlay dopo che l'animazione è completata
+                  setTimeout(() => {
+                      overlay.remove();
+                  }, 200); // Stesso tempo dell'animazione CSS
+              });
+              
               return;
-            }
+          }
             const state = toggleCall.state=="on" ? "active" : "";
             if (state === "active") {
               if (!this.classList.contains('active')) {
