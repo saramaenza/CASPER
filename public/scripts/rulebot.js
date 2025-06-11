@@ -34,6 +34,8 @@ let translateX = 0;
 const toggleSwitch = document.getElementById('toggleSwitch');
 const toggleBall = document.getElementById('toggleBall');
 
+let carouselObject = null
+
 // Immagine del profilo a pallina
 //const userProfile = document.querySelector('#profile');
 const initial = document.querySelector('#initial-name');
@@ -79,6 +81,7 @@ sse.addEventListener("message", async ({ data }) => {
     //message.state = []
     let problemsList = await getProblems()
     printUserProblems(problemsList);
+    carouselObject.update(problemsList);
   }
   else if (message.action == "ping") {
     console.log("Keep alive");
@@ -157,18 +160,17 @@ window.addEventListener('load', async ()=>{
   //problemList = await getData(`${getProblems}?id=${userId}`) //GET problemi
   let devicesList = await getData(`${getDevices}?id=${userId}`) //GET problemi
   //goalList = await getData(`${getGoals}?id=${userId}`) //GET goal
-  document.querySelector('#n_automations').innerText = rulesList.length;  // First call
+  
   entitiesStates = await getData(`${getEntitiesStates}?id=${userId}`) 
   // Updates every 60 seconds
   //setInterval(updateEntitiesStates, 60000);
 
   printUserRule(rulesList); //PRINT regole
-  document.querySelector('#n_devices').innerText = devicesList['selected'].length;
+  
   printUserDevices(devicesList); //PRINT devices
   let problemsList = await getProblems()
-  document.querySelector('#n_problems').innerText = problemsList.length || 0;
   printUserProblems(problemsList);
-  
+  carouselObject = new Carousel(problemsList)
   //open_delete_rule();
 
   if (lang == 'en'){
@@ -337,6 +339,7 @@ async function deleteAutomation(rule_id) {
   }
 
 async function printUserRule(rules) {
+  document.querySelector('#n_automations').innerText = rules.length;
   const rulesContainer = document.querySelector('#rules-container');
   rulesContainer.innerText = '';
 
@@ -682,6 +685,7 @@ function getAutomationIconInfo(automation) {
 }
 
 async function printUserDevices(devicesList) {
+  document.querySelector('#n_devices').innerText = devicesList['selected'].length;
   const devices = devicesList['selected'];
   const devicesContainer = document.querySelector('#devices-list-container');
 
@@ -1267,10 +1271,11 @@ function printUserProblems(problemsList) {
       `;
   } else {
     // Mostra i controlli e nascondi il messaggio
+      carousel.innerHTML = ''; // Pulisce il contenuto del carousel
       carouselControls.style.display = 'flex';
       carouselMessages.innerHTML = '';
       carouselMessages.style.display = 'none';
-
+      document.querySelector('#n_problems').innerText = problemsList.length || 0;
       for (const [index, problem] of problemsList.entries()){
         if (problem['type'] == 'conflict'){
           createConflictCard(
@@ -1560,6 +1565,7 @@ function createChainCard(isActive, headerText, chainInfo) {
 // diversi eventi, condizioni diverse ma sovrapponibili, azioni diverse --> different_event_different_conditions
 // diversi eventi, stesse condizioni, azioni diverse --> different_event_same_conditions
 function createConflictCard(isActive, headerText, conflictInfo) {
+
     const regex = /^event(?:s|o|i)?:\s*(?<event>.*?)(?:\s*(?:condition(?:s)?|condizion(?:e|i)):\s*(?<condition>.*?))?\s*(?:action(?:s)?|azion(?:i|e)):\s*(?<action>.*)$/i;
 
     // Estrai le informazioni delle regole
@@ -1887,7 +1893,7 @@ function toggleStayOpen(button) {
 
 // ===================== Carousel Control ======================= //
 class Carousel {
-  constructor() {
+  constructor(problemsList = null) {
       this.track = document.getElementById('carouselTrack');
       this.prevBtn = document.getElementById('prevBtn');
       this.nextBtn = document.getElementById('nextBtn');
@@ -1896,12 +1902,12 @@ class Carousel {
       this.totalSlides = 0;
 
       this.setupEventListeners();
-      this.init();
+      this.init(problemsList);
   }
 
-  async init() {
+  async init(problemsList) {
       try {
-          let problemsList = await getProblems();
+          //let problemsList = await getProblems();
           this.totalSlides = problemsList.length;
           this.updateDisplay();
           this.updateButtons();
@@ -1910,7 +1916,20 @@ class Carousel {
           this.totalSlides = 0;
       }
   }
+
+  update(problemsList) {
+      try {
+          //let problemsList = await getProblems();
+          this.totalSlides = problemsList.length;
+          this.updateDisplay();
+          this.updateButtons();
+      } catch (error) {
+          console.error('Error initializing carousel:', error);
+          this.totalSlides = 0;
+      }
+    }
   
+
   setupEventListeners() {
       this.prevBtn.addEventListener('click', () => this.prevSlide());
       this.nextBtn.addEventListener('click', () => this.nextSlide());
@@ -1973,7 +1992,6 @@ class Carousel {
   goToSlide(index) {
       this.currentSlide = index;
       this.updateDisplay();
-
   }
   
   updateDisplay() {
@@ -2005,11 +2023,7 @@ class Carousel {
   }
 
 }
-        
-// Initialize carousel when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-    new Carousel();
-});
+
 
 // Send button functionality
 document.querySelector('.inputButton').addEventListener('click', function() {

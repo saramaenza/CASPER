@@ -28,7 +28,7 @@ async function getEntities(baseUrl, token) {
         "  'df': device_friendly,",
         "  'dc': attrs.device_class if 'device_class' in attrs else None,",
         "  'desc': description,",
-        "  'unit': 'ppm (CO2)' if 'unit_of_measurement' in attrs and attrs.unit_of_measurement == 'ppm' else attrs.unit_of_measurement if 'unit_of_measurement' in attrs and attrs.unit_of_measurement else None,",
+        "  'unit': 'ppm (Co2)' if 'unit_of_measurement' in attrs and attrs.unit_of_measurement == 'ppm' else attrs.unit_of_measurement if 'unit_of_measurement' in attrs and attrs.unit_of_measurement else None,",
         "  'options': attrs.options if 'options' in attrs and attrs.options|length else None,",
         "  'mode': attrs.preset_modes if 'preset_modes' in attrs and attrs.preset_modes|length else None,",
         "  'effects': attrs.effect_list if 'effect_list' in attrs and attrs.effect_list|length else None,",
@@ -121,7 +121,7 @@ async function getAutomationsHA(baseUrl, token) {
 }
 
 async function postAutomationHA(baseUrl, token, automationId, configData) {
-    console.log(`Salvataggio dell'automazione su Home Assistant ${automationId} in corso...`);
+
     const headers = {
         "Authorization": `Bearer ${token}`,
         "Content-Type": "application/json"
@@ -136,7 +136,7 @@ async function postAutomationHA(baseUrl, token, automationId, configData) {
                 body: JSON.stringify(configData)
             }
         );
-        console.log(`Risposta dal server: ${response}`);
+
         if (!response.ok) {
             console.error(`Errore nell'aggiornamento dell'automazione ${automationId}: ${response.status}`);
             return false;
@@ -190,6 +190,7 @@ async function toggleAutomation(baseUrl, token, automationId, automationEntityId
             "Content-Type": "application/json"
         };
      try {
+
         const entityId = "automation."+automationEntityId
         const response = await fetch(
             `${baseUrl}/api/services/automation/toggle`, 
@@ -206,6 +207,7 @@ async function toggleAutomation(baseUrl, token, automationId, automationEntityId
             return false;
         }
         let final_response = await response.json();
+        
         if (!final_response || final_response==[] || !final_response[0].state) {
             console.error(`Risposta non valida dal server per l'automazione ID:${automationId}`);
             return false;
@@ -214,7 +216,7 @@ async function toggleAutomation(baseUrl, token, automationId, automationEntityId
         toggleAutomationDB(userId, automationId, state);
         return state;
     } catch (error) {
-        console.error(`Errore durante il salvataggio dell'automazione:`, error);
+        console.error(`Errore durante il toogle dell'automazione:`, error);
         return false;
     }
 }

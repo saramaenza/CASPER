@@ -6,15 +6,17 @@ from problems.conflicts import ConflictDetector
 from problems.chains import ChainsDetector
 from ha_client import HomeAssistantClient
 
-url = os.environ["HASS_URL"]
-key = os.environ["HASS_API_KEY"]
-ha_client = HomeAssistantClient(url, key)
+#url = os.environ["HASS_URL"]
+#key = os.environ["HASS_API_KEY"]
+
 
 def problem_detector(user_id, session_id, automation_id):
     """
     Detects promblems using the ConflictDetector and ChainDetector classes.
     """
     try:
+        auth = _db.get_credentials(user_id)
+        ha_client = HomeAssistantClient(auth['url'], auth['key'])
         start = time.time()
         data = _db.get_automations(user_id)
         new_automation = _db.get_automation(user_id, automation_id)

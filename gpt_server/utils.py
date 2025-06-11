@@ -5,7 +5,10 @@ import json
 base_url = None
 def set_base_url(url, port):
     global base_url
-    base_url = f"{url}:{port}"
+    if port is None or port == "443":
+        base_url = f"{url}"
+    else:
+        base_url = f"{url}:{port}"
 
 def inject_user_id(ai_msg, user_id, session_id):
     tool_calls = []
@@ -104,3 +107,4 @@ def save_automation(user_id, session_id, automation_json, automation_id):
     }
     response = requests.post(f'{base_url}/save_automation', headers=headers, data=json.dumps(payload), cookies={"auth-token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFwaSIsInNlc3Npb24iOiJhcGktc2Vzc2lvbiIsIm5hbWUiOiJBcGkiLCJlbWFpbCI6ImFwaSIsImlhdCI6MTczNzcxODU2MH0.TnDcMFF1La5NeCQuDJg54y2lECkHNgZTI07_yL2NioA"})
     return response
+
