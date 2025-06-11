@@ -1932,9 +1932,7 @@ class Carousel {
       this.totalSlides = 0;
 
       this.setupEventListeners();
-      this.init().then(() => {
-            this.updateDisplay();
-        });
+      this.init();
   }
 
   async init() {
@@ -1942,6 +1940,7 @@ class Carousel {
           let problemsList = await getProblems();
           this.totalSlides = problemsList.length;
           this.updateDisplay();
+          this.updateButtons();
       } catch (error) {
           console.error('Error initializing carousel:', error);
           this.totalSlides = 0;
@@ -2016,6 +2015,29 @@ class Carousel {
   updateDisplay() {
       const translateX = -this.currentSlide * 100;
       this.track.style.transform = `translateX(${translateX}%)`;
+  }
+
+  updateButtons() {
+      if (this.totalSlides <= 1) {
+          this.prevBtn.style.display = 'none';
+          this.nextBtn.style.display = 'none';
+          return;
+      }
+
+      this.prevBtn.style.display = 'block';
+      this.nextBtn.style.display = 'block';
+
+      if (this.currentSlide === 0) {
+          this.prevBtn.classList.add('disabled');
+      } else {
+          this.prevBtn.classList.remove('disabled');
+      }
+
+      if (this.currentSlide === this.totalSlides - 1) {
+          this.nextBtn.classList.add('disabled');
+      } else {
+          this.nextBtn.classList.remove('disabled');
+      }
   }
 
 }
