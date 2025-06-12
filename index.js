@@ -124,7 +124,7 @@ app.post('/googlelogin', async (req, res) =>{
 
 app.get('/', (req, res) =>{
   if(!isLogged(req)) res.sendFile(path.join( __dirname, 'htdocs', 'index.html' ));
-  else res.redirect('/rulebot')
+  else res.redirect('/casper')
 })
 
 app.get('/registration', (req, res) =>{
@@ -220,12 +220,12 @@ app.get('/userInfo', verifyToken, async (req, res) =>{
   res.send(info);
 })
 
-app.use('/rulebot', verifyToken, (req, res) =>{
+app.use('/casper', verifyToken, (req, res) =>{
   const token = jwt.decode(req.cookies['auth-token']);
   if (!userIdMap.get(token.id)) userIdMap.set(token.session, token.id)
   res.clearCookie('chat_session_id');
   res.cookie('chat_session_id', uuid.v4())
-  res.sendFile(path.join( __dirname, 'htdocs', 'rulebot.html' ));
+  res.sendFile(path.join( __dirname, 'htdocs', 'casper.html' ));
   //next();
 })
 app.use('/configuration', verifyToken, (req, res) =>{
