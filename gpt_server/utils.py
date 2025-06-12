@@ -1,6 +1,7 @@
 from copy import deepcopy
 import requests
 import json
+import re
 
 base_url = None
 def set_base_url(url, port):
@@ -87,7 +88,7 @@ def update_chat_state(action:str, state: str, session_id: str, user_id: str, id:
     action: update-automation-list state: "", id: "" --> aggiorna la lista delle automazioni
     action: generate-conflict-card, state: Dict[conflict_info], id: "" --> genera una card per CONFLITTI
     """
-    print(f"Update Chat State: {action} - {state} - {session_id} - {user_id} - {id}")
+    #print(f"Update Chat State: {action} - {state} - {session_id} - {user_id} - {id}")
     try:
         requests.post(f'{base_url}/post_chat_state', json={"action":action, "state": state, "id":id, "session_id": session_id, "user_id": user_id})
     except Exception as e:
@@ -97,7 +98,16 @@ def update_chat_state(action:str, state: str, session_id: str, user_id: str, id:
     return None
 
 
-def save_automation(user_id, session_id, automation_json, automation_id):
+def format_entity_id(alias):
+    """
+    Converte un alias in un entity_id valido seguendo le stesse regole del JavaScript.
+    """
+    # Converti in minuscolo e sostituisci ° con 'deg'
+    entity_id = alias.lower().replace('°', 'deg')
+    # Sostituisci sequenze di caratteri non alfanumerici con un singolo underscore
+    return re.sub(r'[^a-zA-Z0-9]+', '_', entity_id).strip('_')
+
+"""def save_automation(user_id, session_id, automation_json, automation_id):
     headers = {'Content-Type': 'application/json'}
     payload = {
         'userId': user_id,
@@ -106,5 +116,5 @@ def save_automation(user_id, session_id, automation_json, automation_id):
         'config': automation_json
     }
     response = requests.post(f'{base_url}/save_automation', headers=headers, data=json.dumps(payload), cookies={"auth-token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFwaSIsInNlc3Npb24iOiJhcGktc2Vzc2lvbiIsIm5hbWUiOiJBcGkiLCJlbWFpbCI6ImFwaSIsImlhdCI6MTczNzcxODU2MH0.TnDcMFF1La5NeCQuDJg54y2lECkHNgZTI07_yL2NioA"})
-    return response
+    return response"""
 

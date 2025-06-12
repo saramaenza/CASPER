@@ -14,7 +14,7 @@ class HomeAssistantClient:
 
     def _check_response(self, response: requests.Response) -> str:
         if response.status_code == 200:
-            return response.text
+            return response.json()  # Assuming the response is JSON, return it as a string
         else:
             response.raise_for_status()
 
@@ -71,4 +71,9 @@ class HomeAssistantClient:
     def get_device_class_by_friendly_name(self, friendly_name: str) -> str:
         template = '{% for entity in states %}{% if entity.attributes.friendly_name == "' + friendly_name + '" %}{{ entity.attributes.device_class }}{% endif %}{% endfor %}'
         return self.render_template(template)
+    
+    def save_automation(self, automation_json: Dict[str, Any], automation_id: str) -> str:
+        resposne = self._make_post_request(f"/api/config/automation/config/{automation_id}", automation_json)
+        print(f"Response from ha_client.save_automation: {resposne}")
+        return resposne
 

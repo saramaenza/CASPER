@@ -61,7 +61,7 @@ def do_instant_actions(
 @tool()
 def generate_automation(
     description: Annotated[str, "The automation description in the format: Event: <event> (<entity_id>) Condition: <condition> (<entity_id>) AND <condition> (<entity_id>) OR ... Action: <actions> (<entity_ids>)."],
-    automation_id: Annotated[str, "The ID of the automation to generate. Use '0' to generate a new automation, or the ID of an existing automation to update it."],
+    automation_id: Annotated[str, "The ID of the automation to generate. Use '-1' to generate a new automation, or the ID of an existing automation to update it."],
     user_id: Annotated[str, InjectedToolArg],
     session_id: Annotated[str, InjectedToolArg]
 ) -> str:
@@ -81,23 +81,24 @@ def generate_automation(
     structured_response = llm.with_structured_output(responses.GenerateAutomationResponse)
     data = structured_response.invoke(messages)
     try:
-        if automation_id == '0':
+        if automation_id == '-1':
             automations = _db.get_automations(user_id)
-            automation_id = '1' if len(automations) == 0 else str(int(automations[-1]['id']) + 1)
+            automation_id = len(automations)+1
+            #automation_id = '1' if len(automations) == 0 else str(int(automations[-1]['id']) + 1)
             data['automation']['id'] = automation_id
         else:
             data['automation']['id'] = automation_id
         
-        response = utils.save_automation(user_id, session_id, data['automation'], automation_id )
+        response = _db.save_automation(user_id, automation_id, data['automation'])
         
-        if response:
+        if response == True:
             problems = problem_detector(user_id, session_id, automation_id)
             utils.update_chat_state(action="confirm-state", state="Automazione generata e salvata con successo", session_id=session_id, user_id=user_id, id='generate-automation')
             utils.update_chat_state(action="update-automation-list", state="", session_id=session_id, user_id=user_id)
-            return f"Automation Info: {response.json()}. ID assegnato: {automation_id}. \nProblems info: {problems}"
+            return f"Automation '{data['automation']['alias']}' saved. ID assegnato: {automation_id}. \nProblems info: {problems}"
         else:
             utils.update_chat_state(action="error-state", state="Errore durante la generazione dell'automazione", session_id=session_id, user_id=user_id, id='generate-automation')
-            return f"Errore durante la generazione dell'automazione: {response.json()}"
+            return f"Errore durante la generazione dell'automazione: {response}"
     except Exception as e:
         utils.update_chat_state(action="error-state", state="Errore durante la generazione dell'automazione", session_id=session_id, user_id=user_id, id='generate-automation')
         return f"Errore durante la generazione dell'automazione: {e}"

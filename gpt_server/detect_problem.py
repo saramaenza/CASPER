@@ -32,7 +32,7 @@ def problem_detector(user_id, session_id, automation_id):
 
         all_problems = direct_chains + indirect_chains + conflicts
         end = time.time()
-        print(f"Problem detection took {end - start} seconds")
+        #print(f"Problem detection took {end - start} seconds")
         if not all_problems:
             return "No problems detected."
         problems_w_id = _db.post_problem(user_id, all_problems)

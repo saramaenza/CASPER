@@ -366,7 +366,9 @@ async function printUserRule(rules) {
 
     rules.forEach((element, index) => {
       let automationState = element['state'] === "on" ? "active": ""; // Stato di default se non specificato
+      let automationEntity = element['entity_id']
       element = element['config'];
+      
       setTimeout(() => {
         // CARD PRINCIPALE
         const card = document.createElement('div');
@@ -414,7 +416,7 @@ async function printUserRule(rules) {
         // Toggle switch
         const toggleSwitch = document.createElement('div');
         toggleSwitch.className = `toggle-switch ${automationState}`; // aggiungi/rimuovi 'active' per stato ON/OFF
-        toggleSwitch.setAttribute('entity', element['alias'].toLowerCase()
+        toggleSwitch.setAttribute('entity', automationEntity || element['alias'].toLowerCase()
           .replace(/°/g, 'deg')
           .replace(/[^a-zA-Z0-9\s]/g, '_')
           .split(' ')

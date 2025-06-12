@@ -68,7 +68,7 @@ class ChainsDetector:
         return type_event if type_event is not None else "unknown" # Ensure a string is always returned
 
     def check_operator(self, type1: str, type2: str) -> bool:
-        print(f"Checking operator between {type1} and {type2}")
+        #print(f"Checking operator between {type1} and {type2}")
         return (type1 == "turn_on" and type2 == "turned_on") or \
                (type1 == "turn_off" and type2 == "turned_off") or \
                (type1 == type2)
@@ -333,7 +333,7 @@ class ChainsDetector:
                     rule_name1, id_automation1, rule2_entity_id
                 )
         
-        print("Detected chains:", rule_chain_output)
+        #print("Detected chains:", rule_chain_output)
         return rule_chain_output
 
     def detect_chains(self, all_rules: List, automation_post_config: Dict[str, Any], chain_type: str = "indirect") \

@@ -1,8 +1,9 @@
 from pymongo import MongoClient
 import pickle
 from datetime import datetime
-from utils import format_device_list
+from utils import format_device_list, format_entity_id
 from bson.objectid import ObjectId
+from ha_client import HomeAssistantClient
 
 # Connessione globale al database
 client = MongoClient("mongodb://localhost:27017/")
@@ -252,3 +253,69 @@ def get_credentials(user_id):
         print("----------------")
         return None
 
+def save_automation(user_id, automation_id, config):
+    """
+    Salva una singola automazione per l'utente specificato.
+    user_id: str -> ID dell'utente
+    automation_id: str -> ID dell'automazione
+    config: dict -> Configurazione dell'automazione
+    """
+    try:
+        ##Prima provo a salvare l'automazione su Home Assistant, se tutto va bene, salvo su MongoDB
+        auth = get_credentials(user_id)
+        ha = HomeAssistantClient(auth['url'], auth['key'])
+        response = ha.save_automation(config, automation_id)
+        if response['result'] != "ok":
+            print(f"Error saving automation {automation_id} for user {user_id}: {response['error']}")
+            return "Error saving the automation to Home Assistant."
+        collection = db["automations"]
+        user_automations = collection.find_one({"user_id": user_id})
+        
+        if user_automations:
+            # Trova l'indice dell'automazione esistente
+            automation_index = -1
+            automation_state = "on"  # Default state for new automations
+            for i, auto in enumerate(user_automations['automation_data']):
+                if auto['id'] == automation_id:
+                    automation_index = i
+                    automation_state = auto['state']
+                    break
+            
+            automation_data = {
+                "id": automation_id,
+                "entity_id": f"automation.{format_entity_id(config['alias'])}",
+                "state": automation_state,
+                "config": config
+            }
+            
+            if automation_index != -1:
+                # Aggiorna automazione esistente
+                user_automations['automation_data'][automation_index] = automation_data
+            else:
+                # Aggiungi nuova automazione
+                user_automations['automation_data'].append(automation_data)
+            
+            collection.update_one(
+                {"user_id": user_id},
+                {"$set": {"automation_data": user_automations['automation_data'], "last_update": datetime.now()}}
+            )
+        else:
+            # Crea una nuova voce per l'utente se non esiste
+            collection.insert_one({
+                "user_id": user_id,
+                "automation_data": [{
+                    "id": automation_id,
+                    "entity_id": f"automation.{format_entity_id(config['alias'])}",
+                    "state": "on",
+                    "config": config
+                }],
+                "created": datetime.now(),
+                "last_update": datetime.now()
+            })
+        return True
+    except Exception as e:
+        print("--> Save Single Automation Error <--")
+        print(user_id, automation_id)
+        print(e)
+        print("----------------")
+        return e
