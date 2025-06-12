@@ -75,7 +75,7 @@ async function handleCredentialResponse(response) {
         })
     }).then((res) => {return res.json()})
     if (result.status === 'ok') {
-        window.location.replace(base_link+"/rulebot")
+        window.location.replace(base_link+"/casper")
     }
  }
 
