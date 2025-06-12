@@ -119,7 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     loadButton.addEventListener('click', async () => {
         try {
-            const url = urlInput.value.trim();
+            const url = urlInput.value.trim().replace(/\/+$/, '');
             const token = tokenInput.value.trim();
             
             if (!url || !token) {
