@@ -9,6 +9,8 @@ const userId = token.id;
 const userName = token.name;
 let isReminderText = false;
 let entitiesStates;
+let statusInterval = null;
+const intervalUpdate = 20000; // Aggiorna lo stato del chatbot ogni 20 secondi
 
 const base_link = window.location.origin;
 const getRuleList = `${base_link}/get_rule_list`; // chiamata POST per ricevere la lista delle regole
@@ -18,7 +20,7 @@ const sendMessage = `${base_link}/send_message`; // chiamata POST per ricevere l
 const changeRule = `${base_link}/changeRule`; // chiamata POST per aggiornare le regole dopo il cancellamento
 const getProblemList = `${base_link}/get_problems`; // chiamata GET per ricevere la lista dei problemi
 const getGoals = `${base_link}/get_goals`; // chiamata POST per ricevere la lista dei goal
-const ping = `${base_link}/get_chat_state`; // chiamata POST per ricevere la lista dei goal
+const ping = `${base_link}/post_chat_state`; // chiamata POST per mantere la sessione attiva
 const toggleAutomation = `${base_link}/toggle_automation`; // chiamata POST per ricevere la lista delle regole
 const downButton = document.querySelector("#download");
 const aggiorna = document.querySelector("#aggiorna");
@@ -151,7 +153,10 @@ window.addEventListener('load', async ()=>{
   const greeting = document.createElement('h1');
   greeting.textContent = `Ciao, ${userName}`;
   initial.appendChild(greeting);
-
+  await updateChatbotStatus();
+  statusInterval = setInterval(async () => {
+      await updateChatbotStatus();
+  }, intervalUpdate);
   let chatID = document.createElement('div');
   chatID.className = 'chat-id';
   chatID.innerHTML = `Chat ID: ${chat_session_id}`;
@@ -166,7 +171,6 @@ window.addEventListener('load', async ()=>{
   //setInterval(updateEntitiesStates, 60000);
 
   printUserRule(rulesList); //PRINT regole
-  
   printUserDevices(devicesList); //PRINT devices
   let problemsList = await getProblems()
   printUserProblems(problemsList);
@@ -416,7 +420,7 @@ async function printUserRule(rules) {
         // Toggle switch
         const toggleSwitch = document.createElement('div');
         toggleSwitch.className = `toggle-switch ${automationState}`; // aggiungi/rimuovi 'active' per stato ON/OFF
-        toggleSwitch.setAttribute('entity', automationEntity || element['alias'].toLowerCase()
+        toggleSwitch.setAttribute('entity', automationEntity || "automation."+element['alias'].toLowerCase()
           .replace(/°/g, 'deg')
           .replace(/[^a-zA-Z0-9\s]/g, '_')
           .split(' ')
@@ -2212,4 +2216,49 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 );*/
 
+});
+
+async function updateChatbotStatus() {
+   try {
+        let status = document.querySelector('.agent-status');
+        let indicator = document.querySelector('.status-indicator-chat');
+        const response = await fetch('/chatbot_status', {
+            headers: { 'Cache-Control': 'no-cache' }
+        });
+        const data = await response.json();
+        
+        const oldStatus = status.textContent;
+        let chatbotStatus = data.status;
+        
+        // Aggiorna UI solo se lo stato cambia
+        if (oldStatus !== chatbotStatus) {
+            status.textContent = chatbotStatus;
+            if (chatbotStatus === 'Online') {
+                indicator.classList.remove('inactive');
+            } else {
+                indicator.classList.add('inactive');
+            }
+        }
+        
+        return chatbotStatus;
+    } catch (error) {
+        console.log('Status check failed:', error);
+        return 'unknown';
+    }
+}
+
+
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) {
+    if (statusInterval){
+      clearInterval(statusInterval);
+      statusInterval = null;
+    }
+  } else {
+    // Page became visible!
+    statusInterval = setInterval(async () => {
+        await updateChatbotStatus();
+    }, intervalUpdate);
+    
+  }
 });

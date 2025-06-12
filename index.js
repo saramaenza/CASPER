@@ -254,8 +254,7 @@ app.get('/verification/:tag', async function(req, res) {
 });
 // --- --- --- --- --- --- --- --- --- ---
 
-app.use('/send_message', verifyToken, async (req, res) =>{
-  let data = {}
+app.use('/send_message', verifyToken, async (req, res) => {
   try {
     let user_id = req.body.user_id
     let session = req.body.session
@@ -265,19 +264,52 @@ app.use('/send_message', verifyToken, async (req, res) =>{
     const response = await fetch(`${python_server}/send_message`, {
       method: 'post',
       body: JSON.stringify(body),
-      headers: {'Content-Type': 'application/json'}
+      headers: {'Content-Type': 'application/json'},
     });
-    data = await response.json();
-    res.json(data)
+    
+    const data = await response.json();
+    res.json(data);
     
   } catch (error) {
-    console.log('/send_message error:')
-    console.log(error)
-    let resp = {}
-    resp['content'] = ":( Si è verificato un errore, puoi provare a rimandare l'ultimo messaggio o scrivere 'riprova'? Se l'errore persiste, per favore riprova più tardi."
-    res.json({'text': resp['content'], 'tokens': [-1, -1]})
+    console.log('/send_message error:', error.name);
+    
+    // Gestione semplice degli errori
+    if (error.name === 'AbortError' || error.code === 'ECONNREFUSED' || 
+        error.message.includes('fetch')) {
+      return res.json({
+        'text': 'Il chatbot è attualmente offline. Riprova più tardi.',
+        'tokens': '0',
+        'server_status': 'offline'
+      });
+    }
+    
+    // Altri errori
+    res.json({
+      'text': ':( Si è verificato un errore, puoi provare a rimandare l\'ultimo messaggio o scrivere \'riprova\'?',
+      'tokens': '0',
+      'server_status': 'error'
+    });
   }
-})
+});
+
+app.get('/chatbot_status', async (req, res) => {
+  try {
+    const response = await fetch(`${python_server}/health`, {
+      method: 'GET',
+      timeout: 3000
+    });
+    
+    res.json({
+      status: response.ok ? 'Online' : 'Offline',
+
+    });
+  } catch (error) {
+    res.json({
+      status: 'Offline',
+
+    });
+  }
+});
 
 app.use('/load_devices', verifyToken, async (req, res) =>{
   try {
@@ -407,7 +439,7 @@ app.post('/post_chat_state', async (req, res) =>{
     session.push(body);
     res.json({status: 'ok'}) 
   } catch (error) {
-    console.log('/get_chat_state error:')
+    console.log('/post_chat_state error:')
     console.log(error)
   }
 })

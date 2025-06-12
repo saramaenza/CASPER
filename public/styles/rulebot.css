@@ -1382,7 +1382,7 @@ td {
   animation: glow 2s infinite;
 }
 
-.status-indicator.inactive {
+.status-indicator.inactive, .status-indicator-chat.inactive {
   background: #666;
   animation: none;
 }
