@@ -412,7 +412,7 @@ body {
 .custom-checkbox {
     width: 18px;
     height: 18px;
-    border: 2px solid rgba(255, 255, 255, 0.3);
+    border: 2px solid var(--border-color);
     border-radius: 4px;
     position: relative;
     cursor: pointer;
@@ -923,11 +923,11 @@ body {
 
 .moon-bg {
   right: 10px;
-  opacity: 0.3;
+  opacity: 0.5;
 }
 
 .toggle-switch-theme.dark .sun-bg {
-  opacity: 0.3;
+  opacity: 0.5;
 }
 
 .toggle-switch-theme.dark .moon-bg {
