@@ -1731,11 +1731,11 @@ td {
 
 .moon-bg {
   right: 10px;
-  opacity: 0.3;
+  opacity: 0.5;
 }
 
 .toggle-switch-theme.dark .sun-bg {
-  opacity: 0.3;
+  opacity: 0.5;
 }
 
 .toggle-switch-theme.dark .moon-bg {
