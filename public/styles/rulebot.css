@@ -2112,9 +2112,15 @@ td {
   #chat {
     width: 55%;
   }
+  .automation-icon {
+    font-size: 16px;
+  }
 }
 
 @media (max-width: 1250px) {
+  #rules-buttons-container .selector-button {
+      width: 85%;
+  }
   .id_badge {
     width: 30%;
   }

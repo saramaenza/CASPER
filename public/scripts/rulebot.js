@@ -150,6 +150,17 @@ document.getElementById('show-problems').addEventListener('click', function() {
 
 let rulesList;
 window.addEventListener('load', async ()=>{
+  // Show initial loader
+  devicesContainer.innerHTML = `
+      <div class="loader-container">
+          <div class="loader"></div>
+      </div>
+  `;
+  rulesContainer.innerHTML = `
+      <div class="loader-container">
+          <div class="loader"></div>
+      </div>
+  `;
   const greeting = document.createElement('h1');
   greeting.textContent = `Ciao, ${userName}`;
   initial.appendChild(greeting);
@@ -345,11 +356,6 @@ async function deleteAutomation(rule_id) {
 async function printUserRule(rules) {
   document.querySelector('#n_automations').innerText = rules.length;
   const rulesContainer = document.querySelector('#rules-container');
-   rulesContainer.innerHTML = `
-        <div class="loader-container">
-            <div class="loader"></div>
-        </div>
-    `;
 
   if (rules.length > 0) {
     // Wrapper per tutte le automation-card
@@ -744,13 +750,6 @@ async function printUserDevices(devicesList) {
     document.querySelector('#n_devices').innerText = devicesList['selected'].length;
     const devices = devicesList['selected'];
     const devicesContainer = document.querySelector('#devices-list-container');
-
-    // Show initial loader
-    devicesContainer.innerHTML = `
-        <div class="loader-container">
-            <div class="loader"></div>
-        </div>
-    `;
     
     if (devicesList != true && devices != undefined) {
         const devicesListWrapper = document.createElement('div');
