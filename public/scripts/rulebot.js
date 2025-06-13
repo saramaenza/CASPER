@@ -1303,6 +1303,7 @@ function displayProblemDesc(el) {
 function printUserProblems(problemsList) {
   const carouselControls = document.getElementById('carousel-controls');
   const carouselMessages = document.getElementById('carousel-messages');
+  document.querySelector('#n_problems').innerText = problemsList.length || 0;
   
   if (!problemsList || problemsList.length === 0) {
       // Nascondi i controlli e mostra il messaggio
@@ -1320,7 +1321,6 @@ function printUserProblems(problemsList) {
       carouselControls.style.display = 'flex';
       carouselMessages.innerHTML = '';
       carouselMessages.style.display = 'none';
-      document.querySelector('#n_problems').innerText = problemsList.length || 0;
       for (const [index, problem] of problemsList.entries()){
         if (problem['type'] == 'conflict'){
           createConflictCard(
