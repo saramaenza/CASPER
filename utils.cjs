@@ -1,3 +1,4 @@
+const { response } = require('express');
 const { toggleAutomation: toggleAutomationDB } = require('./db_methods.cjs');
 //Funzione per ottenere la lista delle entità con le relative descrizioni.
 async function getEntities(baseUrl, token) {
@@ -162,7 +163,7 @@ async function getEntitiesStates(baseUrl, token, conf) {
         });
 
         if (!statesResponse.ok) {
-            console.error(`Errore nel recupero degli stati: ${statesResponse.status}`);
+            console.error(`Errore nel recupero degli stati: ${statesResponse.json()}`);
             return null;
         }
 
@@ -191,7 +192,7 @@ async function toggleAutomation(baseUrl, token, automationId, automationEntityId
         };
      try {
 
-        const entityId = "automation."+automationEntityId
+        const entityId = automationEntityId.startsWith('automation.') ? automationEntityId : `automation.${automationEntityId}`;
         const response = await fetch(
             `${baseUrl}/api/services/automation/toggle`, 
             {
@@ -203,20 +204,20 @@ async function toggleAutomation(baseUrl, token, automationId, automationEntityId
             }
         );
         if (!response.ok) {
-            console.error(`Errore nel toggle dell'automazione ID:${automationId}: ${response.status}`);
+            console.error(`Errore nel toggle dell'automazione ID:${automationId}: ${response.json()}:`);
             return false;
         }
         let final_response = await response.json();
         
         if (!final_response || final_response==[] || !final_response[0].state) {
-            console.error(`Risposta non valida dal server per l'automazione ID:${automationId}`);
+            console.error(`Risposta non valida dal server per l'automazione ID:${automationId}, ${response.json()}`);
             return false;
         }
         let state = final_response[0].state;
         toggleAutomationDB(userId, automationId, state);
         return state;
     } catch (error) {
-        console.error(`Errore durante il toogle dell'automazione:`, error);
+        console.error(`Errore durante il toogle dell'automazione. Response: ${response.json()}`, error);
         return false;
     }
 }

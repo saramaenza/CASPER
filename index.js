@@ -461,6 +461,7 @@ app.post('/toggle_automation', verifyToken, async (req, res) =>{
   } catch (error) {
     console.log('/toggle_automation error:')
     console.log(error)
+    return res.json({status: 'error'});
   }
 });
 
