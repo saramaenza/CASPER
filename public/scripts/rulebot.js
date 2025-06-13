@@ -345,13 +345,17 @@ async function deleteAutomation(rule_id) {
 async function printUserRule(rules) {
   document.querySelector('#n_automations').innerText = rules.length;
   const rulesContainer = document.querySelector('#rules-container');
-  rulesContainer.innerText = '';
+   rulesContainer.innerHTML = `
+        <div class="loader-container">
+            <div class="loader"></div>
+        </div>
+    `;
 
   if (rules.length > 0) {
-    
     // Wrapper per tutte le automation-card
     const automationListWrapper = document.createElement('div');
     automationListWrapper.className = 'automation-list-wrapper';
+    rulesContainer.innerHTML = '';
     rulesContainer.appendChild(automationListWrapper);
 
     // Barra di ricerca
@@ -596,7 +600,14 @@ async function printUserRule(rules) {
     }, rules.length * 100 + 100);
 
   } else {
-    rulesContainer.innerText = 'Nessuna regola associata a questo account';
+    rulesContainer.innerHTML = `
+        <div class="no-problems-message">
+          Inizia a rendere la tua casa intelligente <br> creando la tua prima automazione con Casper! 😊
+          <div class="no-problems-submessage">
+              Prova a dire <i>"Ciao Casper, vorrei creare una nuova automazione"</i>
+          </div>
+        </div>
+    `; 
   }
 }
 
@@ -732,146 +743,168 @@ function getAutomationIconInfo(automation) {
 }
 
 async function printUserDevices(devicesList) {
-  document.querySelector('#n_devices').innerText = devicesList['selected'].length;
-  const devices = devicesList['selected'];
-  const devicesContainer = document.querySelector('#devices-list-container');
+    document.querySelector('#n_devices').innerText = devicesList['selected'].length;
+    const devices = devicesList['selected'];
+    const devicesContainer = document.querySelector('#devices-list-container');
 
-  const devicesListWrapper = document.createElement('div');
-  devicesListWrapper.className = 'devices-list-wrapper';
-  devicesContainer.appendChild(devicesListWrapper);
-  
-  // Barra di ricerca
-  const searchContainer = document.createElement('div');
-  searchContainer.className = 'search-container';
-  const searchBar = document.createElement('input');
-  searchBar.type = 'text';
-  searchBar.className = 'search-bar';
-  searchBar.placeholder = 'Cerca dispositivi...';
-  const searchIcon = document.createElement('div');
-  searchIcon.className = 'search-icon';
-  searchIcon.textContent = '🔍';
-  searchContainer.appendChild(searchBar);
-  searchContainer.appendChild(searchIcon);
-  devicesListWrapper.appendChild(searchContainer);
-
-
-  let cleanList = {}
-  if (devicesList != true && devices != undefined) { //organizzo per stanze "a", salvo il nome dell entita "f"
-    cleanList = formatDeviceList(devices);
-  } else { return "Nessun dispositivo associato a questo account"; }
-
-  setTimeout(() => {
-  Object.keys(cleanList).forEach((key) => {
-    // Crea il contenitore della stanza
-    let room = document.createElement('div');
-    room.classList.add('room-card');
+    // Show initial loader
+    devicesContainer.innerHTML = `
+        <div class="loader-container">
+            <div class="loader"></div>
+        </div>
+    `;
     
-    let roomName = document.createElement('div');
-    roomName.classList.add('category-title');
-
-    let categoryIcon = document.createElement('div');
-    categoryIcon.classList.add('category-icon');
-    categoryIcon.textContent = getIcon(key, 'room');
-    categoryIcon.className = "automation-icon room-icon";
-
-    const roomNameText = document.createElement('span');
-    roomNameText.classList.add('room-name');
-    roomNameText.textContent = ` ${key}`;
-
-    roomName.appendChild(categoryIcon);
-    roomName.appendChild(roomNameText);
-
-    // Aggiungi il listener per il clic
-    roomName.addEventListener('click', () => {
-      roomName.classList.toggle('active');
-      const roomNameSpan = roomName.querySelector('.room-name');
-      if (roomNameSpan) {
-        roomNameSpan.classList.toggle('active');
-      }
-      const devicesList_container = roomName.nextElementSibling;
-
-      if (devicesList_container && devicesList_container.classList.contains('devicesList_container')) {
-        if (devicesList_container.classList.contains('open')) {
-          devicesList_container.style.maxHeight = '0';
-          devicesList_container.classList.remove('open');
-        } else {
-          devicesList_container.style.maxHeight = devicesList_container.scrollHeight + 'px';
-          devicesList_container.classList.add('open');
-        }
-      }
-    });
-
-    room.appendChild(roomName);
-
-    let devicesList_container = document.createElement('div');
-    devicesList_container.classList.add('devicesList_container');
-
-    // Crea la lista dei dispositivi
-    let devicesList = document.createElement('div');
-    devicesList.classList.add('devices-list');
-    cleanList[key].forEach((device) => {
-      let deviceElement = document.createElement('div');
-      let deviceText = document.createElement('div');
-      let iconElement = document.createElement('i');
-      let itemIndicator = document.createElement('div');
-      let itemValue = document.createElement('div');
-      //let deviceState = dinamciallyPopulateEntityValue(device); // Ottieni lo stato dinamico dell'entità
-      
-      iconElement.classList.add('bx', device[1]);
-      deviceText.classList.add('device-text');
-      deviceElement.classList.add('device-element');
-      deviceElement.setAttribute('entityid', device[2]); // Aggiungi l'entity id come attributo
-      itemIndicator.classList.add('item-indicator'); 
-       
-      itemValue.classList.add('item-value'); 
-      
-      //itemValue.innerHTML = deviceState; 
-
-      deviceText.textContent = device[0];
-      deviceElement.appendChild(itemIndicator)
-      deviceElement.appendChild(iconElement);
-      deviceElement.appendChild(deviceText);
-      deviceElement.appendChild(itemValue);
-      devicesList.appendChild(deviceElement);
-    });
-
-    devicesList_container.appendChild(devicesList);
-    room.appendChild(devicesList_container);
-    devicesListWrapper.appendChild(room);
-    });
-    // Funzionalità di ricerca
-    searchBar.addEventListener('input', function() {
-      const searchTerm = this.value.toLowerCase();
-      const rooms = devicesListWrapper.querySelectorAll('.room-card');
-      
-      rooms.forEach(room => {
-        const roomName = room.querySelector('.room-name')?.textContent.toLowerCase() || "";
-        const devices = room.querySelectorAll('.device-element');
-        let hasVisibleDevices = false;
+    if (devicesList != true && devices != undefined) {
+        const devicesListWrapper = document.createElement('div');
+        devicesListWrapper.className = 'devices-list-wrapper';
         
-        // Cerca nei dispositivi di questa stanza
-        devices.forEach(device => {
-          const deviceName = device.querySelector('.device-text')?.textContent.toLowerCase() || "";
-          if (deviceName.includes(searchTerm) || roomName.includes(searchTerm)) {
-            device.style.display = 'flex';
-            hasVisibleDevices = true;
-          } else {
-            device.style.display = 'none';
-          }
+        // Add search bar only if there are devices
+        const searchContainer = document.createElement('div');
+        searchContainer.className = 'search-container';
+        const searchBar = document.createElement('input');
+        searchBar.type = 'text';
+        searchBar.className = 'search-bar';
+        searchBar.placeholder = 'Cerca dispositivi...';
+        const searchIcon = document.createElement('div');
+        searchIcon.className = 'search-icon';
+        searchIcon.textContent = '🔍';
+        searchContainer.appendChild(searchBar);
+        searchContainer.appendChild(searchIcon);
+
+        // Clean and organize devices list
+        let cleanList = formatDeviceList(devices);
+
+        // Remove loader and show content
+        devicesContainer.innerHTML = '';
+        devicesContainer.appendChild(devicesListWrapper);
+        devicesListWrapper.appendChild(searchContainer);
+
+        // Create and populate device cards
+        await new Promise(resolve => {
+            setTimeout(() => {
+                Object.keys(cleanList).forEach((key) => {
+                    // Room container
+                    let room = document.createElement('div');
+                    room.classList.add('room-card');
+                    
+                    // Room header
+                    let roomName = document.createElement('div');
+                    roomName.classList.add('category-title');
+
+                    let categoryIcon = document.createElement('div');
+                    categoryIcon.classList.add('category-icon');
+                    categoryIcon.textContent = getIcon(key, 'room');
+                    categoryIcon.className = "automation-icon room-icon";
+
+                    const roomNameText = document.createElement('span');
+                    roomNameText.classList.add('room-name');
+                    roomNameText.textContent = ` ${key}`;
+
+                    roomName.appendChild(categoryIcon);
+                    roomName.appendChild(roomNameText);
+
+                    // Room click handler
+                    roomName.addEventListener('click', () => {
+                        roomName.classList.toggle('active');
+                        const roomNameSpan = roomName.querySelector('.room-name');
+                        if (roomNameSpan) {
+                            roomNameSpan.classList.toggle('active');
+                        }
+                        const devicesList_container = roomName.nextElementSibling;
+
+                        if (devicesList_container && devicesList_container.classList.contains('devicesList_container')) {
+                            if (devicesList_container.classList.contains('open')) {
+                                devicesList_container.style.maxHeight = '0';
+                                devicesList_container.classList.remove('open');
+                            } else {
+                                devicesList_container.style.maxHeight = devicesList_container.scrollHeight + 'px';
+                                devicesList_container.classList.add('open');
+                            }
+                        }
+                    });
+
+                    room.appendChild(roomName);
+
+                    // Devices container
+                    let devicesList_container = document.createElement('div');
+                    devicesList_container.classList.add('devicesList_container');
+
+                    // Devices list
+                    let devicesList = document.createElement('div');
+                    devicesList.classList.add('devices-list');
+
+                    // Add devices
+                    cleanList[key].forEach((device) => {
+                        let deviceElement = document.createElement('div');
+                        let deviceText = document.createElement('div');
+                        let iconElement = document.createElement('i');
+                        let itemIndicator = document.createElement('div');
+                        let itemValue = document.createElement('div');
+                        
+                        iconElement.classList.add('bx', device[1]);
+                        deviceText.classList.add('device-text');
+                        deviceElement.classList.add('device-element');
+                        deviceElement.setAttribute('entityid', device[2]);
+                        itemIndicator.classList.add('item-indicator');
+                        itemValue.classList.add('item-value');
+                        
+                        deviceText.textContent = device[0];
+                        deviceElement.appendChild(itemIndicator);
+                        deviceElement.appendChild(iconElement);
+                        deviceElement.appendChild(deviceText);
+                        deviceElement.appendChild(itemValue);
+                        devicesList.appendChild(deviceElement);
+                    });
+
+                    devicesList_container.appendChild(devicesList);
+                    room.appendChild(devicesList_container);
+                    devicesListWrapper.appendChild(room);
+                });
+
+                // Search functionality
+                if (searchBar) {
+                    searchBar.addEventListener('input', function() {
+                        const searchTerm = this.value.toLowerCase();
+                        const rooms = devicesListWrapper.querySelectorAll('.room-card');
+                        
+                        rooms.forEach(room => {
+                            const roomName = room.querySelector('.room-name')?.textContent.toLowerCase() || "";
+                            const devices = room.querySelectorAll('.device-element');
+                            let hasVisibleDevices = false;
+                            
+                            devices.forEach(device => {
+                                const deviceName = device.querySelector('.device-text')?.textContent.toLowerCase() || "";
+                                if (deviceName.includes(searchTerm) || roomName.includes(searchTerm)) {
+                                    device.style.display = 'flex';
+                                    hasVisibleDevices = true;
+                                } else {
+                                    device.style.display = 'none';
+                                }
+                            });
+                            
+                            if (hasVisibleDevices || roomName.includes(searchTerm)) {
+                                room.style.display = 'block';
+                                room.style.animation = 'fadeIn 0.3s ease';
+                            } else {
+                                room.style.display = 'none';
+                            }
+                        });
+                    });
+                }
+
+                dinamicallyPopulateEntityValue(devices);
+                resolve();
+            }, 100);
         });
-        
-        // Mostra/nascondi la stanza in base ai dispositivi visibili
-        if (hasVisibleDevices || roomName.includes(searchTerm)) {
-          room.style.display = 'block';
-          room.style.animation = 'fadeIn 0.3s ease';
-        } else {
-          room.style.display = 'none';
-        }
-      });
-    });
-    dinamicallyPopulateEntityValue(devices)
-  }, 100);
- 
+
+    } else {
+        devicesContainer.innerHTML = `
+            <div class="no-problems-message">
+              Non hai ancora collegato dispositivi smart alla tua casa. <br> 
+              Connetti il tuo primo dispositivo per iniziare! 😊
+            </div>
+        `; 
+    }
 }
 
 function getIcon(name, type) {
@@ -1305,6 +1338,7 @@ function displayProblemDesc(el) {
 function printUserProblems(problemsList) {
   const carouselControls = document.getElementById('carousel-controls');
   const carouselMessages = document.getElementById('carousel-messages');
+  document.querySelector('#n_problems').innerText = problemsList.length || 0;
   
   if (!problemsList || problemsList.length === 0) {
       // Nascondi i controlli e mostra il messaggio
@@ -1322,7 +1356,6 @@ function printUserProblems(problemsList) {
       carouselControls.style.display = 'flex';
       carouselMessages.innerHTML = '';
       carouselMessages.style.display = 'none';
-      document.querySelector('#n_problems').innerText = problemsList.length || 0;
       for (const [index, problem] of problemsList.entries()){
         if (problem['type'] == 'conflict'){
           createConflictCard(
