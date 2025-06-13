@@ -311,7 +311,7 @@ body{
 .report:hover{
   background-color: #b0b324;
 }
-#rules-container, #problems-main-container{
+#rules-container, #problems-main-container, #devices-list-container{
   width: 100%;
   height: inherit;
 }
