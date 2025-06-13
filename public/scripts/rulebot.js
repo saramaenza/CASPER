@@ -422,6 +422,11 @@ async function printUserRule(rules) {
         toggleSwitch.className = `toggle-switch ${automationState}`; // aggiungi/rimuovi 'active' per stato ON/OFF
         toggleSwitch.setAttribute('entity', automationEntity || "automation."+element['alias'].toLowerCase()
           .replace(/°/g, 'deg')
+          .replace(/[àáâãäå]/g, 'a')
+          .replace(/[èéêë]/g, 'e') 
+          .replace(/[ìíîï]/g, 'i')
+          .replace(/[òóôõö]/g, 'o')
+          .replace(/[ùúûü]/g, 'u')
           .replace(/[^a-zA-Z0-9\s]/g, '_')
           .split(' ')
           .join('_')
