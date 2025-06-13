@@ -284,6 +284,7 @@ body{
     scrollbar-width: auto;
     scrollbar-color: var(--border-color) var(--bg-secondary);
 }
+
 #problems-main-container::-webkit-scrollbar {
     width: 8px;
     display: none;
@@ -1145,11 +1146,6 @@ td {
     }
 }
 
-#devices-list-container, #rules-container {
-  overflow-y: auto;
-  scrollbar-gutter: stable;
-  height: 100%;
-}
 .devicesList_container {
   border-radius: 16px;
 }
@@ -2075,6 +2071,12 @@ td {
   #rules-buttons-container .selector-button {
       width: 93%;
       justify-content: center;
+  }
+  #left-container {
+    width: 45%;
+  }
+  #chat {
+    width: 55%;
   }
 }
 
