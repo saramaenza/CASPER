@@ -379,8 +379,9 @@ async function printUserRule(rules) {
     automationListWrapper.appendChild(searchContainer);
 
     rules.forEach((element, index) => {
-      let automationState = element['state'] === "on" ? "active": ""; // Stato di default se non specificato
-      let automationEntity = element['entity_id']
+      const ruleState = element['state']
+      let automationState = ruleState === "on" ? "active": ""; // Stato di default se non specificato
+      const automationEntity = element['entity_id']
       element = element['config'];
       
       setTimeout(() => {
@@ -393,7 +394,7 @@ async function printUserRule(rules) {
 
         // Status indicator
         const statusIndicator = document.createElement('div');
-        statusIndicator.className = 'status-indicator';
+        statusIndicator.className = ruleState === "on" ? 'status-indicator': 'status-indicator inactive';
         card.appendChild(statusIndicator);
 
         // CARD HEADER
@@ -430,17 +431,18 @@ async function printUserRule(rules) {
         // Toggle switch
         const toggleSwitch = document.createElement('div');
         toggleSwitch.className = `toggle-switch ${automationState}`; // aggiungi/rimuovi 'active' per stato ON/OFF
-        toggleSwitch.setAttribute('entity', automationEntity || "automation."+element['alias'].toLowerCase()
-          .replace(/°/g, 'deg')
-          .replace(/[àáâãäå]/g, 'a')
-          .replace(/[èéêë]/g, 'e') 
-          .replace(/[ìíîï]/g, 'i')
-          .replace(/[òóôõö]/g, 'o')
-          .replace(/[ùúûü]/g, 'u')
-          .replace(/[^a-zA-Z0-9\s]/g, '_')
-          .split(' ')
-          .join('_')
-          .replace(/__/g, '_'));
+        toggleSwitch.setAttribute('entity', automationEntity || "automation." + 
+          element['alias']
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '') // Rimuove diacritici/accenti
+            .toLowerCase()
+            .replace(/°/g, 'deg')
+            .replace(/[^a-zA-Z0-9\s]/g, '_')
+            .split(' ')
+            .join('_')
+            .replace(/_+/g, '_')
+            .replace(/^_|_$/g, '')
+        );
         toggleSwitch.setAttribute('ruleid', element['id']);
         toggleSwitch.setAttribute('title', 'Accendi/Spegni Automazione');
 
@@ -2299,3 +2301,31 @@ document.addEventListener("visibilitychange", () => {
     
   }
 });
+
+/*
+const closeLeft = document.querySelector('.close-left-panel');
+const leftPanelCover = document.querySelector('.left-container-cover');
+const chatbotDiv = document.querySelector('#chat');
+const leftPanel = document.querySelector('#left-container');
+//const leftPanelInner = document.querySelector('#left-container-inner');
+closeLeft.addEventListener('click', () => {
+    leftPanel.style.width = '5%';
+    leftPanel.style.display = 'inline';
+    leftPanelCover.style.height = '100vh';
+    leftPanelCover.style.display = 'flex';
+    chatbotDiv.style.width = '95%';
+});
+
+const chatPanelCover = document.querySelector('.chat-container-cover');
+const chatPanelInner = document.querySelector('#chat-container-inner');
+
+leftPanelCover.addEventListener('click', () => {
+    leftPanelInner.style.display = 'inital';
+    leftPanel.style.width = '95%';
+    leftPanelCover.style.display = 'none';
+    chatbotDiv.style.width = '5%';
+    chatPanelCover.style.display = 'flex';
+    chatPanelInner.style.display = 'none';
+    chatPanelCover.style.height = '100vh';
+})
+    */
