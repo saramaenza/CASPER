@@ -314,7 +314,7 @@ body{
 #rules-container, #problems-main-container, #devices-list-container{
   width: 100%;
   height: inherit;
-}
+}/*
 #problems-main-container {
     scrollbar-width: auto;
     scrollbar-color: var(--border-color) var(--bg-secondary);
@@ -339,7 +339,7 @@ body{
     background: var(--border-color);
     border-radius: 4px;
     transition: background-color 0.3s ease;
-}
+}*/
 #problems-main-container h3{
   width: 90%;
   margin: 17px auto;
@@ -678,6 +678,7 @@ body{
 
 .devices-list {
   padding: 1.25rem;
+  cursor: default;
 }
 
 .room-card {
@@ -1971,7 +1972,7 @@ td {
 /* Modern Scrollbar */
 ::-webkit-scrollbar {
     width: 8px;
-    display: none;
+    display: block;
 }
 
 :hover::-webkit-scrollbar {
