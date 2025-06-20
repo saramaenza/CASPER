@@ -5,47 +5,24 @@ const tokenRaw = Cookies.get("auth-token");
 const chat_session_id = Cookies.get("chat_session_id");
 const token = jwt_decode(tokenRaw);
 const userId = token.id;
-//const name = token.name.charAt(0).toUpperCase() + token.name.slice(1);
 const userName = token.name;
 let isReminderText = false;
 let entitiesStates;
 let statusInterval = null;
 const intervalUpdate = 20000; // Aggiorna lo stato del chatbot ogni 20 secondi
-
 const base_link = window.location.origin;
 const getRuleList = `${base_link}/get_rule_list`; // chiamata POST per ricevere la lista delle regole
 const getDevices = `${base_link}/get_config`; // chiamata POST per ricevere la lista delle regole
 const getEntitiesStates = `${base_link}/get_entities_states`; // chiamata POST per ricevere lo stato delle entità
 const sendMessage = `${base_link}/send_message`; // chiamata POST per ricevere la lista delle regole
-const changeRule = `${base_link}/changeRule`; // chiamata POST per aggiornare le regole dopo il cancellamento
 const getProblemList = `${base_link}/get_problems`; // chiamata GET per ricevere la lista dei problemi
-const getGoals = `${base_link}/get_goals`; // chiamata POST per ricevere la lista dei goal
 const ping = `${base_link}/post_chat_state`; // chiamata POST per mantere la sessione attiva
 const toggleAutomation = `${base_link}/toggle_automation`; // chiamata POST per ricevere la lista delle regole
-const downButton = document.querySelector("#download");
-const aggiorna = document.querySelector("#aggiorna");
-let currentIndex = 0;
 const carousel = document.querySelector(".carousel");
-let carouselItems = document.querySelectorAll(".carousel__item");
-const [btnLeftCarousel, btnRightCarousel] = document.querySelectorAll(
-  ".carousel-button"
-);
-let carouselCount = carouselItems.length;
-let pos = 0;
-let translateX = 0;
 const toggleSwitch = document.getElementById('toggleSwitch');
 const toggleBall = document.getElementById('toggleBall');
-
 let carouselObject = null
-
-// Immagine del profilo a pallina
-//const userProfile = document.querySelector('#profile');
 const initial = document.querySelector('#initial-name');
-//const profileInfo = document.querySelector('#profile-info');
-const reset = document.querySelector('#reset');
-
-let choosenSolution = null; // {"rule_name": "nome della regola", "rule_id": "id della regola", "solution": "soluzione scelta"}
-
 const sse = new EventSource("/sse");
 
 const sendPing = async () => {
@@ -197,30 +174,6 @@ window.addEventListener('load', async ()=>{
   }
 
 })
-
-async function updateEntitiesStates(){
-  entitiesStates = await getData(`${getEntitiesStates}?id=${userId}`)
-  let devicesList = await getData(`${getDevices}?id=${userId}`) //GET problemi
-  dinamicallyPopulateEntityValue(devicesList['selected']);
-}
-
-// Identifica in entitiesStates l'entità corrispondente e restituisce lo stato
-function dinamicallyPopulateEntityValue(devices){
-  //devices = device['slected']
-  const cleanList = formatDeviceList(devices);
-  for (let element of Object.entries(cleanList)) {
-    let devices = element[1];
-    for (let device of devices) {
-      const entityId = device[2]; // Nome dell'entità
-      const currentEntity = entitiesStates.find(entity => entity.entity_id === entityId);
-      document.querySelector(`div[entityid='${entityId}'] .item-value`).textContent = currentEntity.state + (currentEntity.attributes.unit_of_measurement ? currentEntity.attributes.unit_of_measurement : "");
-      if (currentEntity.state === "unavailable") {
-        document.querySelector(`div[entityid='${entityId}'] .item-indicator`).classList.add('inactive');
-      }
-    }
-  }
-}
-
 
 logoutButton = document.querySelector('#logout');
 logoutButton.addEventListener('click', ()=>{
@@ -974,34 +927,10 @@ function getIcon(name, type) {
     }
 }
 
-//cancella una regola dalla lista
-async function deleteRule(id, obj){
-    let size = Object.keys(obj).length;
-    let tmp;
-    for (let i = 0; i<size; i++){
-      if (obj[i].ruleid == id){
-        tmp = i;
-      }
-    }
-    obj.splice(tmp, 1);
-    document.querySelector(`div [ruleid='${id}']`).remove();
-    //document.getElementById(`${id}`).parentElement.remove();
-    let newsize = Object.keys(obj).length;
-    for (let i = 0; i<newsize; i++){
-      obj[i].id = i+1; 
-    }
-    postData(obj, changeRule)
-  }
-
-  // =============================================
-
 const msgContainer = document.querySelector('#msgContainer');
 const queryText = document.querySelector("#inputBox");
 const inputButton = document.querySelector(".inputButton");
-const buttonIcon = document.querySelector(".buttonIcon");
-
 let justSent = false;
-
 
 // ===================== Message Generator =======================//
 inputButton.addEventListener('click', (event)=>{
@@ -1242,20 +1171,7 @@ async function generateBotMsg(messages){
     justSent = false;
     //readMessage(toRead);
 }
-function deleteTyping() {
-    if(document.querySelector('.isTyping') != null)
-    document.querySelector('.isTyping').remove();
-}
 
-let tokens_span = document.querySelector("#tokens")
-let cost_span = document.querySelector("#cost")
-function updateTokens(data){
-
-  let total_tokens = data[0]
-  let total_cost = data[1]
-  if (total_tokens > -1) tokens_span.innerHTML = total_tokens
-  if (total_cost > -1)cost_span.innerHTML = total_cost
-}
 // ========================= InputButton Change ===================== //
 queryText.addEventListener("keydown", (event) =>{
 	if (event.keyCode == 13 && queryText.value == ""){
@@ -1265,74 +1181,8 @@ queryText.addEventListener("keydown", (event) =>{
 		generateUserMsg();
 	}
 })
-queryText.addEventListener("keyup", (event) =>{
-    /* if (queryText.value !== ""){
-        buttonIcon.src = "icons/send.png"
-        inputButton.className = "inputButton send"
-    }else{
-        buttonIcon.src = "icons/microphone.png"
-        inputButton.className = "inputButton speech"
-    } */
-	
-		if (event.keyCode == 13 && !event.shiftKey) generateUserMsg();
-	//}
-    
-});
-
-
-// ================= Rule description display =================== //
-
-function displayDesc(el) {
-  const ruleId = el.getAttribute('ruleid');
-  const ruleDesc = document.querySelector(`div[descid='${ruleId}']`);
-  const isClosed = ruleDesc.classList.contains('closed');
-
-  if (isClosed) {
-    // Apertura
-    ruleDesc.style.maxHeight = ruleDesc.scrollHeight + 'px'; // Imposta l'altezza dinamica
-    ruleDesc.classList.remove('closed');
-    ruleDesc.classList.add('open');
-
-    // Rimuovi maxHeight dopo la transizione per evitare problemi su resize
-    ruleDesc.addEventListener('transitionend', function handler() {
-      ruleDesc.style.maxHeight = 'none';
-      ruleDesc.removeEventListener('transitionend', handler);
-    });
-  } else {
-    // Chiusura
-    ruleDesc.style.maxHeight = ruleDesc.scrollHeight + 'px'; // Necessario per calcolare l'altezza corrente
-    requestAnimationFrame(() => {
-      ruleDesc.style.maxHeight = '0px'; // Riduci l'altezza a 0
-    });
-    ruleDesc.classList.remove('open');
-    ruleDesc.classList.add('closed');
-  }
-}
-
-function displayProblemDesc(el) {
-
-  const ruleId = el.getAttribute('problemid');
-  const ruleDesc = document.querySelector(`div[problemdescid='${ruleId}']`);
-  const state = ruleDesc.classList.contains('closed') ? 'closed' : 'open';
-  if (state === 'closed') {
-
-    ruleDesc.style.maxHeight = '1000px';
-    ruleDesc.style.padding = '1em';
-    ruleDesc.classList.remove('closed');
-    ruleDesc.classList.add('open');
-  } else {
-    ruleDesc.style.maxHeight = '0';
-    setTimeout(() => {
-      ruleDesc.style.padding = '0';
-    }, 500);
-    ruleDesc.classList.remove('open');
-    ruleDesc.classList.add('closed');
-  }
-}
-
 
 // ===================== Carousel ======================= //
-
 
 function printUserProblems(problemsList) {
   const carouselControls = document.getElementById('carousel-controls');
@@ -1729,8 +1579,6 @@ function createConflictCard(isActive, headerText, conflictInfo) {
     conflictTable.style.borderCollapse = "collapse";
     conflictTable.style.tableLayout = "fixed";
 
- 
-
     if(type_of_conflict.includes("same_event")){
         // Titolo diagramma
         const diagramTitle = document.createElement("div");
@@ -2103,7 +1951,6 @@ class Carousel {
 
 }
 
-
 // Send button functionality
 document.querySelector('.inputButton').addEventListener('click', function() {
     const input = document.querySelector('.inputButton');
@@ -2125,8 +1972,6 @@ function removeHomeAssistantEntities(text) {
   const homeAssistantEntityRegex = /\s*\([a-zA-Z_][a-zA-Z0-9_]*\.[a-zA-Z0-9_.-]+[^)]*\)/g;
   return text.replace(homeAssistantEntityRegex, '');
 }
-
-
 
 // ===================== Device List ======================= //
 
@@ -2285,47 +2130,3 @@ async function updateChatbotStatus() {
         return 'unknown';
     }
 }
-
-
-document.addEventListener("visibilitychange", () => {
-  if (document.hidden) {
-    if (statusInterval){
-      clearInterval(statusInterval);
-      statusInterval = null;
-    }
-  } else {
-    // Page became visible!
-    statusInterval = setInterval(async () => {
-        await updateChatbotStatus();
-    }, intervalUpdate);
-    
-  }
-});
-
-/*
-const closeLeft = document.querySelector('.close-left-panel');
-const leftPanelCover = document.querySelector('.left-container-cover');
-const chatbotDiv = document.querySelector('#chat');
-const leftPanel = document.querySelector('#left-container');
-//const leftPanelInner = document.querySelector('#left-container-inner');
-closeLeft.addEventListener('click', () => {
-    leftPanel.style.width = '5%';
-    leftPanel.style.display = 'inline';
-    leftPanelCover.style.height = '100vh';
-    leftPanelCover.style.display = 'flex';
-    chatbotDiv.style.width = '95%';
-});
-
-const chatPanelCover = document.querySelector('.chat-container-cover');
-const chatPanelInner = document.querySelector('#chat-container-inner');
-
-leftPanelCover.addEventListener('click', () => {
-    leftPanelInner.style.display = 'inital';
-    leftPanel.style.width = '95%';
-    leftPanelCover.style.display = 'none';
-    chatbotDiv.style.width = '5%';
-    chatPanelCover.style.display = 'flex';
-    chatPanelInner.style.display = 'none';
-    chatPanelCover.style.height = '100vh';
-})
-    */
