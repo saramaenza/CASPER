@@ -1044,16 +1044,20 @@ function resetConversation() {
     const buttons = dialog.querySelectorAll('.confirm-reset-btn');
     buttons.forEach(button => {
         button.addEventListener('click', async () => {
-            // Aggiungi la classe fadeOut
+            // Aggiungi la classe fadeOut all'overlay per l'animazione di uscita
             overlay.classList.add('fadeOut');
-            
+          
             // Rimuovi l'overlay dopo che l'animazione è completata
             setTimeout(async () => {
                 if (button.classList.contains('yes')) {
-                    msgContainer.innerText = ""
+                    msgContainer.classList.add('fade-out');
+                    setTimeout(() => {
+                        msgContainer.innerText = "";
+                        msgContainer.classList.remove('fade-out');
+                    }, 300); // Durata della transizione CSS
                 }
                 overlay.remove();
-            }, 200); // Stesso tempo dell'animazione CSS
+            }, 200); // Stesso tempo dell'animazione CSS dell'overlay
         });
     });
 }

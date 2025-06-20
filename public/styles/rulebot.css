@@ -126,6 +126,12 @@ body{
     height: calc(100vh - 200px);
     background-color: var(--bg-primary);
     backdrop-filter: blur(10px);
+    opacity: 1;
+    transition: opacity 0.3s;
+}
+.fade-out {
+    opacity: 0;
+    transition: opacity 0.3s;
 }
 #inputContainer{
     height: 100px;
