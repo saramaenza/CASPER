@@ -1019,6 +1019,46 @@ function generateTypingMsg(type){//type = user | bot
     MsgContainer.scrollIntoView()
 }
 
+document.getElementById('reset').addEventListener('click', resetConversation);
+
+// Funzione per resettare la chat
+function resetConversation() {
+    // Crea l'overlay
+    const overlay = document.createElement('div');
+    overlay.className = 'overlay';
+
+    // Crea il dialog
+    const dialog = document.createElement('div');
+    dialog.className = 'confirm-dialog';
+    dialog.innerHTML = `
+        <h3>Reset della chat</h3>
+        <p>Sei sicuro di voler resettare la chat con Casper?</p>
+        <div class="confirm-buttons">
+            <button class="confirm-reset-btn no">No</button>
+            <button class="confirm-reset-btn yes">Si</button>
+        </div>
+    `;
+    overlay.appendChild(dialog);
+    document.body.appendChild(overlay);
+    // Gestisci i click sui bottoni
+    const buttons = dialog.querySelectorAll('.confirm-reset-btn');
+    buttons.forEach(button => {
+        button.addEventListener('click', async () => {
+            // Aggiungi la classe fadeOut
+            overlay.classList.add('fadeOut');
+            
+            // Rimuovi l'overlay dopo che l'animazione è completata
+            setTimeout(async () => {
+                if (button.classList.contains('yes')) {
+                    msgContainer.innerText = ""
+                }
+                overlay.remove();
+            }, 200); // Stesso tempo dell'animazione CSS
+        });
+    });
+}
+
+
 function addChatState(state, id){
   const box = document.createElement('div');
   const icon = document.createElement('i');

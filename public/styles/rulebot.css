@@ -1612,7 +1612,7 @@ td {
     margin-top: 20px;
 }
 
-.confirm-btn {
+.confirm-btn, .confirm-reset-btn {
     padding: 8px 24px;
     border: none;
     border-radius: 6px;
@@ -1621,20 +1621,20 @@ td {
     transition: all 0.2s ease;
 }
 
-.confirm-btn.yes {
+.confirm-btn.yes, .confirm-reset-btn.yes {
     background: #dc3545;
     color: white;
     font-family: 'Nunito', sans-serif;
 }
 
-.confirm-btn.no, .confirm-btn.ok {
+.confirm-btn.no, .confirm-btn.ok, .confirm-reset-btn.no {
     background: var(--bg-primary);
     color: var(--text-primary);
     border: 1px solid var(--border-color);
     font-family: 'Nunito', sans-serif;
 }
 
-.confirm-btn:hover {
+.confirm-btn:hover, .confirm-reset-btn:hover {
     transform: scale(1.05);
 }
 
