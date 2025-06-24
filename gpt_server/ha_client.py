@@ -73,6 +73,8 @@ class HomeAssistantClient:
         return self.render_template(template)
     
     def save_automation(self, automation_json: Dict[str, Any], automation_id: str) -> str:
+        if 'id' in automation_json:
+            automation_json['id'] = str(automation_json['id'])
         resposne = self._make_post_request(f"/api/config/automation/config/{automation_id}", automation_json)
         print(f"Response from ha_client.save_automation: {resposne}")
         return resposne
