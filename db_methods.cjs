@@ -333,27 +333,85 @@ const deleteRule = async (userId, ruleId, haDeleteFunc) => {
     try {
         const database = client.db(dbName);
         const automations = database.collection('automations');
-        
+        const problems = database.collection('problems');
+        // elimina l'automazione dal database
         const userAutomations = await automations.findOne({ 'user_id': userId });
         
-        if (!userAutomations) return false;
-        
+        if (!userAutomations) {
+            return false;
+        }
+
         const newAutomations = userAutomations.automation_data.filter(
-            auto => auto.id.toString() !== ruleId.toString()
+            auto => {
+                const match = auto.id.toString() !== ruleId.toString();
+                return match;
+            }
         );
+                
         await automations.updateOne(
             { 'user_id': userId },
             { $set: { 'automation_data': newAutomations } }
         );
+
+        // Elimina i problemi che coinvolgono questa automazione
+        const userProblems = await problems.findOne({ 'user_id': userId });
+        
+        if (userProblems && userProblems.problems) {          
+            userProblems.problems.forEach((problem, index) => {
+                if (problem.rules) {
+                }
+            });
+            
+            // Filtra i problemi che NON coinvolgono l'automazione eliminata
+            const filteredProblems = userProblems.problems.filter(problem => {
+                if (!problem.rules || !Array.isArray(problem.rules)) {
+                    return true;
+                }
+                
+                // Controlla se il problema coinvolge l'automazione eliminata
+                const involvesDeletedRule = problem.rules.some(rule => {
+                    const ruleIdStr = rule.id ? rule.id.toString() : '';
+                    const targetIdStr = ruleId.toString();
+                    const matches = ruleIdStr === targetIdStr;      
+                    return matches;
+                });
+                
+                if (involvesDeletedRule) {
+                    return false; // Esclude questo problema
+                }
+                
+                return true; // Mantiene questo problema
+            });
+            
+            // Aggiorna la collezione problems
+            const updateResult = await problems.updateOne(
+                { 'user_id': userId },
+                { 
+                    $set: { 
+                        'problems': filteredProblems,
+                        'last_update': new Date()
+                    }
+                }
+            );
+            
+        } 
+        
+        // elimina l'automazione da Home Assistant
         const config = await getConfiguration(userId);
+        
+        if (!config || !config.auth) {
+            return false;
+        }
+                
         const haResponse = await haDeleteFunc(config.auth.url, config.auth.token, ruleId);
+        
         if (!haResponse) {
-            console.log(`Errore durante la cancellazione dell'automazione ${ruleId} su Home Assistant.`);
             return false;
         }
         return true;
+        
     } catch (err) {
-        console.log('Errore in Db deleteRule:', err);
+        console.log('Errore in deleteRule:', err);
         return false;
     }
 }

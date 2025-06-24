@@ -221,8 +221,10 @@ async function deleteAutomation(rule_id) {
       console.log("Delete Automation response: ", data);
       document.querySelector(`div [ruleid='${rule_id}']`).remove();
       let rulesList = await getRulesParam() //GET regole
+      let problemsList = await getProblems()  //GET problemi
       printUserRule(rulesList);
       document.querySelector('#n_automations').innerText = rulesList.length;
+      document.querySelector('#n_problems').innerText = problemsList.length;
     })
     .catch(error => {
       console.log(error);
