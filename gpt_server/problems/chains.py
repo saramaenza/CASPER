@@ -321,65 +321,158 @@ class ChainsDetector:
         return False
         
     def process_indirect_chain(self, rule_chain: List[Dict[str, Any]], rule1: Dict[str, Any], rule2: Dict[str, Any],
-                               action1_details: Dict[str, Any],
-                                rule1_name: str, id_automation1: str,
-                               rule2_entity_id: str):
-        type_action1 = action1_details['type_action'].split('.')[-1] if '.' in action1_details['type_action'] else action1_details['type_action']
-        domain1 = action1_details['domain']
-
-        if not domain1: # domain1 is essential for get_context_variables
-            return
-        #type_action1 = self.get_event_type(action1_details)  
-        context_var_action = self.get_context_variables(domain1, type_action1)
+                           action1_details: Dict[str, Any],
+                           rule1_name: str, id_automation1: str,
+                           rule2_entity_id: str):
+    
+        print(f"\n=== PROCESS_INDIRECT_CHAIN DEBUG ===")
+        print(f"Rule1: {rule1_name} (ID: {id_automation1})")
+        print(f"Rule2: {rule2.get('alias', 'No alias')} (ID: {rule2.get('id')})")
         
-        trigger2_list = rule2.get("triggers", []) or rule2.get("trigger", [])
-        if not isinstance(trigger2_list, list): trigger2_list = [trigger2_list]
+        # DIREZIONE 1: Rule1 → variabile → Rule2 (comportamento originale)
+        self._check_indirect_chain_direction(rule_chain, rule1, rule2, action1_details, rule1_name, id_automation1, "rule1_to_rule2")
+        
+        # DIREZIONE 2: Rule2 → variabile → Rule1 (nuova funzionalità)
+        self._check_indirect_chain_direction(rule_chain, rule2, rule1, None, rule1_name, id_automation1, "rule2_to_rule1")
+    
+    def _check_indirect_chain_direction(self, rule_chain: List[Dict[str, Any]], 
+                                  source_rule: Dict[str, Any], target_rule: Dict[str, Any],
+                                  source_action_details: Dict[str, Any] = None,
+                                  rule1_name: str = "", id_automation1: str = "",
+                                  direction: str = ""):
+        
+        # Se non abbiamo i dettagli dell'azione (direzione 2), li calcoliamo
+        if source_action_details is None:
+            source_actions = source_rule.get("actions", []) or source_rule.get("action", [])
+            if not isinstance(source_actions, list):
+                source_actions = [source_actions]
+            
+            # Processa ogni azione della regola sorgente
+            for source_action in source_actions:
+                if not isinstance(source_action, dict):
+                    continue
+                
+                device_action_source, _, domain_source = self.process_action_for_chain(source_action)
+                type_action_source = self.get_event_type(source_action)
+                
+                source_action_details = {
+                    'device_action': device_action_source,
+                    'type_action': type_action_source,
+                    'domain': domain_source
+                }
+                
+                print(f"Source action details: {source_action_details}")
+                
+                # Controlla se questa azione può influenzare una variabile che triggera la regola target
+                chain_found = self._check_indirect_variable_match(
+                    rule_chain, source_rule, target_rule, source_action_details, 
+                    rule1_name, id_automation1, direction
+                )
+                
+                if chain_found:
+                    break  # Una catena trovata è sufficiente
+        else:
+            # Direzione 1: usa i dettagli dell'azione già forniti
+            self._check_indirect_variable_match(
+                rule_chain, source_rule, target_rule, source_action_details, 
+                rule1_name, id_automation1, direction
+            )
 
-        if not trigger2_list:
-            return
+    def _check_indirect_variable_match(self, rule_chain: List[Dict[str, Any]],
+                                    source_rule: Dict[str, Any], target_rule: Dict[str, Any],
+                                    source_action_details: Dict[str, Any],
+                                    rule1_name: str, id_automation1: str, direction: str) -> bool:
+        
+        type_action_source = source_action_details['type_action'].split('.')[-1] if '.' in source_action_details['type_action'] else source_action_details['type_action']
+        domain_source = source_action_details['domain']
 
-        for var_type, variables in context_var_action.items(): # increase/decrease
-            for variable in variables: # e.g., "temperature", "humidity"
-                for trigger2_item in trigger2_list:
-                    if not isinstance(trigger2_item, dict): continue
+        if not domain_source:  # domain è essenziale per get_context_variables
+            print("No domain found for source action")
+            return False
+        
+        # Ottieni le variabili di contesto influenzate dall'azione sorgente
+        context_var_action = self.get_context_variables(domain_source, type_action_source)
+        print(f"Context variables from action: {context_var_action}")
+        
+        # Ottieni i trigger della regola target
+        target_triggers = target_rule.get("triggers", []) or target_rule.get("trigger", [])
+        if not isinstance(target_triggers, list):
+            target_triggers = [target_triggers]
 
-                    entity_trigger2 = trigger2_item.get("entity_id")
-                    if not entity_trigger2:
+        if not target_triggers:
+            print("No triggers in target rule")
+            return False
+
+        # Controlla ogni variabile influenzata dall'azione sorgente
+        for var_type, variables in context_var_action.items():  # increase/decrease
+            for variable in variables:  # e.g., "temperature", "humidity"
+                print(f"Checking variable: {variable} ({var_type})")
+                
+                # Controlla ogni trigger della regola target
+                for trigger_item in target_triggers:
+                    if not isinstance(trigger_item, dict):
                         continue
 
-                    _, device_class_trigger2 = self.process_trigger(entity_trigger2)
+                    entity_trigger = trigger_item.get("entity_id")
+                    if not entity_trigger:
+                        continue
 
-                    if not device_class_trigger2: # If no device_class, cannot match variable
+                    _, device_class_trigger = self.process_trigger(entity_trigger)
+                    print(f"Target trigger entity: {entity_trigger}, device_class: {device_class_trigger}")
+
+                    if not device_class_trigger:  # Se non c'è device_class, non può matchare la variabile
                         continue
                     
-                    if variable == device_class_trigger2:
-                        solution_info = self.call_find_solution_llm(rule1.get("id"), rule1.get("alias"), rule1.get("description"), rule2.get("id"), rule2.get("alias"), rule2.get("description"))
-                       
-                        rule_name2 = rule2.get("alias")
-                        id_automation2 = rule2.get("id")
-                        unique_id_chain = str(id_automation1) + "_" + str(id_automation2)
+                    # Verifica se la variabile influenzata dall'azione sorgente 
+                    # corrisponde alla device_class del trigger target
+                    if variable == device_class_trigger:
+
+                        # Determina l'ordine corretto per la catena
+                        if direction == "rule1_to_rule2":
+                            first_rule = source_rule  # rule1 (nuova)
+                            second_rule = target_rule  # rule2 (esistente)
+                        else:  # rule2_to_rule1
+                            first_rule = target_rule  # rule1 (nuova)
+                            second_rule = source_rule  # rule2 (esistente)
+                        
+                        # Genera la soluzione
+                        solution_info = self.call_find_solution_llm(
+                            first_rule.get("id"), first_rule.get("alias"), first_rule.get("description"),
+                            second_rule.get("id"), second_rule.get("alias"), second_rule.get("description")
+                        )
+                        
+                        # Crea l'ID univoco della catena
+                        unique_id_chain = f"{first_rule.get('id')}_{second_rule.get('id')}"
+                        
                         if not self.is_chain_present(rule_chain, unique_id_chain):
-                            rule_chain.append({
+                            chain_data = {
                                 "type": "indirect-chain",
                                 "unique_id": unique_id_chain,
+                                "direction": direction,
                                 "chain_variable": variable, 
-                                "effect_type": var_type, # e.g., "increase" or "decrease"
+                                "effect_type": var_type,  # e.g., "increase" or "decrease"
                                 "rules": [
                                     {
-                                        "id": id_automation1,
-                                        "name": rule1_name,
-                                        "description": rule1.get("description"),
+                                        "id": first_rule.get("id"),
+                                        "name": first_rule.get("alias"),
+                                        "description": first_rule.get("description"),
+                                        "role": "source" if direction == "rule1_to_rule2" else "trigger"
                                     },
                                     {
-                                        "id": id_automation2,
-                                        "name": rule_name2,
-                                        "description": rule2.get("description"),
+                                        "id": second_rule.get("id"),
+                                        "name": second_rule.get("alias"),
+                                        "description": second_rule.get("description"),
+                                        "role": "target" if direction == "rule1_to_rule2" else "triggered"
                                     }
                                 ],
                                 "possibleSolutions": solution_info
-                            })
-                            return # Exit after finding the first indirect chain for this rule2
-
+                            }
+                            
+                            rule_chain.append(chain_data)
+                            
+                            return True  # Esci dopo aver trovato la prima catena indiretta
+        
+        return False
 
     def _process_rule_chain_iteration(self, all_existing_rules: List[Dict[str, Any]],
                                    rule1_config: Dict[str, Any],
