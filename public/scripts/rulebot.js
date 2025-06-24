@@ -1283,8 +1283,33 @@ function createChainCard(isActive, headerText, chainInfo) {
     const rule2_id = rule2['id'];
     const rule2_name = rule2['name'];
 
-    const rule1_match = rule1['description'].match(regex);
-    const rule2_match = rule2['description'].match(regex);
+    // DETERMINA LA DIREZIONE DELLA CATENA
+    const chainDirection = chainInfo['direction'] || 'rule1_to_rule2';
+    const isReversed = chainDirection === 'rule2_to_rule1';
+    
+    // IMPOSTA L'ORDINE CORRETTO PER LA VISUALIZZAZIONE
+    let firstRule, secondRule, firstRuleId, firstRuleName, secondRuleId, secondRuleName;
+    
+    if (isReversed) {
+        // Se la direzione è rule2 → rule1, inverti l'ordine visuale
+        firstRule = rule2;
+        secondRule = rule1;
+        firstRuleId = rule2_id;
+        firstRuleName = rule2_name;
+        secondRuleId = rule1_id;
+        secondRuleName = rule1_name;
+    } else {
+        // Direzione normale: rule1 → rule2
+        firstRule = rule1;
+        secondRule = rule2;
+        firstRuleId = rule1_id;
+        firstRuleName = rule1_name;
+        secondRuleId = rule2_id;
+        secondRuleName = rule2_name;
+    }
+
+    const rule1_match = firstRule['description'].match(regex);
+    const rule2_match = secondRule['description'].match(regex);
 
     // Early return if invalid format
     if (!rule1_match?.groups || !rule2_match?.groups) {
@@ -1344,7 +1369,7 @@ function createChainCard(isActive, headerText, chainInfo) {
     const automationFlow = document.createElement("div");
     automationFlow.className = "automation-flow";
 
-    // First automation card
+    // FIRST AUTOMATION CARD (basato sulla direzione)
     const firstAutomation = document.createElement("div");
     firstAutomation.className = "automation-chain-card";
 
@@ -1361,7 +1386,7 @@ function createChainCard(isActive, headerText, chainInfo) {
 
     const firstSubtitle = document.createElement("div");
     firstSubtitle.className = "card-chain-subtitle";
-    firstSubtitle.textContent = rule1_name;
+    firstSubtitle.textContent = firstRuleName;
 
     // Assemble first automation card
     firstAutomation.appendChild(firstIcon);
@@ -1373,16 +1398,16 @@ function createChainCard(isActive, headerText, chainInfo) {
     firstArrow.className = "flow-arrow";
     firstArrow.textContent = "→";
 
-    // Variable card (created outside if statement)
+    // Variable card (per catene indirette)
     const variableCard = document.createElement("div");
     variableCard.className = "variable-chain-card";
 
-    // Second arrow (created outside if statement)
+    // Second arrow
     const secondArrow = document.createElement("div");
     secondArrow.className = "flow-arrow";
     secondArrow.textContent = "→";
 
-    // Second automation card
+    // SECOND AUTOMATION CARD (basato sulla direzione)
     const secondAutomation = document.createElement("div");
     secondAutomation.className = "automation-chain-card";
 
@@ -1399,7 +1424,7 @@ function createChainCard(isActive, headerText, chainInfo) {
 
     const secondSubtitle = document.createElement("div");
     secondSubtitle.className = "card-chain-subtitle";
-    secondSubtitle.textContent = rule2_name;
+    secondSubtitle.textContent = secondRuleName;
 
     // Populate variable card if indirect chain
     if(chainInfo.type == "indirect-chain") {
@@ -1431,7 +1456,7 @@ function createChainCard(isActive, headerText, chainInfo) {
     secondAutomation.appendChild(secondTitle);
     secondAutomation.appendChild(secondSubtitle);
 
-    // Assemble the flow
+    // ASSEMBLE THE FLOW 
     automationFlow.appendChild(firstAutomation);
     automationFlow.appendChild(firstArrow);
     
@@ -1468,7 +1493,18 @@ function createChainCard(isActive, headerText, chainInfo) {
         const button = document.createElement("button");
         button.className = "accordion-button";
         button.setAttribute("onclick", "toggleStayOpen(this)");
-        button.textContent = `Modifica l'automazione "${automationID === rule1_id ? rule1_name : rule2_name}"`;
+        
+        // DETERMINA IL NOME CORRETTO BASATO SULL'ID
+        let automationName = "";
+        if (automationID === rule1_id) {
+            automationName = rule1_name;
+        } else if (automationID === rule2_id) {
+            automationName = rule2_name;
+        } else {
+            automationName = "Automazione sconosciuta";
+        }
+        
+        button.textContent = `Modifica l'automazione "${automationName}"`;
 
         header.appendChild(button);
         item.appendChild(header);

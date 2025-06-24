@@ -73,9 +73,9 @@ class ChainsDetector:
                (type1 == "turn_off" and type2 == "turned_off") or \
                (type1 == type2)
 
-    def is_chain_present(self, chain_array: List[Dict[str, Any]], id_chain: str) -> bool:
+    def is_chain_present(self, chain_array: List[Dict[str, Any]], unique_id: str) -> bool:
         for chain in chain_array:
-            if chain.get("id_chain") == id_chain:
+            if chain.get("unique_id") == unique_id:
                 return True
         return False
 
@@ -153,74 +153,173 @@ class ChainsDetector:
 
 
     def process_direct_chain(self, rule_chain: List[Dict[str, Any]], rule1: Dict[str, Any], rule2: Dict[str, Any],
-                             action1_details: Dict[str, Any], # Contains device_action1, type_action1 etc.
-                             rule1_name: str, id_automation1: str,
-                             rule2_entity_id: str): # domain1 is part of action1_details if needed
+                         action1_details: Dict[str, Any], 
+                         rule1_name: str, id_automation1: str,
+                         rule2_entity_id: str):
+    
+        # DIREZIONE 1: Rule1 → Rule2 
+        self._check_chain_direction(rule_chain, rule1, rule2, action1_details, rule1_name, id_automation1, "rule1_to_rule2")
+        
+        # DIREZIONE 2: Rule2 → Rule1
+        self._check_chain_direction(rule_chain, rule2, rule1, None, rule1_name, id_automation1, "rule2_to_rule1")
 
-        device_action1 = action1_details['device_action']
-        type_action1 = action1_details['type_action']
-
-        trigger2_list = rule2.get("triggers", []) or rule2.get("trigger", []) # Ensure it's a list
-        if not isinstance(trigger2_list, list): trigger2_list = [trigger2_list] # if it's a single dict
-        if not trigger2_list:
-            return
-        for trigger2_item in trigger2_list: # Iterate through all triggers of rule2
-            if not isinstance(trigger2_item, dict): continue # Skip if trigger is not a dict
-
-            # Original code took device_id from trigger, then entity_id if device_id was None.
-            # Let's try to get entity_id first as it's more common for state triggers.
-            # This part might need refinement based on what device_action1 actually holds.
-            trigger_entity_id = trigger2_item.get('entity_id')
-            device_trigger2 = None
-            if trigger_entity_id:
-                if isinstance(device_action1, str) and device_action1 == trigger_entity_id:
-                     device_trigger2 = trigger_entity_id
-                elif 'device_id' in trigger2_item:
-                     device_trigger2 = trigger2_item['device_id']
-
-            if not device_trigger2 and 'device_id' in trigger2_item: # Fallback to device_id if entity_id not matched
-                 device_trigger2 = trigger2_item.get("device_id")
+    def _check_chain_direction(self, rule_chain: List[Dict[str, Any]], 
+                          source_rule: Dict[str, Any], target_rule: Dict[str, Any],
+                          source_action_details: Dict[str, Any] = None,
+                          rule1_name: str = "", id_automation1: str = "",
+                          direction: str = ""):
+    
+        print(f"\n--- Checking direction: {direction} ---")
+        print(f"Source: {source_rule.get('alias', 'No alias')}")
+        print(f"Target: {target_rule.get('alias', 'No alias')}")
+        
+        # Se non abbiamo i dettagli dell'azione (direzione 2), li calcoliamo
+        if source_action_details is None:
+            source_actions = source_rule.get("actions", []) or source_rule.get("action", [])
+            if not isinstance(source_actions, list):
+                source_actions = [source_actions]
             
-            if not device_trigger2 and trigger_entity_id: # If action was by entity, trigger might be by entity
-                device_trigger2 = trigger_entity_id
-            type_trigger2 = self.get_event_type(trigger2_item)
-
-            is_match = False
-            if isinstance(device_action1, list):
-                if device_trigger2 in device_action1:
-                    is_match = True
-            elif device_action1 == device_trigger2:
-                is_match = True
-            type_action1 = type_action1.split('.')[-1] if '.' in type_action1 else type_action1
-            if is_match and self.check_operator(type_action1, type_trigger2):
-            #if is_match and True: # Temporarily removed operator check for testing
-                #print(rule1.get("alias"), rule1.get("description"), rule2.get("alias"), rule2.get("description"))
-                solution_info = self.call_find_solution_llm(rule1.get("id"), rule1.get("alias"), rule1.get("description"), rule2.get("id"), rule2.get("alias"), rule2.get("description")) 
+            # Processa ogni azione della regola sorgente
+            for source_action in source_actions:
+                if not isinstance(source_action, dict):
+                    continue
                 
-                rule_name2 = rule2.get("alias")
-                id_automation2 = rule2.get("id")
-                unique_id_chain = str(id_automation1) + "_" + str(id_automation2)
-
+                device_action_source, _, domain_source = self.process_action_for_chain(source_action)
+                type_action_source = self.get_event_type(source_action)
+                
+                source_action_details = {
+                    'device_action': device_action_source,
+                    'type_action': type_action_source,
+                    'domain': domain_source
+                }
+                
+                print(f"Source action details: {source_action_details}")
+                
+                # Controlla se questa azione può triggerare la regola target
+                chain_found = self._check_action_trigger_match(
+                    rule_chain, source_rule, target_rule, source_action_details, 
+                    rule1_name, id_automation1, direction
+                )
+                
+                if chain_found:
+                    break  # Una catena trovata è sufficiente
+        else:
+            # Direzione 1: usa i dettagli dell'azione già forniti
+            self._check_action_trigger_match(
+                rule_chain, source_rule, target_rule, source_action_details, 
+                rule1_name, id_automation1, direction
+            )
+    
+    def _check_action_trigger_match(self, rule_chain: List[Dict[str, Any]],
+                               source_rule: Dict[str, Any], target_rule: Dict[str, Any],
+                               source_action_details: Dict[str, Any],
+                               rule1_name: str, id_automation1: str, direction: str) -> bool:
+    
+        device_action_source = source_action_details['device_action']
+        type_action_source = source_action_details['type_action']
+        
+        print(f"Checking action: device={device_action_source}, type={type_action_source}")
+        
+        # Ottieni i trigger della regola target
+        target_triggers = target_rule.get("triggers", []) or target_rule.get("trigger", [])
+        if not isinstance(target_triggers, list):
+            target_triggers = [target_triggers]
+        
+        if not target_triggers:
+            print("No triggers in target rule")
+            return False
+        
+        for trigger_item in target_triggers:
+            if not isinstance(trigger_item, dict):
+                continue
+            
+            print(f"Checking trigger: {trigger_item}")
+            
+            # Estrai l'entità dal trigger
+            trigger_entity_id = trigger_item.get('entity_id')
+            device_trigger = None
+            
+            if trigger_entity_id:
+                if isinstance(device_action_source, str) and device_action_source == trigger_entity_id:
+                    device_trigger = trigger_entity_id
+                elif 'device_id' in trigger_item:
+                    device_trigger = trigger_item['device_id']
+            
+            if not device_trigger and 'device_id' in trigger_item:
+                device_trigger = trigger_item.get("device_id")
+            
+            if not device_trigger and trigger_entity_id:
+                device_trigger = trigger_entity_id
+            
+            type_trigger = self.get_event_type(trigger_item)
+            
+            print(f"Trigger details: device={device_trigger}, type={type_trigger}")
+            
+            # Verifica match
+            is_match = False
+            if isinstance(device_action_source, list):
+                if device_trigger in device_action_source:
+                    is_match = True
+            elif device_action_source == device_trigger:
+                is_match = True
+            
+            # Normalizza i tipi per il confronto
+            type_action_normalized = type_action_source.split('.')[-1] if '.' in type_action_source else type_action_source
+            
+            print(f"Match result: device_match={is_match}, type_check={self.check_operator(type_action_normalized, type_trigger)}")
+            
+            if is_match and self.check_operator(type_action_normalized, type_trigger):
+                
+                # Determina l'ordine corretto per la catena
+                if direction == "rule1_to_rule2":
+                    first_rule = source_rule
+                    second_rule = target_rule
+                    chain_direction = f"{source_rule.get('alias')} → {target_rule.get('alias')}"
+                else:  # rule2_to_rule1
+                    first_rule = target_rule  # rule1 (nuova)
+                    second_rule = source_rule  # rule2 (esistente)
+                    chain_direction = f"{source_rule.get('alias')} → {target_rule.get('alias')}"
+                
+                # Genera la soluzione
+                solution_info = self.call_find_solution_llm(
+                    first_rule.get("id"), first_rule.get("alias"), first_rule.get("description"),
+                    second_rule.get("id"), second_rule.get("alias"), second_rule.get("description")
+                )
+                
+                # Crea l'ID univoco della catena
+                unique_id_chain = f"{first_rule.get('id')}_{second_rule.get('id')}"
+                
                 if not self.is_chain_present(rule_chain, unique_id_chain):
-                    rule_chain.append({
+                    chain_data = {
                         "type": "direct-chain",
                         "unique_id": unique_id_chain,
+                        "direction": direction,
+                        "chain_description": chain_direction,
                         "rules": [
                             {
-                                "id": id_automation1,
-                                "name": rule1_name,
-                                "description": rule1.get("description"),
+                                "id": first_rule.get("id"),
+                                "name": first_rule.get("alias"),
+                                "description": first_rule.get("description"),
+                                "role": "trigger" if direction == "rule2_to_rule1" else "source"
                             },
                             {
-                                "id": id_automation2,
-                                "name": rule_name2,
-                                "description": rule2.get("description"),
+                                "id": second_rule.get("id"),
+                                "name": second_rule.get("alias"),
+                                "description": second_rule.get("description"),
+                                "role": "triggered" if direction == "rule2_to_rule1" else "target"
                             }
                         ],
+                        "entity_involved": device_trigger,
+                        "action_type": type_action_normalized,
+                        "trigger_type": type_trigger,
                         "possibleSolutions": solution_info,
-                    })
-                    break # Assuming one match per rule2 is sufficient for "direct chain"
-
+                    }
+                    
+                    rule_chain.append(chain_data)
+                    return True
+        
+        return False
+        
     def process_indirect_chain(self, rule_chain: List[Dict[str, Any]], rule1: Dict[str, Any], rule2: Dict[str, Any],
                                action1_details: Dict[str, Any],
                                 rule1_name: str, id_automation1: str,
@@ -341,6 +440,7 @@ class ChainsDetector:
 
         processing_function = self.process_indirect_chain
         if chain_type == "direct":
+            print("PASSO 0")
             processing_function = self.process_direct_chain
         elif chain_type != "indirect":
             raise ValueError(f"Unknown chain_type: {chain_type}. Must be 'direct' or 'indirect'.")
