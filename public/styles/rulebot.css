@@ -216,6 +216,13 @@ body{
 #rules-container, #problems-main-container, #devices-list-container{
   width: 100%;
   height: inherit;
+  overflow-y: auto;
+  scrollbar-width: none; 
+  -ms-overflow-style: none; 
+}
+
+#rules-container::-webkit-scrollbar, #problems-main-container::-webkit-scrollbar #devices-list-container::-webkit-scrollbar {
+    display: none; 
 }
 
 .carousel-controls {
@@ -1198,6 +1205,11 @@ td {
   animation: none;
 }
 
+
+.status-indicator.error, .status-indicator-chat.error {
+  background: #c70000;
+}
+
 @keyframes glow {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.5; }
@@ -1481,6 +1493,14 @@ td {
     transform: scale(1.05);
 }
 
+ .toggle-switch-theme:hover {
+    background: rgba(71, 138, 255, 0.2);
+    color: var(--text-primary);
+    border-color: rgba(13, 54, 104, 0.178);
+    opacity: 1;
+    transform: scale(1.05);
+}
+
 #initial-name {
   margin: 0;
 }
@@ -1644,7 +1664,7 @@ td {
     transform: scale(1.05);
 }
 
-/* Modern Scrollbar */
+/* Modern Scrollbar *//*
 ::-webkit-scrollbar {
     width: 8px;
     display: block;
@@ -1667,7 +1687,7 @@ td {
 
 ::-webkit-scrollbar-thumb:hover {
     background: var(--scroolbar-thumb-hover);
-}
+}*/
 
 .inputButton {
   border-radius: 50%;

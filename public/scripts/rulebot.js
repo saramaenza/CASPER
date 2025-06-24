@@ -2046,14 +2046,6 @@ toggleSwitch.addEventListener('click', function() {
     toggleBall.classList.toggle('dark');
 });
 
-// Aggiunge effetto hover con il mouse
-toggleSwitch.addEventListener('mouseenter', function() {
-    this.style.transform = 'translateY(-2px) scale(1.02)';
-});
-
-toggleSwitch.addEventListener('mouseleave', function() {
-    this.style.transform = 'translateY(0) scale(1)';
-});
 
 // Funzione per impostare il tema
 function setTheme(isDark = false) {
@@ -2147,9 +2139,9 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function updateChatbotStatus() {
+  let status = document.querySelector('.agent-status');
+  let indicator = document.querySelector('.status-indicator-chat');
    try {
-        let status = document.querySelector('.agent-status');
-        let indicator = document.querySelector('.status-indicator-chat');
         const response = await fetch('/chatbot_status', {
             headers: { 'Cache-Control': 'no-cache' }
         });
@@ -2171,6 +2163,9 @@ async function updateChatbotStatus() {
         return chatbotStatus;
     } catch (error) {
         console.log('Status check failed:', error);
+        status.textContent = "Errore di connessione";
+        indicator.classList.add('error');
+        indicator.classList.remove('inactive');
         return 'unknown';
     }
 }
