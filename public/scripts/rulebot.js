@@ -2207,3 +2207,20 @@ async function updateChatbotStatus() {
         return 'unknown';
     }
 }
+
+// Identifica in entitiesStates l'entità corrispondente e restituisce lo stato
+function dinamicallyPopulateEntityValue(devices){
+  //devices = device['slected']
+  const cleanList = formatDeviceList(devices);
+  for (let element of Object.entries(cleanList)) {
+    let devices = element[1];
+    for (let device of devices) {
+      const entityId = device[2]; // Nome dell'entità
+      const currentEntity = entitiesStates.find(entity => entity.entity_id === entityId);
+      document.querySelector(`div[entityid='${entityId}'] .item-value`).textContent = currentEntity.state + (currentEntity.attributes.unit_of_measurement ? currentEntity.attributes.unit_of_measurement : "");
+      if (currentEntity.state === "unavailable") {
+        document.querySelector(`div[entityid='${entityId}'] .item-indicator`).classList.add('inactive');
+      }
+    }
+  }
+}
