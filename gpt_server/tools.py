@@ -62,6 +62,7 @@ def do_instant_actions(
 def generate_automation(
     description: Annotated[str, "The automation description in the format: Event: <event> (<entity_id>) Condition: <condition> (<entity_id>) AND <condition> (<entity_id>) OR ... Action: <actions> (<entity_ids>)."],
     automation_id: Annotated[str, "The ID of the automation to generate. Use '-1' to generate a new automation, or the ID of an existing automation to update it."],
+    problem_id: Annotated[str | None, "Optional. If the user want to solve a problem, the ID of the problem the user want to solve."],
     user_id: Annotated[str, InjectedToolArg],
     session_id: Annotated[str, InjectedToolArg]
 ) -> str:
@@ -107,12 +108,17 @@ def generate_automation(
         else:
             data['automation']['id'] = automation_id
         
+        if problem_id is not None:
+            _db.solve_problem(user_id, problem_id, data['automation'], description)
+        
         response = _db.save_automation(user_id, automation_id, data['automation'])
         
         if response == True:
             problems = problem_detector(user_id, session_id, automation_id)
             utils.update_chat_state(action="confirm-state", state="Automazione generata e salvata con successo", session_id=session_id, user_id=user_id, id='generate-automation')
             utils.update_chat_state(action="update-automation-list", state="", session_id=session_id, user_id=user_id)
+            if problems != "No problems detected." or problem_id is not None:
+                utils.update_chat_state(action="update-problems", state="", session_id=session_id, user_id=user_id)
             return f"Automation '{data['automation']['alias']}' saved. ID assegnato: {automation_id}. \nProblems info: {problems}"
         else:
             utils.update_chat_state(action="error-state", state="Errore durante la generazione dell'automazione", session_id=session_id, user_id=user_id, id='generate-automation')

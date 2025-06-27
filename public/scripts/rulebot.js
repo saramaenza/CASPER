@@ -141,12 +141,7 @@ window.addEventListener('load', async ()=>{
           <div class="loader"></div>
       </div>
   `;
-  let tmp_container = problemsContainer.innerHTML
-  problemsContainer.innerHTML = `
-      <div class="loader-container">
-          <div class="loader"></div>
-      </div>
-  `;
+  problemsContainer.querySelector('.loader-container').style.display = 'flex';
   const greeting = document.createElement('h1');
   greeting.textContent = `Ciao, ${userName}`;
   initial.appendChild(greeting);
@@ -170,7 +165,7 @@ window.addEventListener('load', async ()=>{
   printUserRule(rulesList); //PRINT regole
   printUserDevices(devicesList); //PRINT devices
   let problemsList = await getProblems()
-  printUserProblems(problemsList, tmp_container);
+  printUserProblems(problemsList);
   carouselObject = new Carousel(problemsList)
   //open_delete_rule();
 
@@ -1151,8 +1146,8 @@ queryText.addEventListener("keydown", (event) =>{
 
 // ===================== Carousel ======================= //
 
-function printUserProblems(problemsList, tmp_container = null) {
-  if (tmp_container != null) problemsContainer.innerHTML = tmp_container; // Pulisce il contenuto del container dei problemi
+function printUserProblems(problemsList) {
+  problemsContainer.querySelector('.loader-container').style.display = 'none';
   const carouselControls = document.getElementById('carousel-controls');
   const carouselMessages = document.getElementById('carousel-messages');
  
@@ -1482,8 +1477,12 @@ function createChainCard(isActive, headerText, chainInfo) {
         {problemId: e.target.getAttribute("problemid")},
         ignoreProblem)
       .then((response) => {
+        e.target.closest('.card').remove();
+        let n_prob = document.querySelector('#n_problems').innerText
+        document.querySelector('#n_problems').innerText = parseInt(n_prob) - 1;
         console.log("Problem ignored:", response);
       }).catch((error) => {
+        generateDialog("info", "Errore", "Si è verificato un errore e non posso eliminare il problema",() => {});
         console.error("Error ignoring problem:", error);
       });
     });
@@ -1823,8 +1822,12 @@ function createConflictCard(isActive, headerText, conflictInfo) {
         {problemId: e.target.getAttribute("problemid")},
         ignoreProblem)
       .then((response) => {
+        e.target.closest('.card').remove();
+        let n_prob = document.querySelector('#n_problems').innerText
+        document.querySelector('#n_problems').innerText = parseInt(n_prob) - 1;
         console.log("Problem ignored:", response);
       }).catch((error) => {
+        generateDialog("info", "Errore", "Si è verificato un errore e non posso eliminare il problema",() => {});
         console.error("Error ignoring problem:", error);
       });
     });
@@ -1841,8 +1844,7 @@ function createConflictCard(isActive, headerText, conflictInfo) {
         let ruleName = choosenSolution.rule_name;
         let structured = choosenSolution.solution;
         const message = `<solve_problem>The user want to solve the problem with ID:${problemId} by modifing the automation '${ruleName}'(Automation ID:${ruleId}) in the following way: ${structured}</solve_problem>`;
-        //getBotResponse(message);
-        console.log("Solve button clicked with message:", message);
+        getBotResponse(message);
       }
     });
 
