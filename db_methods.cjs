@@ -452,6 +452,36 @@ const toggleAutomation = async (userId, automationId, state) => {
     }
 }
 
+const ignoreProblem = async (userId, problemId) => {
+    try {
+        const database = client.db(dbName);
+        const problems = database.collection('problems');
+        
+        const userProblems = await problems.findOne({ 'user_id': userId });
+        
+        if (!userProblems) return false;
+        
+        // Trova il problema e imposta ignored a true
+        const updatedProblems = userProblems.problems.map(problem => {
+            if (problem.id.toString() === problemId.toString()) {
+                return { ...problem, ignore: true };
+            }
+            return problem;
+        });
+        
+        // Aggiorna il documento con i problemi modificati
+        await problems.updateOne(
+            { 'user_id': userId },
+            { $set: { 'problems': updatedProblems } }
+        );
+        
+        return true;
+    } catch (err) {
+        console.log('Errore in ignoreProblem:', err);
+        return false;
+    }
+};
+
 // const getHAAutomation = async (userId, automationId) => {
 //     
 //     try {
@@ -498,5 +528,6 @@ module.exports = {
     deleteRule,
     closeDatabaseConnection,
     toggleAutomation,
+    ignoreProblem
 };
 

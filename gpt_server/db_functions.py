@@ -153,6 +153,8 @@ def post_problem(user_id, input_problem):
             p_len = len(problems['problems'])
             for index in range(len(input_problem)):
                 input_problem[index]['id'] = str(p_len + index + 1)
+                input_problem[index]['ignore'] = False
+                input_problem[index]['solved'] = False
             problems['problems'].extend(input_problem)
             collection.update_one(
                 {"_id": problems["_id"]},

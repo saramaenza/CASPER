@@ -17,13 +17,16 @@ const getEntitiesStates = `${base_link}/get_entities_states`; // chiamata POST p
 const sendMessage = `${base_link}/send_message`; // chiamata POST per ricevere la lista delle regole
 const getProblemList = `${base_link}/get_problems`; // chiamata GET per ricevere la lista dei problemi
 const ping = `${base_link}/post_chat_state`; // chiamata POST per mantere la sessione attiva
-const toggleAutomation = `${base_link}/toggle_automation`; // chiamata POST per ricevere la lista delle regole
+const toggleAutomation = `${base_link}/toggle_automation`; // chiamata per accendere/spegnere un'automazione
+const ignoreProblem = `${base_link}/ignore_problem`; // chiamata per ignorare un problema
 const carousel = document.querySelector(".carousel");
 const toggleSwitch = document.getElementById('toggleSwitch');
 const toggleBall = document.getElementById('toggleBall');
 let carouselObject = null
 const initial = document.querySelector('#initial-name');
 const sse = new EventSource("/sse");
+
+let choosenSolution = null;
 
 const sendPing = async () => {
   const response = await fetch(ping, {
@@ -1233,8 +1236,8 @@ queryText.addEventListener("keydown", (event) =>{
 function printUserProblems(problemsList) {
   const carouselControls = document.getElementById('carousel-controls');
   const carouselMessages = document.getElementById('carousel-messages');
-  document.querySelector('#n_problems').innerText = problemsList.length || 0;
-  
+ 
+  let trueProblemNumber = 0;
   if (!problemsList || problemsList.length === 0) {
       // Nascondi i controlli e mostra il messaggio
       carouselControls.style.display = 'none';
@@ -1252,12 +1255,14 @@ function printUserProblems(problemsList) {
       carouselMessages.innerHTML = '';
       carouselMessages.style.display = 'none';
       for (const [index, problem] of problemsList.entries()){
+        if (problem['ignore'] == true || problem['solved'] == true) continue; // Ignora i problemi marcati come "ignore"
         if (problem['type'] == 'conflict'){
           createConflictCard(
             index == 0,
             `Conflitto ${problem['id']}`,
             problem
           )
+          trueProblemNumber++;
         }
         else if (problem['type'].split('-')[1] == 'chain'){
           createChainCard(
@@ -1265,17 +1270,19 @@ function printUserProblems(problemsList) {
             `Catena ${problem['id']}`,
             problem
           )
+          trueProblemNumber++;
         }else{
           //TODO: aggiungere i problemi di tipo "energy"
           console.log("Nessun problema associato a questo account");
         }
-      }   
+      }
+      document.querySelector('#n_problems').innerText = trueProblemNumber;
   }
 }
 
 function createChainCard(isActive, headerText, chainInfo) {
     const regex = /^event(?:s|o|i)?:\s*(?<event>.*?)(?:\s*(?:condition(?:s)?|condizion(?:e|i)):\s*(?<condition>.*?))?\s*(?:action(?:s)?|azion(?:i|e)):\s*(?<action>.*)$/i;
-
+    
     const rule1 = chainInfo['rules'][0];
     const rule1_id = rule1['id'];
     const rule1_name = rule1['name'];
@@ -1548,12 +1555,35 @@ function createChainCard(isActive, headerText, chainInfo) {
     const ignoreButton = document.createElement("button");
     ignoreButton.className = "btn btn-ignore";
     ignoreButton.textContent = "Ignora";
-    ignoreButton.id = chainInfo["id_chain"];
+    ignoreButton.id = chainInfo["unique_id"];
+    ignoreButton.setAttribute("problemid", conflictInfo["id"]);
+    ignoreButton.addEventListener("click", (e) => {
+      postData(
+        {problemId: e.target.getAttribute("problemid")},
+        ignoreProblem)
+      .then((response) => {
+        console.log("Problem ignored:", response);
+      }).catch((error) => {
+        console.error("Error ignoring problem:", error);
+      });
+    });
 
     const solveButton = document.createElement("button");
     solveButton.className = "btn btn-resolve";
     solveButton.textContent = "Risolvi";
-    solveButton.id = chainInfo["id_chain"];
+    solveButton.id =  chainInfo["unique_id"];
+    solveButton.setAttribute("problemid", conflictInfo["id"]);
+    solveButton.addEventListener("click", (e) => {
+      if (choosenSolution != null) {
+        let problemId = e.target.getAttribute("problemid");
+        let ruleId = choosenSolution.rule_id;
+        let ruleName = choosenSolution.rule_name;
+        let structured = choosenSolution.solution;
+        const message = `<solve_problem>The user want to solve the problem with ID:${problemId} by modifing the automation '${ruleName}'(Automation ID:${ruleId}) in the following way: ${structured}</solve_problem>`;
+        console.log("Solve button clicked with message:", message);
+        //getBotResponse(message);
+      }
+    });
 
     actionButtons.appendChild(ignoreButton);
     actionButtons.appendChild(solveButton);
@@ -1834,6 +1864,19 @@ function createConflictCard(isActive, headerText, conflictInfo) {
             label.setAttribute("for", input.id);
             label.textContent = alternative["natural_language"];
 
+             input.addEventListener("change", () => {
+                if (input.checked) {
+                  choosenSolution = {
+                    "rule_id": automationID,
+                    "rule_name": temp_mapping.get(automationID)["name"],
+                    "solution": alternative["structured"],
+                  }
+                  console.log("Choosen solution:", choosenSolution);
+                } else {
+                  choosenSolution = null;
+                }
+            });
+
             formCheck.appendChild(input);
             formCheck.appendChild(label);
             body.appendChild(formCheck);
@@ -1853,12 +1896,35 @@ function createConflictCard(isActive, headerText, conflictInfo) {
     const ignoreButton = document.createElement("button");
     ignoreButton.className = "btn btn-ignore";
     ignoreButton.textContent = "Ignora";
-    ignoreButton.id = conflictInfo["id_conflict"];
+    ignoreButton.id = conflictInfo["unique_id"];
+    ignoreButton.setAttribute("problemid", conflictInfo["id"]);
+    ignoreButton.addEventListener("click", (e) => {
+      postData(
+        {problemId: e.target.getAttribute("problemid")},
+        ignoreProblem)
+      .then((response) => {
+        console.log("Problem ignored:", response);
+      }).catch((error) => {
+        console.error("Error ignoring problem:", error);
+      });
+    });
 
     const solveButton = document.createElement("button");
     solveButton.className = "btn btn-resolve";
     solveButton.textContent = "Risolvi";
-    solveButton.id = conflictInfo["id_conflict"];
+    solveButton.id =  conflictInfo["unique_id"];
+    solveButton.setAttribute("problemid", conflictInfo["id"]);
+    solveButton.addEventListener("click", (e) => {
+      if (choosenSolution != null) {
+        let problemId = e.target.getAttribute("problemid");
+        let ruleId = choosenSolution.rule_id;
+        let ruleName = choosenSolution.rule_name;
+        let structured = choosenSolution.solution;
+        const message = `<solve_problem>The user want to solve the problem with ID:${problemId} by modifing the automation '${ruleName}'(Automation ID:${ruleId}) in the following way: ${structured}</solve_problem>`;
+        //getBotResponse(message);
+        console.log("Solve button clicked with message:", message);
+      }
+    });
 
     actionButtons.appendChild(ignoreButton);
     actionButtons.appendChild(solveButton);
