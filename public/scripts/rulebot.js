@@ -311,6 +311,7 @@ async function deleteAutomation(rule_id) {
     });
   }
 
+
 async function printUserRule(rules) {
   document.querySelector('#n_automations').innerText = rules.length;
   const rulesContainer = document.querySelector('#rules-container');
@@ -435,44 +436,8 @@ async function printUserRule(rules) {
           event.stopPropagation();
           const ruleId = deleteButton.getAttribute('ruleid');
           const ruleName = "ID:"+ruleId+" - " +automationTitle.textContent;
-
-          // Crea l'overlay
-          const overlay = document.createElement('div');
-          overlay.className = 'overlay';
-
-          // Crea il dialog
-          const dialog = document.createElement('div');
-          dialog.className = 'confirm-dialog';
-          dialog.innerHTML = `
-              <h3>Conferma eliminazione</h3>
-              <p>Sei sicuro di voler eliminare la regola "${ruleName}"?</p>
-              <div class="confirm-buttons">
-                  <button class="confirm-btn no">No</button>
-                  <button class="confirm-btn yes">Si</button>
-              </div>
-          `;
-
-          overlay.appendChild(dialog);
-          document.body.appendChild(overlay);
-
-          // Gestisci i click sui bottoni
-          const buttons = dialog.querySelectorAll('.confirm-btn');
-          buttons.forEach(button => {
-              button.addEventListener('click', async () => {
-                  // Aggiungi la classe fadeOut
-                  overlay.classList.add('fadeOut');
-                  
-                  // Rimuovi l'overlay dopo che l'animazione è completata
-                  setTimeout(async () => {
-                      if (button.classList.contains('yes')) {
-                          await deleteAutomation(ruleId);
-                          
-                          //deleteRule(ruleId, rules);
-                      }
-                      overlay.remove();
-                  }, 200); // Stesso tempo dell'animazione CSS
-              });
-          });
+          generateDialog("confirm", "Conferma eliminazione", `Sei sicuro di voler eliminare la regola "${ruleName}"?`, async () => { await deleteAutomation(ruleId); });
+          
       });
       }, index * 100);
     });
@@ -515,35 +480,7 @@ async function printUserRule(rules) {
               this.getAttribute('entity')
             )
             if (toggleCall.status === "error") {
-              // Crea l'overlay
-              const overlay = document.createElement('div');
-              overlay.className = 'overlay';
-
-              // Crea il dialog
-              const dialog = document.createElement('div');
-              dialog.className = 'confirm-dialog';
-              dialog.innerHTML = `
-                  <h3>Errore</h3>
-                  <p>Errore durante il cambio di stato dell'automazione</p>
-                  <div class="confirm-buttons">
-                      <button class="confirm-btn ok">OK</button>
-                  </div>
-              `;
-
-              overlay.appendChild(dialog);
-              document.body.appendChild(overlay);
-
-              // Gestisci il click sul bottone OK
-              const okButton = dialog.querySelector('.ok');
-              okButton.addEventListener('click', () => {
-                  // Aggiungi la classe fadeOut
-                  overlay.classList.add('fadeOut');
-                  
-                  // Rimuovi l'overlay dopo che l'animazione è completata
-                  setTimeout(() => {
-                      overlay.remove();
-                  }, 200); // Stesso tempo dell'animazione CSS
-              });
+              generateDialog("info", "Errore", "Errore durante il cambio di stato dell'automazione", () => {});
               
               return;
           }
@@ -1029,42 +966,8 @@ document.getElementById('reset').addEventListener('click', resetConversation);
 // Funzione per resettare la chat
 function resetConversation() {
     // Crea l'overlay
-    const overlay = document.createElement('div');
-    overlay.className = 'overlay';
-
-    // Crea il dialog
-    const dialog = document.createElement('div');
-    dialog.className = 'confirm-dialog';
-    dialog.innerHTML = `
-        <h3>Reset della chat</h3>
-        <p>Sei sicuro di voler resettare la chat con Casper?</p>
-        <div class="confirm-buttons">
-            <button class="confirm-reset-btn no">No</button>
-            <button class="confirm-reset-btn yes">Si</button>
-        </div>
-    `;
-    overlay.appendChild(dialog);
-    document.body.appendChild(overlay);
-    // Gestisci i click sui bottoni
-    const buttons = dialog.querySelectorAll('.confirm-reset-btn');
-    buttons.forEach(button => {
-        button.addEventListener('click', async () => {
-            // Aggiungi la classe fadeOut all'overlay per l'animazione di uscita
-            overlay.classList.add('fadeOut');
-          
-            // Rimuovi l'overlay dopo che l'animazione è completata
-            setTimeout(async () => {
-                if (button.classList.contains('yes')) {
-                    msgContainer.classList.add('fade-out');
-                    setTimeout(() => {
-                        msgContainer.innerText = "";
-                        msgContainer.classList.remove('fade-out');
-                    }, 300); // Durata della transizione CSS
-                }
-                overlay.remove();
-            }, 200); // Stesso tempo dell'animazione CSS dell'overlay
-        });
-    });
+    generateDialog("confirm", "Reset della chat", "Sei sicuro di voler resettare la chat con Casper?", ()=>{});
+    
 }
 
 
@@ -2289,4 +2192,45 @@ function dinamicallyPopulateEntityValue(devices){
       }
     }
   }
+}
+
+const overlay = document.getElementById('overlay');
+const dialog = document.querySelector('.confirm-dialog');
+const dialogTitle = document.querySelector('.confirm-dialog-title');
+const dialogDescription = document.querySelector('.confirm-dialog-description');
+const btnYes = document.querySelector('.confirm-btn.yes');
+const btnNo = document.querySelector('.confirm-btn.no');  
+const btnOk = document.querySelector('.confirm-btn.ok');
+function generateDialog(type, title, description, yesCallback){
+  //type: "confirm" (Ha i bottoni "Si", "No"), "info" (Ha il bottone "OK")
+    overlay.style.display = 'flex';
+    //dialog.style.display = 'block';
+    dialogTitle.innerText = title;
+    dialogDescription.innerText = description;
+    if (type === "confirm") {
+        btnYes.style.display = 'inline-block';
+        btnNo.style.display = 'inline-block';
+        btnOk.style.display = 'none';
+    } else if (type === "info") {
+        btnYes.style.display = 'none';
+        btnNo.style.display = 'none';
+        btnOk.style.display = 'inline-block';
+    }
+
+    const buttons = dialog.querySelectorAll('.confirm-btn');
+    buttons.forEach(button => {
+        button.addEventListener('click', async () => {
+            // Aggiungi la classe fadeOut all'overlay per l'animazione di uscita
+            overlay.classList.add('fadeOut');
+            // Rimuovi l'overlay dopo che l'animazione è completata
+            setTimeout(async () => {
+                if (button.classList.contains('yes')) {
+                    yesCallback();
+                }
+                overlay.classList.remove('fadeOut');
+                overlay.style.display= 'none';
+            }, 200); // Stesso tempo dell'animazione CSS dell'overlay
+        });
+    });
+
 }
