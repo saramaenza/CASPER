@@ -253,6 +253,14 @@ app.get('/verification/:tag', async function(req, res) {
   else res.send("A error occurred during the mail verification")
 });
 // --- --- --- --- --- --- --- --- --- ---
+app.get('/reset_conv', verifyToken, (req, res) =>{
+  
+  res.clearCookie('chat_session_id');
+  const convId = uuid.v4()
+  res.cookie('chat_session_id', convId)
+  res.json({status: 'ok', session_id: convId});
+});
+
 
 app.use('/send_message', verifyToken, async (req, res) => {
   try {

@@ -1,8 +1,7 @@
-
 //import jwt_decode from "./jwt-decode";
 const lang = Cookies.get("lang");
 const tokenRaw = Cookies.get("auth-token");
-const chat_session_id = Cookies.get("chat_session_id");
+let chat_session_id = Cookies.get("chat_session_id");
 const token = jwt_decode(tokenRaw);
 const userId = token.id;
 const userName = token.name;
@@ -19,6 +18,8 @@ const getProblemList = `${base_link}/get_problems`; // chiamata GET per ricevere
 const ping = `${base_link}/post_chat_state`; // chiamata POST per mantere la sessione attiva
 const toggleAutomation = `${base_link}/toggle_automation`; // chiamata per accendere/spegnere un'automazione
 const ignoreProblem = `${base_link}/ignore_problem`; // chiamata per ignorare un problema
+const resetConversationUrl = `${base_link}/reset_conv`; // chiamata per resettare la conversazione
+
 const carousel = document.querySelector(".carousel");
 const toggleSwitch = document.getElementById('toggleSwitch');
 const toggleBall = document.getElementById('toggleBall');
@@ -151,7 +152,7 @@ window.addEventListener('load', async ()=>{
   }, intervalUpdate);
   let chatID = document.createElement('div');
   chatID.className = 'chat-id';
-  chatID.innerHTML = `Chat ID: ${chat_session_id}`;
+  chatID.textContent = `Chat ID: ${chat_session_id}`;
   initial.appendChild(chatID);
   let rulesList = await getRulesParam() //GET regole
   //problemList = await getData(`${getProblems}?id=${userId}`) //GET problemi
@@ -976,7 +977,18 @@ document.getElementById('reset').addEventListener('click', resetConversation);
 // Funzione per resettare la chat
 function resetConversation() {
     // Crea l'overlay
-    generateDialog("confirm", "Reset della chat", "Sei sicuro di voler resettare la chat con Casper?", ()=>{});
+    generateDialog("info", "Da fixare", "Sembra funzionare ma c'e qualcosa che non va, da debuggare :D", () => {});
+    return;
+    generateDialog("confirm", "Reset della chat", "Sei sicuro di voler resettare la chat con Casper?", async ()=>{
+      let response = await getData(resetConversationUrl)
+      if (response.status === "ok") {
+        msgContainer.innerHTML = ''; // Pulisce il contenitore dei messaggi
+        document.querySelector(".chat-id").textContent = "Chat ID: "+response.session_id; // Aggiorna l'ID della sessione
+        chat_session_id = response.session_id; // Aggiorna la variabile globale della sessione
+      }else{
+        generateDialog("info", "Errore", "Errore durante il reset della chat, riprova più tardi.", () => {});
+      }
+    });
     
 }
 
