@@ -141,6 +141,12 @@ window.addEventListener('load', async ()=>{
           <div class="loader"></div>
       </div>
   `;
+  let tmp_container = problemsContainer.innerHTML
+  problemsContainer.innerHTML = `
+      <div class="loader-container">
+          <div class="loader"></div>
+      </div>
+  `;
   const greeting = document.createElement('h1');
   greeting.textContent = `Ciao, ${userName}`;
   initial.appendChild(greeting);
@@ -164,7 +170,7 @@ window.addEventListener('load', async ()=>{
   printUserRule(rulesList); //PRINT regole
   printUserDevices(devicesList); //PRINT devices
   let problemsList = await getProblems()
-  printUserProblems(problemsList);
+  printUserProblems(problemsList, tmp_container);
   carouselObject = new Carousel(problemsList)
   //open_delete_rule();
 
@@ -471,10 +477,18 @@ async function printUserRule(rules) {
 
         // Toggle functionality
         const toggle = card.querySelector('.toggle-switch');
+        const toggleSlider = card.querySelector('.toggle-slider');
         const indicator = card.querySelector('.status-indicator');
         // Toggle functionality
         if (toggle) {
+          let tmp_toggle = toggleSlider.innerHTML;
           toggle.addEventListener('click', async function () {
+          
+            toggleSlider.innerHTML=  `
+                <div class="loader-container">
+                    <div class="loader mini-loader"></div>
+                </div>
+            `;
             const toggleCall = await triggerToggleAutomation(
               this.getAttribute('ruleid'),
               this.getAttribute('entity')
@@ -485,6 +499,7 @@ async function printUserRule(rules) {
               return;
           }
             const state = toggleCall.state=="on" ? "active" : "";
+            toggleSlider.innerHTML = tmp_toggle;
             if (state === "active") {
               if (!this.classList.contains('active')) {
                 this.classList.add('active');
@@ -1136,7 +1151,8 @@ queryText.addEventListener("keydown", (event) =>{
 
 // ===================== Carousel ======================= //
 
-function printUserProblems(problemsList) {
+function printUserProblems(problemsList, tmp_container = null) {
+  if (tmp_container != null) problemsContainer.innerHTML = tmp_container; // Pulisce il contenuto del container dei problemi
   const carouselControls = document.getElementById('carousel-controls');
   const carouselMessages = document.getElementById('carousel-messages');
  
@@ -1153,6 +1169,7 @@ function printUserProblems(problemsList) {
       `;
   } else {
     // Mostra i controlli e nascondi il messaggio
+      
       carousel.innerHTML = ''; // Pulisce il contenuto del carousel
       carouselControls.style.display = 'flex';
       carouselMessages.innerHTML = '';

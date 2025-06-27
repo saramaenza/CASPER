@@ -194,6 +194,10 @@ body{
     opacity: 0.7;
     transition: all 0.3s ease;
 }
+.mini-loader{
+  width: 20px;
+  height: 12px;
+}
 
 @keyframes loader-spin {
     0% {
@@ -1455,6 +1459,11 @@ td {
 
 .logout-btn {
   padding: 8px 15px;
+  text-align: center;
+  
+  justify-content: center;
+  display: flex;
+  flex-direction: column;
 }
 
 .logout-btn:hover {
