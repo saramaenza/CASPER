@@ -39,7 +39,6 @@ def problem_detector(user_id, session_id, automation_id):
         if not problems_w_id:
             return f"Detected {len(problems_w_id)} problems but Error: Unable to save detected problems to DB."
         else:
-            utils.update_chat_state("update-problems", "", session_id, user_id, "")
             problems_id = [problem['id'] for problem in problems_w_id]
             return f"Detected {len(problems_w_id)} problems (problems ids: {problems_id}). Problem cards with details are available for the user in the interface under the Problems section."
        
