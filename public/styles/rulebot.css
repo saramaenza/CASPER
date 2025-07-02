@@ -217,7 +217,7 @@ body{
   margin-top: 5px;
 }
 
-#rules-container, #problems-main-container, #devices-list-container{
+#rules-container, #problems-main-container, #devices-list-container, #goal-adv-container, #preferences-container{
   width: 100%;
   height: inherit;
   overflow-y: auto;
@@ -225,7 +225,7 @@ body{
   -ms-overflow-style: none; 
 }
 
-#rules-container::-webkit-scrollbar, #problems-main-container::-webkit-scrollbar #devices-list-container::-webkit-scrollbar {
+#rules-container::-webkit-scrollbar, #problems-main-container::-webkit-scrollbar, #devices-list-container::-webkit-scrollbar, #preferences-container::-webkit-scrollbar {
     display: none; 
 }
 
@@ -1027,13 +1027,13 @@ td {
 }
 
 /* Automation Cards */
-.automation-list-wrapper, .devices-list-wrapper {
+.automation-list-wrapper, .devices-list-wrapper, #preferences {
   flex: 1;
   overflow-y: auto;
   padding: 12px;
 }
 
-.automation-card {
+.automation-card, .container_preferences {
   background: var(--bg-secondary);
   backdrop-filter: blur(20px);
   border: 1px solid var(--border-color);
@@ -1043,7 +1043,7 @@ td {
   position: relative;
   overflow: hidden;
   margin-bottom: 15px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .automation-card::before {
@@ -1140,6 +1140,8 @@ td {
 .living-icon { background: linear-gradient(135deg, #FF4757, #FFD700); }
 .schedule-icon { background: linear-gradient(135deg, #0066FF, #8B5CF6); }
 .ac-icon { background: linear-gradient(135deg, #56f8d5, #3189fd); }
+.plug-icon { background: linear-gradient(135deg, #FF6B35, #ff0073); }
+.air-icon { background: linear-gradient(135deg, #ff6bc4, #ae00ff); }
 .room-icon { background: linear-gradient(135deg, #0066FF, #00FF88); }
 
 .automation-title {
@@ -1734,6 +1736,153 @@ td {
   height: 35%;
 }
 
+.header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 6px;
+}
+
+.subtitle {
+    color: #6b7280;
+    font-size: 14px;
+    font-weight: 400;
+}
+
+.ranking-list {
+    list-style: none;
+    gap: 12px;
+    display: flex;
+    flex-direction: column;
+}
+
+.goal-item {
+    background: white;
+    border-radius: 6px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: grab;
+    transition: all 0.2s ease;
+    border: 1px solid #e5e7eb;
+    margin-bottom: 1px;
+}
+
+.goal-item:hover {
+    background:  var(--hover-bg);
+}
+
+.goal-item:active {
+    cursor: grabbing;
+}
+
+.goal-item.dragging {
+    opacity: 0.5;
+    transform: rotate(2deg);
+}
+
+.goal-item.drag-over {
+    border-color: #3b82f6;
+    background: #eff6ff;
+}
+
+.rank-number {
+    background: #f3f4f6;
+    color: #374151;
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 500;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.goal-content {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.goal-icon {
+    font-size: 18px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+.goal-name {
+    font-size: 15px;
+    font-weight: 500;
+    color: #111827;
+}
+
+.drag-handle {
+    color: #d1d5db;
+    font-size: 16px;
+    cursor: grab;
+    padding: 4px;
+    transition: color 0.2s;
+}
+
+.drag-handle:hover {
+    color: #9ca3af;
+}
+
+.drop-zone {
+    min-height: 2px;
+    transition: all 0.2s ease;
+    border-radius: 2px;
+    margin: 1px 0;
+}
+
+.drop-zone.active {
+    background: #3b82f6;
+    min-height: 4px;
+    margin: 4px 0;
+}
+
+.pulse {
+    animation: pulse 0.3s ease;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.01); }
+    100% { transform: scale(1); }
+}
+
+ @media (max-width: 480px) {
+    .container-preferences {
+        padding: 20px;
+        margin: 10px;
+    }
+
+    .title {
+        font-size: 18px;
+    }
+
+    .goal-item {
+        padding: 12px;
+    }
+
+    .goal-name {
+        font-size: 14px;
+    }
+}
 
 @media (max-width: 1470px) {
   #rules-buttons-container {

@@ -74,6 +74,8 @@ sse.addEventListener("message", async ({ data }) => {
 const rulesContainer = document.querySelector('#rules-container');
 const problemsContainer = document.querySelector('#problems-main-container');
 const devicesContainer = document.querySelector('#devices-list-container');
+const goalAdvContainer = document.querySelector('#goal-adv-container');
+const preferencesContainer = document.querySelector('#preferences-container');
 
 document.getElementById('show-rules').addEventListener('click', function() {
   if (this.classList.contains('selector-selected')) return;
@@ -84,6 +86,10 @@ document.getElementById('show-rules').addEventListener('click', function() {
     document.getElementById('show-devices').classList.add('selector-unselected');
     document.getElementById('show-problems').classList.remove('selector-selected');
     document.getElementById('show-problems').classList.add('selector-unselected');
+    document.getElementById('show-goal-adv').classList.remove('selector-selected');
+    document.getElementById('show-goal-adv').classList.add('selector-unselected');
+    document.getElementById('show-preferences').classList.remove('selector-selected');
+    document.getElementById('show-preferences').classList.add('selector-unselected');
   }
   rulesContainer.classList.remove('leftbar-unselected');
   rulesContainer.classList.add('leftbar-selected');
@@ -91,6 +97,10 @@ document.getElementById('show-rules').addEventListener('click', function() {
   devicesContainer.classList.add('leftbar-unselected');
   problemsContainer.classList.remove('leftbar-selected');
   problemsContainer.classList.add('leftbar-unselected');
+  goalAdvContainer.classList.remove('leftbar-selected');
+  goalAdvContainer.classList.add('leftbar-unselected');
+  preferencesContainer.classList.remove('leftbar-selected');
+  preferencesContainer.classList.add('leftbar-unselected');
 });
 
 document.getElementById('show-devices').addEventListener('click', function() {
@@ -102,6 +112,10 @@ document.getElementById('show-devices').addEventListener('click', function() {
     document.getElementById('show-rules').classList.add('selector-unselected');
     document.getElementById('show-problems').classList.remove('selector-selected');
     document.getElementById('show-problems').classList.add('selector-unselected');
+    document.getElementById('show-goal-adv').classList.remove('selector-selected');
+    document.getElementById('show-goal-adv').classList.add('selector-unselected');
+    document.getElementById('show-preferences').classList.remove('selector-selected');
+    document.getElementById('show-preferences').classList.add('selector-unselected');
   }
   rulesContainer.classList.remove('leftbar-selected');
   rulesContainer.classList.add('leftbar-unselected');
@@ -109,6 +123,10 @@ document.getElementById('show-devices').addEventListener('click', function() {
   devicesContainer.classList.add('leftbar-selected');
   problemsContainer.classList.remove('leftbar-selected');
   problemsContainer.classList.add('leftbar-unselected');
+  goalAdvContainer.classList.remove('leftbar-selected');
+  goalAdvContainer.classList.add('leftbar-unselected');
+  preferencesContainer.classList.remove('leftbar-selected');
+  preferencesContainer.classList.add('leftbar-unselected');
 });
 
 document.getElementById('show-problems').addEventListener('click', function() {
@@ -120,6 +138,10 @@ document.getElementById('show-problems').addEventListener('click', function() {
     document.getElementById('show-devices').classList.add('selector-unselected');
     document.getElementById('show-rules').classList.remove('selector-selected');
     document.getElementById('show-rules').classList.add('selector-unselected');
+    document.getElementById('show-goal-adv').classList.remove('selector-selected');
+    document.getElementById('show-goal-adv').classList.add('selector-unselected');
+    document.getElementById('show-preferences').classList.remove('selector-selected');
+    document.getElementById('show-preferences').classList.add('selector-unselected');
   }
   rulesContainer.classList.remove('leftbar-selected');
   rulesContainer.classList.add('leftbar-unselected');
@@ -127,6 +149,62 @@ document.getElementById('show-problems').addEventListener('click', function() {
   devicesContainer.classList.add('leftbar-unselected');
   problemsContainer.classList.remove('leftbar-unselected');
   problemsContainer.classList.add('leftbar-selected');
+  goalAdvContainer.classList.remove('leftbar-selected');
+  goalAdvContainer.classList.add('leftbar-unselected');
+  preferencesContainer.classList.remove('leftbar-selected');
+  preferencesContainer.classList.add('leftbar-unselected');
+});
+
+document.getElementById('show-goal-adv').addEventListener('click', function() {
+  if(this.classList.contains('selector-selected')) return;
+  else {
+    this.classList.remove('selector-unselected'); 
+    this.classList.add('selector-selected'); 
+    document.getElementById('show-devices').classList.remove('selector-selected');
+    document.getElementById('show-devices').classList.add('selector-unselected');
+    document.getElementById('show-rules').classList.remove('selector-selected');
+    document.getElementById('show-rules').classList.add('selector-unselected');
+    document.getElementById('show-problems').classList.remove('selector-selected');
+    document.getElementById('show-problems').classList.add('selector-unselected');
+    document.getElementById('show-preferences').classList.remove('selector-selected');
+    document.getElementById('show-preferences').classList.add('selector-unselected');
+  }
+  rulesContainer.classList.remove('leftbar-selected');
+  rulesContainer.classList.add('leftbar-unselected');
+  devicesContainer.classList.remove('leftbar-selected');
+  devicesContainer.classList.add('leftbar-unselected');
+  problemsContainer.classList.add('leftbar-unselected');
+  problemsContainer.classList.remove('leftbar-selected');
+  preferencesContainer.classList.remove('leftbar-selected');
+  preferencesContainer.classList.add('leftbar-unselected');
+  goalAdvContainer.classList.add('leftbar-selected');
+  goalAdvContainer.classList.remove('leftbar-unselected');
+});
+
+document.getElementById('show-preferences').addEventListener('click', function() {
+  if(this.classList.contains('selector-selected')) return;
+  else {
+    this.classList.remove('selector-unselected'); 
+    this.classList.add('selector-selected'); 
+    document.getElementById('show-devices').classList.remove('selector-selected');
+    document.getElementById('show-devices').classList.add('selector-unselected');
+    document.getElementById('show-rules').classList.remove('selector-selected');
+    document.getElementById('show-rules').classList.add('selector-unselected');
+    document.getElementById('show-problems').classList.remove('selector-selected');
+    document.getElementById('show-problems').classList.add('selector-unselected');
+    document.getElementById('show-goal-adv').classList.remove('selector-selected');
+    document.getElementById('show-goal-adv').classList.add('selector-unselected');
+  }
+  rulesContainer.classList.remove('leftbar-selected');
+  rulesContainer.classList.add('leftbar-unselected');
+  devicesContainer.classList.remove('leftbar-selected');
+  devicesContainer.classList.add('leftbar-unselected');
+  problemsContainer.classList.add('leftbar-unselected');
+  problemsContainer.classList.remove('leftbar-selected');
+  goalAdvContainer.classList.add('leftbar-selected');
+  goalAdvContainer.classList.add('leftbar-unselected');
+  preferencesContainer.classList.add('leftbar-selected');
+  preferencesContainer.classList.remove('leftbar-unselected');
 });
 
 let rulesList;
@@ -169,7 +247,7 @@ window.addEventListener('load', async ()=>{
   printUserProblems(problemsList);
   carouselObject = new Carousel(problemsList)
   //open_delete_rule();
-
+  printUserPreferences();
   if (lang == 'en'){
     getBotResponse('hello my dear');
     generateTypingMsg('bot');
@@ -554,7 +632,7 @@ function getAutomationIconInfo(automation) {
     if (text.includes("ventilatore") || text.includes("fan") || text.includes("purificatore") || text.includes("air purifier")) {
         return {
             icon: "💨",
-            className: "living-icon"
+            className: "air-icon"
         };
     }
     if(text.includes("aria condizionata") || text.includes("air conditioning") || text.includes("ac")) {
@@ -811,6 +889,213 @@ async function printUserDevices(devicesList) {
         `; 
     }
 }
+
+
+function printUserPreferences() {
+    // Pulisce il container
+    preferencesContainer.innerHTML = '';
+
+    // Container principale
+    const container_preferences = document.createElement('div');  
+    container_preferences.id = 'preferences';
+
+    // Container 
+    const container = document.createElement('div');
+    container.className = 'container_preferences';
+
+    // Header
+    const header = document.createElement('div');
+    header.className = 'header';
+
+    const title = document.createElement('h1');
+    title.className = 'title';
+    title.textContent = 'I Miei Obiettivi';
+
+    const subtitle = document.createElement('p');
+    subtitle.className = 'subtitle';
+    subtitle.textContent = 'Trascina per riordinare la tua classifica personale';
+
+    header.appendChild(title);
+    header.appendChild(subtitle);
+
+    // Lista ranking
+    const rankingList = document.createElement('ul');
+    rankingList.className = 'ranking-list';
+    rankingList.id = 'rankingList';
+
+    // Dati degli obiettivi
+    const goals = [
+        { id: 'sicurezza', name: 'Sicurezza', icon: '🛡️' },
+        { id: 'salute', name: 'Salute', icon: '💚' },
+        { id: 'risparmio', name: 'Risparmio Energetico', icon: '⚡' },
+        { id: 'benessere', name: 'Benessere', icon: '🌱' }
+    ];
+
+    // Crea gli elementi della lista
+    goals.forEach((goal, index) => {
+        const goalItem = document.createElement('li');
+        goalItem.className = 'goal-item';
+        goalItem.draggable = true;
+        goalItem.setAttribute('data-goal', goal.id);
+
+        // Numero ranking
+        const rankNumber = document.createElement('div');
+        rankNumber.className = 'rank-number';
+        rankNumber.textContent = index + 1;
+
+        // Contenuto obiettivo
+        const goalContent = document.createElement('div');
+        goalContent.className = 'goal-content';
+
+        const goalIcon = document.createElement('div');
+        goalIcon.className = `goal-icon ${goal.id}`;
+        goalIcon.textContent = goal.icon;
+
+        const goalName = document.createElement('span');
+        goalName.className = 'goal-name';
+        goalName.textContent = goal.name;
+
+        goalContent.appendChild(goalIcon);
+        goalContent.appendChild(goalName);
+
+        // Handle per il drag
+        const dragHandle = document.createElement('div');
+        dragHandle.className = 'drag-handle';
+        dragHandle.textContent = '⋮⋮';
+
+        // Assembla l'elemento
+        goalItem.appendChild(rankNumber);
+        goalItem.appendChild(goalContent);
+        goalItem.appendChild(dragHandle);
+
+        rankingList.appendChild(goalItem);
+    });
+
+    // Assembla tutto
+    container_preferences.appendChild(container);
+    container.appendChild(header);
+    container.appendChild(rankingList);
+    preferencesContainer.appendChild(container_preferences);
+
+    // Aggiunge la funzionalità di drag and drop
+    initializeDragAndDropForPreferences();
+}
+
+// Funzione specifica per inizializzare il drag and drop delle preferenze
+function initializeDragAndDropForPreferences() {
+    const rankingList = document.getElementById('rankingList');
+    if (!rankingList) return; // Sicurezza: esce se l'elemento non esiste
+    
+    let draggedElement = null;
+    let draggedIndex = null;
+    const goalItems = rankingList.querySelectorAll('.goal-item');
+
+    // Aggiungi event listeners a tutti gli elementi
+    goalItems.forEach((item, index) => {
+        item.addEventListener('dragstart', handleDragStart);
+        item.addEventListener('dragend', handleDragEnd);
+        item.addEventListener('dragover', handleDragOver);
+        item.addEventListener('drop', handleDrop);
+        item.addEventListener('dragenter', handleDragEnter);
+        item.addEventListener('dragleave', handleDragLeave);
+    });
+
+    function handleDragStart(e) {
+        draggedElement = this;
+        draggedIndex = Array.from(rankingList.children).indexOf(this);
+        this.classList.add('dragging');
+        
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/html', this.outerHTML);
+    }
+
+    function handleDragEnd(e) {
+        this.classList.remove('dragging');
+        
+        // Rimuovi le classi di drag-over da tutti gli elementi
+        const currentGoalItems = rankingList.querySelectorAll('.goal-item');
+        currentGoalItems.forEach(item => {
+            item.classList.remove('drag-over');
+        });
+        
+        draggedElement = null;
+        draggedIndex = null;
+    }
+
+    function handleDragOver(e) {
+        if (e.preventDefault) {
+            e.preventDefault();
+        }
+        
+        e.dataTransfer.dropEffect = 'move';
+        return false;
+    }
+
+    function handleDragEnter(e) {
+        if (this !== draggedElement) {
+            this.classList.add('drag-over');
+        }
+    }
+
+    function handleDragLeave(e) {
+        this.classList.remove('drag-over');
+    }
+
+    function handleDrop(e) {
+        if (e.stopPropagation) {
+            e.stopPropagation();
+        }
+
+        if (draggedElement !== this) {
+            const currentIndex = Array.from(rankingList.children).indexOf(this);
+            
+            if (draggedIndex < currentIndex) {
+                rankingList.insertBefore(draggedElement, this.nextSibling);
+            } else {
+                rankingList.insertBefore(draggedElement, this);
+            }
+            
+            // Aggiorna i numeri di ranking
+            updateRankingNumbers();
+            
+            // Aggiungi effetto visivo
+            draggedElement.classList.add('pulse');
+            setTimeout(() => {
+                draggedElement.classList.remove('pulse');
+            }, 600);
+            
+            // Salva la nuova classifica
+            saveRanking();
+        }
+
+        this.classList.remove('drag-over');
+        return false;
+    }
+
+    function updateRankingNumbers() {
+        const items = rankingList.querySelectorAll('.goal-item');
+        items.forEach((item, index) => {
+            const rankNumber = item.querySelector('.rank-number');
+            rankNumber.textContent = index + 1;
+        });
+    }
+
+    function saveRanking() {
+        const items = rankingList.querySelectorAll('.goal-item');
+        const ranking = Array.from(items).map((item, index) => ({
+            goal: item.dataset.goal,
+            position: index + 1,
+            name: item.querySelector('.goal-name').textContent
+        }));
+        
+        // Salva in memoria (puoi estendere per salvare in localStorage se necessario)
+        console.log('Nuova classifica:', ranking);
+    }
+
+    // Inizializza la classifica
+    updateRankingNumbers();
+}
+
 
 function getIcon(name, type) {
     // Convert to lowercase for case-insensitive comparison
@@ -1174,6 +1459,7 @@ function printUserProblems(problemsList) {
               <span class="no-problems-submessage">Se hai bisogno di aiuto, chiedi a Casper!</span>
           </div>
       `;
+      document.querySelector('#n_problems').innerText = 0;
   } else {
     // Mostra i controlli e nascondi il messaggio
       
