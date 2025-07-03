@@ -1758,6 +1758,7 @@ td {
     gap: 12px;
     display: flex;
     flex-direction: column;
+    padding-left: 0px;
 }
 
 .goal-item {
@@ -1887,12 +1888,12 @@ td {
 }
 
 .goal-tag {
-    background: white;
+    background: var(--bg-secondary);
     padding: 4px 10px;
     border-radius: 8px;
     font-size: 12px;
-    color: #86868b;
-    border: 1px solid #d2d2d7;
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
 }
 
 @keyframes pulse {
@@ -1900,9 +1901,6 @@ td {
     50% { transform: scale(1.01); }
     100% { transform: scale(1); }
 }
-
-/* Expandable Card Styles */
-
 
 .problem-goal-card {
     overflow: hidden;
@@ -1929,12 +1927,6 @@ td {
     align-items: right;
     cursor: pointer;
     transition: all 0.3s ease;
-}
-
-.expand-text {
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--text-primary);
 }
 
 .expand-icon {
@@ -1972,17 +1964,10 @@ td {
     display: flex;
     gap: 8px;
     padding-top: 12px;
-    
 }
 
 .expanded-section .form-check-label {
   color: var(--text-primary);
-}
-
-/* Animation when card expands */
-.problem-goal-card.expanding {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
 
  @media (max-width: 480px) {
