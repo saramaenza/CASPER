@@ -86,13 +86,18 @@ body{
 
 #rules-buttons-container{
   color: white;
-  display: flex;
+  display: grid;
   justify-content: center;
   align-items: center;
-  gap: 4px;
-  padding-left: 12px;
+  gap: 8px;
+  padding: 12px;
   padding-right: 12px;
-  flex-direction: row; 
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+}
+
+#rules-buttons-container .selector-button{
+  width: 85%;
 }
 
 .chat-container{
@@ -951,7 +956,7 @@ td {
 
 .leftbar-selected{
   display: block;
-  margin-top: 2rem;
+  margin-top: 1rem;
   overflow-y: auto;
   opacity: 0;
     animation: fadeInContent 0.3s ease-in-out forwards;
@@ -1106,7 +1111,7 @@ td {
     font-size: 20px;
 }
 
-.problem-title {
+.problem-title, .title {
     font-size: 16px;
     font-weight: 600;
     color: var(--text-primary);
@@ -1737,21 +1742,18 @@ td {
 }
 
 .header {
-    text-align: center;
-    margin-bottom: 30px;
-}
-
-.title {
-    font-size: 20px;
-    font-weight: 600;
-    color: #111827;
-    margin-bottom: 6px;
+  color: var(--text-primary);
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 20px;
+  justify-content: space-between;
 }
 
 .subtitle {
-    color: #6b7280;
+    color: var(--text-secondary);
     font-size: 14px;
-    font-weight: 400;
+    font-weight: 500;
+    margin-top: 4px;
 }
 
 .ranking-list {
@@ -1762,15 +1764,15 @@ td {
 }
 
 .goal-item {
-    background: white;
-    border-radius: 6px;
-    padding: 16px;
+    background: var(--bg-secondary);
+    border-radius: 16px;
+    padding: 13px;
     display: flex;
     align-items: center;
     gap: 12px;
     cursor: grab;
     transition: all 0.2s ease;
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--border-color);
     margin-bottom: 1px;
 }
 
@@ -1793,8 +1795,8 @@ td {
 }
 
 .rank-number {
-    background: #f3f4f6;
-    color: #374151;
+    background: var(--bg-primary);
+    color: var(--text-primary);
     width: 28px;
     height: 28px;
     border-radius: 4px;
@@ -1825,9 +1827,9 @@ td {
 }
 
 .goal-name {
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 500;
-    color: #111827;
+    color: var(--text-primary);
 }
 
 .drag-handle {
@@ -1885,15 +1887,6 @@ td {
 }
 
 @media (max-width: 1470px) {
-  #rules-buttons-container {
-      flex-direction: column;
-      gap: 8px;
-      align-items: center;
-  }
-  #rules-buttons-container .selector-button {
-      width: 93%;
-      justify-content: center;
-  }
   #left-container {
     width: 45%;
   }
@@ -1907,7 +1900,7 @@ td {
 
 @media (max-width: 1250px) {
   #rules-buttons-container .selector-button {
-      width: 85%;
+      width: 82%;
   }
   .id_badge {
     width: 30%;
@@ -1964,5 +1957,17 @@ td {
   .svg_chain {
     width: 4%; 
     height: auto;
+  }
+}
+
+@media (max-width: 850px) {
+  #rules-buttons-container .selector-button {
+      width: 80%;
+  }
+}
+
+@media (max-width: 800px) {
+  #rules-buttons-container .selector-button {
+      width: 75%;
   }
 }
