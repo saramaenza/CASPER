@@ -230,7 +230,13 @@ body{
   -ms-overflow-style: none; 
 }
 
-#rules-container::-webkit-scrollbar, #problems-main-container::-webkit-scrollbar, #devices-list-container::-webkit-scrollbar, #preferences-container::-webkit-scrollbar, #goal-adv-container::-webkit-scrollbar {
+#msgContainer {
+  overflow-y: auto;
+  scrollbar-width: none; 
+  -ms-overflow-style: none; 
+}
+
+#rules-container::-webkit-scrollbar, #problems-main-container::-webkit-scrollbar, #devices-list-container::-webkit-scrollbar, #preferences-container::-webkit-scrollbar, #goal-adv-container::-webkit-scrollbar, #msgContainer::-webkit-scrollbar {
     display: none; 
 }
 

@@ -171,6 +171,40 @@ const getProblems = async (userId) => {
     }
 };
 
+// ...existing code...
+
+const deleteProblem = async (userId, problemId) => {
+    try {
+        const database = client.db(dbName);
+        const problems = database.collection('problems');
+        
+        const userProblems = await problems.findOne({ 'user_id': userId });
+        
+        if (!userProblems) return false;
+        
+        // Filtra i problemi rimuovendo quello con l'ID specificato
+        const filteredProblems = userProblems.problems.filter(problem => {
+            return problem.id.toString() !== problemId.toString();
+        });
+        
+        // Aggiorna il documento con i problemi filtrati
+        await problems.updateOne(
+            { 'user_id': userId },
+            { 
+                $set: { 
+                    'problems': filteredProblems,
+                    'last_update': new Date()
+                }
+            }
+        );
+        
+        return true;
+    } catch (err) {
+        console.log('Errore in deleteProblem:', err);
+        return false;
+    }
+};
+
 const getAutomations=async (userId) => {
     
     try {
@@ -528,6 +562,7 @@ module.exports = {
     deleteRule,
     closeDatabaseConnection,
     toggleAutomation,
-    ignoreProblem
+    ignoreProblem,
+    deleteProblem
 };
 

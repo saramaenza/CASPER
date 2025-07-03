@@ -19,6 +19,7 @@ const ping = `${base_link}/post_chat_state`; // chiamata POST per mantere la ses
 const toggleAutomation = `${base_link}/toggle_automation`; // chiamata per accendere/spegnere un'automazione
 const ignoreProblem = `${base_link}/ignore_problem`; // chiamata per ignorare un problema
 const resetConversationUrl = `${base_link}/reset_conv`; // chiamata per resettare la conversazione
+const deleteProblem = `${base_link}/delete_problem`; // chiamata POST per eliminare un problema
 
 const carousel = document.querySelector(".carousel");
 const toggleSwitch = document.getElementById('toggleSwitch');
@@ -1771,17 +1772,31 @@ function createChainCard(isActive, headerText, chainInfo) {
     ignoreButton.id = chainInfo["unique_id"];
     ignoreButton.setAttribute("problemid", conflictInfo["id"]);
     ignoreButton.addEventListener("click", (e) => {
-      postData(
-        {problemId: e.target.getAttribute("problemid")},
-        ignoreProblem)
-      .then((response) => {
-        e.target.closest('.card').remove();
-        let n_prob = document.querySelector('#n_problems').innerText
-        document.querySelector('#n_problems').innerText = parseInt(n_prob) - 1;
-        console.log("Problem ignored:", response);
-      }).catch((error) => {
-        generateDialog("info", "Errore", "Si è verificato un errore e non posso eliminare il problema",() => {});
-        console.error("Error ignoring problem:", error);
+      generateDialog("confirm", "Conferma ignora", "Sei sicuro di voler ignorare questo problema?", () => {
+        postData(
+          {problemId: e.target.getAttribute("problemid")},
+          ignoreProblem)
+        .then((response) => {
+          e.target.closest('.card').remove();
+          let n_prob = document.querySelector('#n_problems').innerText
+          let new_n_prob = parseInt(n_prob) - 1;
+          document.querySelector('#n_problems').innerText = new_n_prob;
+          if(new_n_prob == 0) {
+            document.querySelector('.carousel-controls').style.display = 'none';
+            document.getElementById('carousel-messages').style.display = 'flex';
+            document.getElementById('carousel-messages').innerHTML = `
+                <div class="no-problems-message">
+                    Non sono presenti problemi nella tua smart home 😊
+                    <br>
+                    <span class="no-problems-submessage">Se hai bisogno di aiuto, chiedi a Casper!</span>
+                </div>
+            `;  
+          }
+          console.log("Problem ignored:", response);
+        }).catch((error) => {
+          generateDialog("info", "Errore", "Si è verificato un errore e non posso eliminare il problema",() => {});
+          console.error("Error ignoring problem:", error);
+        });
       });
     });
 
@@ -1790,15 +1805,78 @@ function createChainCard(isActive, headerText, chainInfo) {
     solveButton.textContent = "Risolvi";
     solveButton.id =  chainInfo["unique_id"];
     solveButton.setAttribute("problemid", conflictInfo["id"]);
-    solveButton.addEventListener("click", (e) => {
+    solveButton.addEventListener("click", async (e) => {
       if (choosenSolution != null) {
+ 
+        e.target.innerHTML = `
+          <span>Risoluzione...</span>
+        `;
+        e.target.disabled = true;
+
         let problemId = e.target.getAttribute("problemid");
         let ruleId = choosenSolution.rule_id;
         let ruleName = choosenSolution.rule_name;
         let structured = choosenSolution.solution;
         const message = `<solve_problem>The user want to solve the problem with ID:${problemId} by modifing the automation '${ruleName}'(Automation ID:${ruleId}) in the following way: ${structured}</solve_problem>`;
         console.log("Solve button clicked with message:", message);
-        //getBotResponse(message);
+        
+        getBotResponse(message);
+        
+        try {
+            const response = await fetch(deleteProblem, {
+              method: 'POST',
+              headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                data: { problemId: problemId },
+                id: userId
+              })
+            });
+
+            const data = await response.json();
+
+        if (data.status === 'ok') {
+          console.log("Problem deleted successfully:", data);
+          // Rimuovi la carta dal DOM
+          e.target.closest('.card').remove();
+          
+          // Aggiorna il contatore dei problemi
+          let n_prob = document.querySelector('#n_problems').innerText;
+          let new_n_prob = parseInt(n_prob) - 1;
+          document.querySelector('#n_problems').innerText = new_n_prob;
+          
+          // Se non ci sono più problemi, mostra il messaggio
+          if(new_n_prob == 0) {
+            document.querySelector('.carousel-controls').style.display = 'none';
+            document.getElementById('carousel-messages').style.display = 'flex';
+            document.getElementById('carousel-messages').innerHTML = `
+                <div class="no-problems-message">
+                    Non sono presenti problemi nella tua smart home 😊
+                    <br>
+                    <span class="no-problems-submessage">Se hai bisogno di aiuto, chiedi a Casper!</span>
+                </div>
+            `;  
+          }
+        } else {
+            console.error("Error deleting problem:", data.message);
+            // Ripristina il bottone in caso di errore
+            e.target.innerHTML = originalContent;
+            e.target.disabled = false;
+            e.target.classList.remove('loading');
+            generateDialog("info", "Errore", "Problema risolto ma non eliminato dal database", () => {});
+          }
+        } catch (error) {
+          console.error("Error deleting problem:", error);
+          // Ripristina il bottone in caso di errore
+          e.target.innerHTML = originalContent;
+          e.target.disabled = false;
+          e.target.classList.remove('loading');
+          generateDialog("info", "Errore", "Si è verificato un errore durante l'eliminazione del problema", () => {});
+        }
+      } else {
+        generateDialog("info", "Selezione richiesta", "Seleziona una soluzione prima di procedere.", () => {});
       }
     });
 
@@ -2116,35 +2194,114 @@ function createConflictCard(isActive, headerText, conflictInfo) {
     ignoreButton.id = conflictInfo["unique_id"];
     ignoreButton.setAttribute("problemid", conflictInfo["id"]);
     ignoreButton.addEventListener("click", (e) => {
-      postData(
-        {problemId: e.target.getAttribute("problemid")},
-        ignoreProblem)
-      .then((response) => {
-        e.target.closest('.card').remove();
-        let n_prob = document.querySelector('#n_problems').innerText
-        document.querySelector('#n_problems').innerText = parseInt(n_prob) - 1;
-        console.log("Problem ignored:", response);
-      }).catch((error) => {
-        generateDialog("info", "Errore", "Si è verificato un errore e non posso eliminare il problema",() => {});
-        console.error("Error ignoring problem:", error);
+      generateDialog("confirm", "Conferma ignora", "Sei sicuro di voler ignorare questo problema?", () => {
+        postData(
+          {problemId: e.target.getAttribute("problemid")},
+          ignoreProblem)
+        .then((response) => {
+          e.target.closest('.card').remove();
+          let n_prob = document.querySelector('#n_problems').innerText;
+          let new_n_prob = parseInt(n_prob) - 1;
+          document.querySelector('#n_problems').innerText = new_n_prob;
+          if(new_n_prob == 0) {
+            document.querySelector('.carousel-controls').style.display = 'none';
+            document.getElementById('carousel-messages').style.display = 'flex';
+            document.getElementById('carousel-messages').innerHTML = `
+                <div class="no-problems-message">
+                    Non sono presenti problemi nella tua smart home 😊
+                    <br>
+                    <span class="no-problems-submessage">Se hai bisogno di aiuto, chiedi a Casper!</span>
+                </div>
+            `;  
+          }
+          console.log("Problem ignored:", response);
+        }).catch((error) => {
+          generateDialog("info", "Errore", "Si è verificato un errore e non posso eliminare il problema",() => {});
+          console.error("Error ignoring problem:", error);
+        });
       });
     });
-
     const solveButton = document.createElement("button");
     solveButton.className = "btn btn-resolve";
     solveButton.textContent = "Risolvi";
     solveButton.id =  conflictInfo["unique_id"];
     solveButton.setAttribute("problemid", conflictInfo["id"]);
-    solveButton.addEventListener("click", (e) => {
+    
+    solveButton.addEventListener("click", async (e) => {
       if (choosenSolution != null) {
+ 
+        e.target.innerHTML = `
+          <span>Risoluzione...</span>
+        `;
+        e.target.disabled = true;
+
         let problemId = e.target.getAttribute("problemid");
         let ruleId = choosenSolution.rule_id;
         let ruleName = choosenSolution.rule_name;
         let structured = choosenSolution.solution;
         const message = `<solve_problem>The user want to solve the problem with ID:${problemId} by modifing the automation '${ruleName}'(Automation ID:${ruleId}) in the following way: ${structured}</solve_problem>`;
+        console.log("Solve button clicked with message:", message);
+        
         getBotResponse(message);
+        
+        try {
+          const response = await fetch(deleteProblem, {
+            method: 'POST',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              data: { problemId: problemId },
+               id: userId
+            })
+          });
+
+          const data = await response.json();
+
+        if (data.status === 'ok') {
+          console.log("Problem deleted successfully:", data);
+          // Rimuovi la carta dal DOM
+          e.target.closest('.card').remove();
+          
+          // Aggiorna il contatore dei problemi
+          let n_prob = document.querySelector('#n_problems').innerText;
+          let new_n_prob = parseInt(n_prob) - 1;
+          document.querySelector('#n_problems').innerText = new_n_prob;
+          
+          // Se non ci sono più problemi, mostra il messaggio
+          if(new_n_prob == 0) {
+            document.querySelector('.carousel-controls').style.display = 'none';
+            document.getElementById('carousel-messages').style.display = 'flex';
+            document.getElementById('carousel-messages').innerHTML = `
+                <div class="no-problems-message">
+                    Non sono presenti problemi nella tua smart home 😊
+                    <br>
+                    <span class="no-problems-submessage">Se hai bisogno di aiuto, chiedi a Casper!</span>
+                </div>
+            `;  
+          }
+        } else {
+            console.error("Error deleting problem:", data.message);
+            // Ripristina il bottone in caso di errore
+            e.target.innerHTML = originalContent;
+            e.target.disabled = false;
+            e.target.classList.remove('loading');
+            generateDialog("info", "Errore", "Problema risolto ma non eliminato dal database", () => {});
+          }
+        } catch (error) {
+          console.error("Error deleting problem:", error);
+          // Ripristina il bottone in caso di errore
+          e.target.innerHTML = originalContent;
+          e.target.disabled = false;
+          e.target.classList.remove('loading');
+          generateDialog("info", "Errore", "Si è verificato un errore durante l'eliminazione del problema", () => {});
+        }
+      } else {
+        generateDialog("info", "Selezione richiesta", "Seleziona una soluzione prima di procedere.", () => {});
       }
     });
+
 
     actionButtons.appendChild(ignoreButton);
     actionButtons.appendChild(solveButton);
