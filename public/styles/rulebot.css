@@ -230,7 +230,7 @@ body{
   -ms-overflow-style: none; 
 }
 
-#rules-container::-webkit-scrollbar, #problems-main-container::-webkit-scrollbar, #devices-list-container::-webkit-scrollbar, #preferences-container::-webkit-scrollbar {
+#rules-container::-webkit-scrollbar, #problems-main-container::-webkit-scrollbar, #devices-list-container::-webkit-scrollbar, #preferences-container::-webkit-scrollbar, #goal-adv-container::-webkit-scrollbar {
     display: none; 
 }
 
@@ -526,11 +526,6 @@ body{
     50% { opacity: 1; transform: rotate(90deg) translateX(5px); }
 }
 
-.devices-list {
-  padding: 1.25rem;
-  cursor: default;
-}
-
 .room-card {
   margin-bottom: 10px;
   animation: 0.3s ease 0s 1 normal none running fadeIn;
@@ -578,14 +573,14 @@ body{
   background-color: var(--bg-primary);
 }
 
-.devicesList_container {
+.devicesList_container, .problem-goal-explanation-container {
   max-height: 0; 
   overflow: hidden; 
   transition: 0.4s ease;
   border-radius: 16px;
 }
 
-.devicesList_container.open {
+.devicesList_container.open, .problem-goal-explanation-container.open {
   max-height: 1000px;
 }
 
@@ -978,15 +973,17 @@ td {
     }
 }
 
-.devicesList_container {
+.devicesList_container, .problem-goal-explanation-container {
   border-radius: 16px;
 }
 
-.devices-list {
+.devices-list, .problem-goal-explanation {
   background-color: var(--bg-secondary);
   color: var(--text-primary);
   border: 1px solid var(--border-color);
   border-radius: 16px;
+  padding: 1.25rem;
+  cursor: default;
 }
 
 /* Search Bar */
@@ -1861,10 +1858,131 @@ td {
     animation: pulse 0.3s ease;
 }
 
+.severity-badge {
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+
+}
+
+.severity-critical {
+    background: #FF3B30;
+    color: white;
+}
+
+.severity-high {
+    background: #FF9500;
+    color: white;
+}
+
+.severity-medium {
+    background: #FFCC00;
+    color: #1d1d1f;
+}
+
+.severity-low {
+    background: #34C759;
+    color: white;
+}
+
+.goal-tag {
+    background: white;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    color: #86868b;
+    border: 1px solid #d2d2d7;
+}
+
 @keyframes pulse {
     0% { transform: scale(1); }
     50% { transform: scale(1.01); }
     100% { transform: scale(1); }
+}
+
+/* Expandable Card Styles */
+
+
+.problem-goal-card {
+    overflow: hidden;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.problem-goal-card:hover {
+  transform: translateX(+5px);
+}
+
+.problem-goal-card.active {
+    background-color: var(--bg-primary);
+}
+
+.problem-goal-container {
+  margin-bottom: 10px;
+  animation: 0.3s ease 0s 1 normal none running fadeIn;
+}
+
+.expand-button {
+  display: flex;
+    justify-content: right;
+    align-items: right;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.expand-text {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.expand-icon {
+    font-size: 18px;
+    color: var(--text-primary);
+    transition: transform 0.3s ease;
+    font-style: normal;
+}
+
+.expand-icon::before {
+    content: '▾';
+}
+
+.expand-button.expanded .expand-icon {
+    transform: rotate(180deg);
+}
+
+.expand-button.expanded .expand-text::after {
+    content: " meno";
+}
+
+.expanded-section {
+    margin-bottom: 16px;
+    color: var(--text-primary);
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.expanded-section .card-title {
+  margin-bottom: 12px;
+  color: var(--text-primary);
+}
+
+.expanded-actions {
+    display: flex;
+    gap: 8px;
+    padding-top: 12px;
+    
+}
+
+.expanded-section .form-check-label {
+  color: var(--text-primary);
+}
+
+/* Animation when card expands */
+.problem-goal-card.expanding {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
 
  @media (max-width: 480px) {

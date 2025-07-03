@@ -926,8 +926,8 @@ function printUserPreferences() {
     // Dati degli obiettivi
     const goals = [
         { id: 'sicurezza', name: 'Sicurezza', icon: '🛡️' },
-        { id: 'salute', name: 'Salute', icon: '💚' },
-        { id: 'risparmio', name: 'Risparmio Energetico', icon: '⚡' },
+        { id: 'salute', name: 'Salute', icon: '❤️' },
+        { id: 'risparmio', name: 'Risparmio Energetico', icon: '🔋' },
         { id: 'benessere', name: 'Benessere', icon: '🌱' }
     ];
 
@@ -2509,6 +2509,40 @@ function dinamicallyPopulateEntityValue(devices){
       }
     }
   }
+}
+
+function toggleCardExpansion(element) {
+    // Check if this is a problem-goal-card
+    if (element.classList.contains('problem-goal-card')) {
+        const explanationContainer = element.nextElementSibling;
+        if (explanationContainer && explanationContainer.classList.contains('problem-goal-explanation-container')) {
+            explanationContainer.classList.toggle('open');
+            
+            // Toggle the expand button icon
+            const expandButton = element.querySelector('.expand-button');
+            if (expandButton) {
+                element.classList.toggle('active');
+                expandButton.classList.toggle('expanded');
+            }
+        }
+        return;
+    }
+    
+    // Original logic for expandable-card
+    const card = element.closest('.expandable-card');
+    const expandButton = card.querySelector('.expand-button');
+    const expandedContent = card.querySelector('.expanded-content');
+    
+    // Toggle delle classi active
+    expandButton.classList.toggle('active');
+    expandedContent.classList.toggle('active');
+    
+    // Aggiorna l'altezza dinamicamente
+    if (expandedContent.classList.contains('active')) {
+        expandedContent.style.maxHeight = expandedContent.scrollHeight + 'px';
+    } else {
+        expandedContent.style.maxHeight = '0px';
+    }
 }
 
 const overlay = document.getElementById('overlay');
