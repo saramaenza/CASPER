@@ -19,7 +19,6 @@ const ping = `${base_link}/post_chat_state`; // chiamata POST per mantere la ses
 const toggleAutomation = `${base_link}/toggle_automation`; // chiamata per accendere/spegnere un'automazione
 const ignoreProblem = `${base_link}/ignore_problem`; // chiamata per ignorare un problema
 const resetConversationUrl = `${base_link}/reset_conv`; // chiamata per resettare la conversazione
-const deleteProblem = `${base_link}/delete_problem`; // chiamata POST per eliminare un problema
 
 const carousel = document.querySelector(".carousel");
 const toggleSwitch = document.getElementById('toggleSwitch');
@@ -64,6 +63,7 @@ sse.addEventListener("message", async ({ data }) => {
   else if (message.action == "update-problems") {
     //message.state = []
     let problemsList = await getProblems()
+    problemsList = problemsList.filter(problem => !problem.ignore && !problem.solved);
     printUserProblems(problemsList);
     carouselObject.update(problemsList);
   }
@@ -245,6 +245,7 @@ window.addEventListener('load', async ()=>{
   printUserRule(rulesList); //PRINT regole
   printUserDevices(devicesList); //PRINT devices
   let problemsList = await getProblems()
+  problemsList = problemsList.filter(problem => !problem.ignore && !problem.solved);
   printUserProblems(problemsList);
   carouselObject = new Carousel(problemsList)
   //open_delete_rule();
@@ -306,6 +307,7 @@ async function deleteAutomation(rule_id) {
       document.querySelector(`div [ruleid='${rule_id}']`).remove();
       let rulesList = await getRulesParam() //GET regole
       let problemsList = await getProblems()  //GET problemi
+      problemsList = problemsList.filter(problem => !problem.ignore && !problem.solved);
       printUserRule(rulesList);
       document.querySelector('#n_automations').innerText = rulesList.length;
       document.querySelector('#n_problems').innerText = problemsList.length;
@@ -1805,8 +1807,8 @@ function createChainCard(isActive, headerText, chainInfo) {
     solveButton.textContent = "Risolvi";
     solveButton.id =  chainInfo["unique_id"];
     solveButton.setAttribute("problemid", conflictInfo["id"]);
-    solveButton.addEventListener("click", async (e) => {
-      if (choosenSolution != null) {
+    solveButton.addEventListener("click", async (e) => { 
+     if (choosenSolution != null) {
  
         e.target.innerHTML = `
           <span>Risoluzione...</span>
@@ -1821,60 +1823,28 @@ function createChainCard(isActive, headerText, chainInfo) {
         console.log("Solve button clicked with message:", message);
         
         getBotResponse(message);
+
+        // Rimuovi la carta dal DOM
+        e.target.closest('.card').remove();
         
-        try {
-            const response = await fetch(deleteProblem, {
-              method: 'POST',
-              headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({
-                data: { problemId: problemId },
-                id: userId
-              })
-            });
-
-            const data = await response.json();
-
-        if (data.status === 'ok') {
-          console.log("Problem deleted successfully:", data);
-          // Rimuovi la carta dal DOM
-          e.target.closest('.card').remove();
-          
-          // Aggiorna il contatore dei problemi
-          let n_prob = document.querySelector('#n_problems').innerText;
-          let new_n_prob = parseInt(n_prob) - 1;
-          document.querySelector('#n_problems').innerText = new_n_prob;
-          
-          // Se non ci sono più problemi, mostra il messaggio
-          if(new_n_prob == 0) {
-            document.querySelector('.carousel-controls').style.display = 'none';
-            document.getElementById('carousel-messages').style.display = 'flex';
-            document.getElementById('carousel-messages').innerHTML = `
-                <div class="no-problems-message">
-                    Non sono presenti problemi nella tua smart home 😊
-                    <br>
-                    <span class="no-problems-submessage">Se hai bisogno di aiuto, chiedi a Casper!</span>
-                </div>
-            `;  
-          }
-        } else {
-            console.error("Error deleting problem:", data.message);
-            // Ripristina il bottone in caso di errore
-            e.target.innerHTML = originalContent;
-            e.target.disabled = false;
-            e.target.classList.remove('loading');
-            generateDialog("info", "Errore", "Problema risolto ma non eliminato dal database", () => {});
-          }
-        } catch (error) {
-          console.error("Error deleting problem:", error);
-          // Ripristina il bottone in caso di errore
-          e.target.innerHTML = originalContent;
-          e.target.disabled = false;
-          e.target.classList.remove('loading');
-          generateDialog("info", "Errore", "Si è verificato un errore durante l'eliminazione del problema", () => {});
+        // Aggiorna il contatore dei problemi
+        let n_prob = document.querySelector('#n_problems').innerText;
+        let new_n_prob = parseInt(n_prob) - 1;
+        document.querySelector('#n_problems').innerText = new_n_prob;
+        
+        // Se non ci sono più problemi, mostra il messaggio
+        if(new_n_prob == 0) {
+          document.querySelector('.carousel-controls').style.display = 'none';
+          document.getElementById('carousel-messages').style.display = 'flex';
+          document.getElementById('carousel-messages').innerHTML = `
+              <div class="no-problems-message">
+                  Non sono presenti problemi nella tua smart home 😊
+                  <br>
+                  <span class="no-problems-submessage">Se hai bisogno di aiuto, chiedi a Casper!</span>
+              </div>
+          `;  
         }
+
       } else {
         generateDialog("info", "Selezione richiesta", "Seleziona una soluzione prima di procedere.", () => {});
       }
@@ -2227,8 +2197,8 @@ function createConflictCard(isActive, headerText, conflictInfo) {
     solveButton.id =  conflictInfo["unique_id"];
     solveButton.setAttribute("problemid", conflictInfo["id"]);
     
-    solveButton.addEventListener("click", async (e) => {
-      if (choosenSolution != null) {
+    solveButton.addEventListener("click", async (e) => { 
+     if (choosenSolution != null) {
  
         e.target.innerHTML = `
           <span>Risoluzione...</span>
@@ -2243,65 +2213,32 @@ function createConflictCard(isActive, headerText, conflictInfo) {
         console.log("Solve button clicked with message:", message);
         
         getBotResponse(message);
+
+        // Rimuovi la carta dal DOM
+        e.target.closest('.card').remove();
         
-        try {
-          const response = await fetch(deleteProblem, {
-            method: 'POST',
-            headers: {
-              'Accept': 'application/json',
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              data: { problemId: problemId },
-               id: userId
-            })
-          });
-
-          const data = await response.json();
-
-        if (data.status === 'ok') {
-          console.log("Problem deleted successfully:", data);
-          // Rimuovi la carta dal DOM
-          e.target.closest('.card').remove();
-          
-          // Aggiorna il contatore dei problemi
-          let n_prob = document.querySelector('#n_problems').innerText;
-          let new_n_prob = parseInt(n_prob) - 1;
-          document.querySelector('#n_problems').innerText = new_n_prob;
-          
-          // Se non ci sono più problemi, mostra il messaggio
-          if(new_n_prob == 0) {
-            document.querySelector('.carousel-controls').style.display = 'none';
-            document.getElementById('carousel-messages').style.display = 'flex';
-            document.getElementById('carousel-messages').innerHTML = `
-                <div class="no-problems-message">
-                    Non sono presenti problemi nella tua smart home 😊
-                    <br>
-                    <span class="no-problems-submessage">Se hai bisogno di aiuto, chiedi a Casper!</span>
-                </div>
-            `;  
-          }
-        } else {
-            console.error("Error deleting problem:", data.message);
-            // Ripristina il bottone in caso di errore
-            e.target.innerHTML = originalContent;
-            e.target.disabled = false;
-            e.target.classList.remove('loading');
-            generateDialog("info", "Errore", "Problema risolto ma non eliminato dal database", () => {});
-          }
-        } catch (error) {
-          console.error("Error deleting problem:", error);
-          // Ripristina il bottone in caso di errore
-          e.target.innerHTML = originalContent;
-          e.target.disabled = false;
-          e.target.classList.remove('loading');
-          generateDialog("info", "Errore", "Si è verificato un errore durante l'eliminazione del problema", () => {});
+        // Aggiorna il contatore dei problemi
+        let n_prob = document.querySelector('#n_problems').innerText;
+        let new_n_prob = parseInt(n_prob) - 1;
+        document.querySelector('#n_problems').innerText = new_n_prob;
+        
+        // Se non ci sono più problemi, mostra il messaggio
+        if(new_n_prob == 0) {
+          document.querySelector('.carousel-controls').style.display = 'none';
+          document.getElementById('carousel-messages').style.display = 'flex';
+          document.getElementById('carousel-messages').innerHTML = `
+              <div class="no-problems-message">
+                  Non sono presenti problemi nella tua smart home 😊
+                  <br>
+                  <span class="no-problems-submessage">Se hai bisogno di aiuto, chiedi a Casper!</span>
+              </div>
+          `;  
         }
+
       } else {
         generateDialog("info", "Selezione richiesta", "Seleziona una soluzione prima di procedere.", () => {});
       }
     });
-
 
     actionButtons.appendChild(ignoreButton);
     actionButtons.appendChild(solveButton);
