@@ -228,6 +228,10 @@ async function deleteAutomation(baseUrl, token, automationId) {
         "Content-Type": "application/json"
     };
     try {
+        if (typeof automationId !== 'string') {
+            automationId = String(automationId);
+        }
+
         const response = await fetch(
             `${baseUrl}/api/config/automation/config/${automationId}`, 
             {

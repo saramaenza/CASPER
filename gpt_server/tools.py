@@ -104,8 +104,10 @@ def generate_automation(
                     max_id = max(max_id, current_id)
                 automation_id = max_id + 1
             #automation_id = '1' if len(automations) == 0 else str(int(automations[-1]['id']) + 1)
+            automation_id = str(automation_id)
             data['automation']['id'] = automation_id
         else:
+            automation_id = str(automation_id)
             data['automation']['id'] = automation_id
         
         if problem_id is not None:

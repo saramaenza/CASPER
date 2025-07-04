@@ -533,7 +533,6 @@ class ChainsDetector:
 
         processing_function = self.process_indirect_chain
         if chain_type == "direct":
-            print("PASSO 0")
             processing_function = self.process_direct_chain
         elif chain_type != "indirect":
             raise ValueError(f"Unknown chain_type: {chain_type}. Must be 'direct' or 'indirect'.")

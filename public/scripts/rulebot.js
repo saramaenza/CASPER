@@ -1823,9 +1823,6 @@ function createChainCard(isActive, headerText, chainInfo) {
         console.log("Solve button clicked with message:", message);
         
         getBotResponse(message);
-
-        // Rimuovi la carta dal DOM
-        e.target.closest('.card').remove();
         
         // Aggiorna il contatore dei problemi
         let n_prob = document.querySelector('#n_problems').innerText;
@@ -1844,6 +1841,8 @@ function createChainCard(isActive, headerText, chainInfo) {
               </div>
           `;  
         }
+        // Rimuovi la carta dal DOM
+        e.target.closest('.card').remove();
 
       } else {
         generateDialog("info", "Selezione richiesta", "Seleziona una soluzione prima di procedere.", () => {});
@@ -2213,9 +2212,6 @@ function createConflictCard(isActive, headerText, conflictInfo) {
         console.log("Solve button clicked with message:", message);
         
         getBotResponse(message);
-
-        // Rimuovi la carta dal DOM
-        e.target.closest('.card').remove();
         
         // Aggiorna il contatore dei problemi
         let n_prob = document.querySelector('#n_problems').innerText;
@@ -2234,6 +2230,9 @@ function createConflictCard(isActive, headerText, conflictInfo) {
               </div>
           `;  
         }
+
+        // Rimuovi la carta dal DOM
+        e.target.closest('.card').remove();
 
       } else {
         generateDialog("info", "Selezione richiesta", "Seleziona una soluzione prima di procedere.", () => {});
