@@ -139,7 +139,6 @@ async function postAutomationHA(baseUrl, token, automationId, configData) {
         );
 
         if (!response.ok) {
-            console.error(`Errore nell'aggiornamento dell'automazione ${automationId}: ${response.status}`);
             return false;
         }
 

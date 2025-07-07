@@ -77,7 +77,7 @@ class ConflictDetector:
                 return True
         return False   
 
-    def append_conflict(self, rule_name1, rule_name2, automation1_description, automation2_description, type_of_conflict, id_automation1, id_automation2, id_device):  
+    def append_conflict(self, rule_name1, rule_name2, automation1_description, automation2_description, type_of_conflict, id_automation1, id_automation2, id_device, state):  
         """Append a conflict to the array"""
         solution_info = self.call_find_solution_llm(id_automation1, id_automation2, rule_name1, rule_name2, automation1_description, automation2_description) 
         id_conflict = str(id_automation1)+"_"+str(id_automation2)+"_"+str(id_device)
@@ -101,6 +101,7 @@ class ConflictDetector:
                     }
                 ],
                 "possibleSolutions": solution_info,
+                "state": state
             })
 
     def process_action(self, action):
@@ -196,7 +197,7 @@ class ConflictDetector:
                     event_type = e.get("at")
         return event_type
 
-    def process_action_conflict(self, action1, action2, rule_name1, rule_name2, type_of_conflict, id_automation1, id_automation2, automation1_description, automation2_description):
+    def process_action_conflict(self, action1, action2, rule_name1, rule_name2, type_of_conflict, id_automation1, id_automation2, automation1_description, automation2_description, state):
         """Process and detect conflicts in actions"""
         device_id1, area1, attr1, domain1 = self.process_action(action1)
         device_id2, area2, attr2, domain2 = self.process_action(action2)
@@ -226,18 +227,18 @@ class ConflictDetector:
         device_name_action2 = device_name_action1
 
         if self.check_operators_appliances(self.get_event_type(action1), self.get_event_type(action2)) and not attr1 and not attr2:
-            self.append_conflict(rule_name1, rule_name2, automation1_description, automation2_description, type_of_conflict, id_automation1, id_automation2, device_id1)
+            self.append_conflict(rule_name1, rule_name2, automation1_description, automation2_description, type_of_conflict, id_automation1, id_automation2, device_id1, state)
         elif attr1 or attr2:
             data_attr = attr1 if attr1 else attr2
             for data in data_attr:
                 value_attribute1 = attr1.get(data, None)
                 value_attribute2 = attr2.get(data, None)
                 if value_attribute1 and value_attribute2 and value_attribute1 != value_attribute2:
-                    self.append_conflict(rule_name1, rule_name2, automation1_description, automation2_description, type_of_conflict, id_automation1, id_automation2, device_id1)
+                    self.append_conflict(rule_name1, rule_name2, automation1_description, automation2_description, type_of_conflict, id_automation1, id_automation2, device_id1, state)
                 elif (value_attribute1 and not value_attribute2) or (not value_attribute1 and value_attribute2):
                     if not self.check_element_exists(rule_name1, rule_name2, None, None, self.get_event_type(action1), self.get_event_type(action2), device_name_action1, device_name_action2):
                         if self.check_operators_appliances(self.get_event_type(action1), self.get_event_type(action2)):
-                            self.append_conflict(rule_name1, rule_name2, automation1_description, automation2_description, type_of_conflict, id_automation1, id_automation2, device_id1)
+                            self.append_conflict(rule_name1, rule_name2, automation1_description, automation2_description, type_of_conflict, id_automation1, id_automation2, device_id1, state)
 
     def array_conditions(self, condition1, condition2):
         """Process conditions arrays"""
@@ -351,6 +352,7 @@ class ConflictDetector:
         
         for action1 in actions1:
             for rule2 in rules:
+                state = rule2.get("state", None)
                 rule2 = rule2['config']
                 rule_name2 = rule2.get("alias", None)
                 rule2_trigger = rule2.get("trigger") or rule2.get("triggers") or None
@@ -371,7 +373,7 @@ class ConflictDetector:
                     
                     # Conflict on actions and solution retrieval
                     for action2 in actions2:
-                        self.process_action_conflict(action1, action2, rule_name1, rule_name2, type_of_conflict, id_automation1, id_automation2, automation1_description, automation2_description)
+                        self.process_action_conflict(action1, action2, rule_name1, rule_name2, type_of_conflict, id_automation1, id_automation2, automation1_description, automation2_description, state)
         return self.conflicts_array
 
 # Usage example and backward compatibility

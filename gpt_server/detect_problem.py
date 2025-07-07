@@ -17,7 +17,7 @@ def problem_detector(user_id, session_id, automation_id):
     try:
         auth = _db.get_credentials(user_id)
         ha_client = HomeAssistantClient(auth['url'], auth['key'])
-        start = time.time()
+        #start = time.time()
         data = _db.get_automations(user_id)
         new_automation = _db.get_automation(user_id, automation_id)
         if not data:
@@ -31,7 +31,7 @@ def problem_detector(user_id, session_id, automation_id):
         conflicts = conflict_detector.detect_conflicts(data, new_automation)
 
         all_problems = direct_chains + indirect_chains + conflicts
-        end = time.time()
+        #end = time.time()
         #print(f"Problem detection took {end - start} seconds")
         if not all_problems:
             return "No problems detected."

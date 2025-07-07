@@ -152,22 +152,23 @@ class ChainsDetector:
         return data
 
 
-    def process_direct_chain(self, rule_chain: List[Dict[str, Any]], rule1: Dict[str, Any], rule2: Dict[str, Any],
+    def process_direct_chain(self, rule_chain: List[Dict[str, Any]], rule1: Dict[str, Any], rule2,
                          action1_details: Dict[str, Any], 
                          rule1_name: str, id_automation1: str,
-                         rule2_entity_id: str):
-    
+                         rule2_entity_id: str, state: str = None):
+        
         # DIREZIONE 1: Rule1 → Rule2 
-        self._check_chain_direction(rule_chain, rule1, rule2, action1_details, rule1_name, id_automation1, "rule1_to_rule2")
+        self._check_chain_direction(rule_chain, rule1, rule2, action1_details, rule1_name, id_automation1, "rule1_to_rule2", state)
         
         # DIREZIONE 2: Rule2 → Rule1
-        self._check_chain_direction(rule_chain, rule2, rule1, None, rule1_name, id_automation1, "rule2_to_rule1")
+        self._check_chain_direction(rule_chain, rule2, rule1, None, rule1_name, id_automation1, "rule2_to_rule1", state)
 
     def _check_chain_direction(self, rule_chain: List[Dict[str, Any]], 
                           source_rule: Dict[str, Any], target_rule: Dict[str, Any],
                           source_action_details: Dict[str, Any] = None,
                           rule1_name: str = "", id_automation1: str = "",
-                          direction: str = ""):
+                          direction: str = "",
+                          state: str = None):
     
         print(f"\n--- Checking direction: {direction} ---")
         print(f"Source: {source_rule.get('alias', 'No alias')}")
@@ -198,7 +199,7 @@ class ChainsDetector:
                 # Controlla se questa azione può triggerare la regola target
                 chain_found = self._check_action_trigger_match(
                     rule_chain, source_rule, target_rule, source_action_details, 
-                    rule1_name, id_automation1, direction
+                    rule1_name, id_automation1, direction, state
                 )
                 
                 if chain_found:
@@ -207,14 +208,14 @@ class ChainsDetector:
             # Direzione 1: usa i dettagli dell'azione già forniti
             self._check_action_trigger_match(
                 rule_chain, source_rule, target_rule, source_action_details, 
-                rule1_name, id_automation1, direction
+                rule1_name, id_automation1, direction, state
             )
     
     def _check_action_trigger_match(self, rule_chain: List[Dict[str, Any]],
                                source_rule: Dict[str, Any], target_rule: Dict[str, Any],
                                source_action_details: Dict[str, Any],
-                               rule1_name: str, id_automation1: str, direction: str) -> bool:
-    
+                               rule1_name: str, id_automation1: str, direction: str, state) -> bool:
+
         device_action_source = source_action_details['device_action']
         type_action_source = source_action_details['type_action']
         
@@ -282,8 +283,12 @@ class ChainsDetector:
                 
                 # Genera la soluzione
                 solution_info = self.call_find_solution_llm(
-                    first_rule.get("id"), first_rule.get("alias"), first_rule.get("description"),
-                    second_rule.get("id"), second_rule.get("alias"), second_rule.get("description")
+                    first_rule.get("id"),
+                    second_rule.get("id"),
+                    first_rule.get("alias"),
+                    second_rule.get("alias"),
+                    first_rule.get("description"),
+                    second_rule.get("description")
                 )
                 
                 # Crea l'ID univoco della catena
@@ -313,6 +318,7 @@ class ChainsDetector:
                         "action_type": type_action_normalized,
                         "trigger_type": type_trigger,
                         "possibleSolutions": solution_info,
+                        "state": state
                     }
                     
                     rule_chain.append(chain_data)
@@ -323,24 +329,25 @@ class ChainsDetector:
     def process_indirect_chain(self, rule_chain: List[Dict[str, Any]], rule1: Dict[str, Any], rule2: Dict[str, Any],
                            action1_details: Dict[str, Any],
                            rule1_name: str, id_automation1: str,
-                           rule2_entity_id: str):
-    
+                           rule2_entity_id: str, state: str = None):
+
         print(f"\n=== PROCESS_INDIRECT_CHAIN DEBUG ===")
         print(f"Rule1: {rule1_name} (ID: {id_automation1})")
         print(f"Rule2: {rule2.get('alias', 'No alias')} (ID: {rule2.get('id')})")
         
         # DIREZIONE 1: Rule1 → variabile → Rule2 (comportamento originale)
-        self._check_indirect_chain_direction(rule_chain, rule1, rule2, action1_details, rule1_name, id_automation1, "rule1_to_rule2")
+        self._check_indirect_chain_direction(rule_chain, rule1, rule2, action1_details, rule1_name, id_automation1, "rule1_to_rule2", state)
         
         # DIREZIONE 2: Rule2 → variabile → Rule1 (nuova funzionalità)
-        self._check_indirect_chain_direction(rule_chain, rule2, rule1, None, rule1_name, id_automation1, "rule2_to_rule1")
+        self._check_indirect_chain_direction(rule_chain, rule2, rule1, None, rule1_name, id_automation1, "rule2_to_rule1", state)
     
     def _check_indirect_chain_direction(self, rule_chain: List[Dict[str, Any]], 
                                   source_rule: Dict[str, Any], target_rule: Dict[str, Any],
                                   source_action_details: Dict[str, Any] = None,
                                   rule1_name: str = "", id_automation1: str = "",
-                                  direction: str = ""):
-        
+                                  direction: str = "",
+                                  state: str = None):
+
         # Se non abbiamo i dettagli dell'azione (direzione 2), li calcoliamo
         if source_action_details is None:
             source_actions = source_rule.get("actions", []) or source_rule.get("action", [])
@@ -366,7 +373,7 @@ class ChainsDetector:
                 # Controlla se questa azione può influenzare una variabile che triggera la regola target
                 chain_found = self._check_indirect_variable_match(
                     rule_chain, source_rule, target_rule, source_action_details, 
-                    rule1_name, id_automation1, direction
+                    rule1_name, id_automation1, direction, state
                 )
                 
                 if chain_found:
@@ -375,14 +382,14 @@ class ChainsDetector:
             # Direzione 1: usa i dettagli dell'azione già forniti
             self._check_indirect_variable_match(
                 rule_chain, source_rule, target_rule, source_action_details, 
-                rule1_name, id_automation1, direction
+                rule1_name, id_automation1, direction, state
             )
 
     def _check_indirect_variable_match(self, rule_chain: List[Dict[str, Any]],
                                     source_rule: Dict[str, Any], target_rule: Dict[str, Any],
                                     source_action_details: Dict[str, Any],
-                                    rule1_name: str, id_automation1: str, direction: str) -> bool:
-        
+                                    rule1_name: str, id_automation1: str, direction: str, state) -> bool:
+
         type_action_source = source_action_details['type_action'].split('.')[-1] if '.' in source_action_details['type_action'] else source_action_details['type_action']
         domain_source = source_action_details['domain']
 
@@ -465,7 +472,8 @@ class ChainsDetector:
                                         "role": "target" if direction == "rule1_to_rule2" else "triggered"
                                     }
                                 ],
-                                "possibleSolutions": solution_info
+                                "possibleSolutions": solution_info,
+                                "state": state
                             }
                             
                             rule_chain.append(chain_data)
@@ -508,6 +516,7 @@ class ChainsDetector:
             }
 
             for rule2_wrapper in all_existing_rules:
+                state = rule2_wrapper.get("state", None)
                 rule2_config = rule2_wrapper.get("config")
                 if not rule2_config or not isinstance(rule2_config, dict):
                     continue
@@ -522,7 +531,7 @@ class ChainsDetector:
                 
                 chain_processing_function(
                     rule_chain_output, rule1_config, rule2_config, action1_details,
-                    rule_name1, id_automation1, rule2_entity_id
+                    rule_name1, id_automation1, rule2_entity_id, state
                 )
         
         #print("Detected chains:", rule_chain_output)

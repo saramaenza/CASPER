@@ -1868,7 +1868,7 @@ td {
 .severity-badge {
     padding: 4px 10px;
     border-radius: 8px;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 600;
 
 }
@@ -1897,7 +1897,7 @@ td {
     background: var(--bg-secondary);
     padding: 4px 10px;
     border-radius: 8px;
-    font-size: 12px;
+    font-size: 13px;
     color: var(--text-primary);
     border: 1px solid var(--border-color);
 }

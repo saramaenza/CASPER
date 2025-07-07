@@ -63,7 +63,7 @@ sse.addEventListener("message", async ({ data }) => {
   else if (message.action == "update-problems") {
     //message.state = []
     let problemsList = await getProblems()
-    problemsList = problemsList.filter(problem => !problem.ignore && !problem.solved);
+    problemsList = problemsList.filter(problem => !problem.ignore && !problem.solved && problem.state != "off");
     printUserProblems(problemsList);
     carouselObject.update(problemsList);
   }
@@ -245,7 +245,7 @@ window.addEventListener('load', async ()=>{
   printUserRule(rulesList); //PRINT regole
   printUserDevices(devicesList); //PRINT devices
   let problemsList = await getProblems()
-  problemsList = problemsList.filter(problem => !problem.ignore && !problem.solved);
+  problemsList = problemsList.filter(problem => !problem.ignore && !problem.solved && problem.state != "off");
   printUserProblems(problemsList);
   carouselObject = new Carousel(problemsList)
   //open_delete_rule();
@@ -566,26 +566,34 @@ async function printUserRule(rules) {
                     <div class="loader mini-loader"></div>
                 </div>
             `;
-            const toggleCall = await triggerToggleAutomation(
-              this.getAttribute('ruleid'),
-              this.getAttribute('entity')
-            )
-            if (toggleCall.status === "error") {
-              generateDialog("info", "Errore", "Errore durante il cambio di stato dell'automazione", () => {});
-              
-              return;
-          }
-            const state = toggleCall.state=="on" ? "active" : "";
+
+          let toggleCall = await triggerToggleAutomation(
+            this.getAttribute('ruleid'),
+            this.getAttribute('entity')
+          )
+          if (toggleCall.status === "error") {
+            generateDialog("info", "Errore", "Errore durante il cambio di stato dell'automazione", () => {});
             toggleSlider.innerHTML = tmp_toggle;
-            if (state === "active") {
-              if (!this.classList.contains('active')) {
-                this.classList.add('active');
-                indicator.classList.remove('inactive');
-              }
-            }else {
-              this.classList.remove('active');
-              indicator.classList.add('inactive');
+            return;
+          }
+
+          let state = toggleCall.state=="on" ? "active" : "";
+          toggleSlider.innerHTML = tmp_toggle;
+          if (state === "active") {
+            if (!this.classList.contains('active')) {
+              this.classList.add('active');
+              indicator.classList.remove('inactive');
             }
+          }else {
+            this.classList.remove('active');
+            indicator.classList.add('inactive');
+          }
+
+          await new Promise(resolve => setTimeout(resolve, 500));
+
+          const problemList = await getProblems()
+          let filteredProblems = problemList.filter(problem => !problem.ignore && !problem.solved && problem.state == "on");
+          document.querySelector('#n_problems').innerText = filteredProblems.length;
             
           });
         }
@@ -1772,7 +1780,7 @@ function createChainCard(isActive, headerText, chainInfo) {
     ignoreButton.className = "btn btn-ignore";
     ignoreButton.textContent = "Ignora";
     ignoreButton.id = chainInfo["unique_id"];
-    ignoreButton.setAttribute("problemid", conflictInfo["id"]);
+    ignoreButton.setAttribute("problemid", chainInfo["id"]);
     ignoreButton.addEventListener("click", (e) => {
       generateDialog("confirm", "Conferma ignora", "Sei sicuro di voler ignorare questo problema?", () => {
         postData(
@@ -1806,7 +1814,7 @@ function createChainCard(isActive, headerText, chainInfo) {
     solveButton.className = "btn btn-resolve";
     solveButton.textContent = "Risolvi";
     solveButton.id =  chainInfo["unique_id"];
-    solveButton.setAttribute("problemid", conflictInfo["id"]);
+    solveButton.setAttribute("problemid", chainInfo["id"]);
     solveButton.addEventListener("click", async (e) => { 
      if (choosenSolution != null) {
  
