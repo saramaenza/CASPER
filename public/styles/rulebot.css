@@ -1976,6 +1976,208 @@ td {
   color: var(--text-primary);
 }
 
+/* Panoramica goal */
+.overview-panel {
+    margin-bottom: 20px;
+}
+
+.panel-header {
+    margin-bottom: 20px;
+}
+
+.panel-title {
+    font-size: 16px;
+    font-weight: 500;
+    color: #1d1d1f;
+}
+
+.goals-container {
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+    justify-content: space-between; 
+}
+
+.goal-item-overview {
+    flex: 1; 
+    min-width: 0; 
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    text-align: center;
+    padding: 10px;
+}
+
+.goal-item-overview:hover {
+    border-color: #d1d1d6;
+}
+
+.goal-info {
+    display: flex;
+    flex-direction: row; 
+    align-items: center;
+    gap: 6px; 
+    margin-top: 8px; 
+}
+
+.goal-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: #1d1d1f;
+    margin-left: 0; 
+}
+
+.goal-icon {
+    font-size: 16px;
+    opacity: 0.7;
+}
+
+.goal-score {
+    margin-top: 0px; 
+}
+
+.circular-progress {
+    position: relative;
+    width: 40px;
+    height: 40px;
+}
+
+        .circular-progress svg {
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+
+        .circular-progress .bg-circle {
+            fill: none;
+            stroke: #f0f0f0;
+            stroke-width: 3;
+        }
+
+        .circular-progress .progress-circle {
+            fill: none;
+            stroke: #007aff;
+            stroke-width: 3;
+            stroke-linecap: round;
+            stroke-dasharray: 113.1;
+            stroke-dashoffset: 113.1;
+            transition: stroke-dashoffset 1s ease-in-out;
+        }
+
+        .circular-progress .progress-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 11px;
+            font-weight: 600;
+            color: #1d1d1f;
+        }
+
+        .overall-score {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            padding: 16px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border: 1px solid #e5e5e7;
+        }
+
+        .overall-progress {
+            position: relative;
+            width: 60px;
+            height: 60px;
+        }
+
+        .overall-progress svg {
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+
+        .overall-progress .bg-circle {
+            fill: none;
+            stroke: #e5e5e7;
+            stroke-width: 4;
+        }
+
+        .overall-progress .progress-circle {
+            fill: none;
+            stroke: #007aff;
+            stroke-width: 4;
+            stroke-linecap: round;
+            stroke-dasharray: 175.9;
+            stroke-dashoffset: 175.9;
+            transition: stroke-dashoffset 1.5s ease-in-out;
+        }
+
+        .overall-progress .progress-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 14px;
+            font-weight: 600;
+            color: #1d1d1f;
+        }
+
+        .overall-info {
+            text-align: left;
+        }
+
+        .overall-score-label {
+            font-size: 12px;
+            color: #86868b;
+            margin-bottom: 2px;
+        }
+
+        .overall-score-status {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1d1d1f;
+        }
+
+        .demo-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .demo-title {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #1d1d1f;
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .demo-note {
+            background: #f0f0f0;
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #666;
+            text-align: center;
+        }
+
+        /* Colori specifici per goal */
+        .goal-item:nth-child(1) .progress-circle {
+            stroke: #34c759;
+        }
+
+        .goal-item:nth-child(2) .progress-circle {
+            stroke: #ff3b30;
+        }
+
+        .goal-item:nth-child(3) .progress-circle {
+            stroke: #ff9500;
+        }
+
+        .goal-item:nth-child(4) .progress-circle {
+            stroke: #007aff;
+        }
+
  @media (max-width: 480px) {
     .container-preferences {
         padding: 20px;
