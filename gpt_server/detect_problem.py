@@ -17,7 +17,7 @@ def problem_detector(user_id, session_id, automation_id):
     try:
         auth = _db.get_credentials(user_id)
         ha_client = HomeAssistantClient(auth['url'], auth['key'])
-        start = time.time()
+        #start = time.time()
         data = _db.get_automations(user_id)
         new_automation = _db.get_automation(user_id, automation_id)
         if not data:
@@ -25,13 +25,13 @@ def problem_detector(user_id, session_id, automation_id):
 
         chain_detector = ChainsDetector(ha_client, user_id)
         conflict_detector = ConflictDetector(ha_client, user_id)
-
+        
         direct_chains = chain_detector.detect_chains(data, new_automation, "direct")
         indirect_chains = chain_detector.detect_chains(data, new_automation, "indirect")
         conflicts = conflict_detector.detect_conflicts(data, new_automation)
 
         all_problems = direct_chains + indirect_chains + conflicts
-        end = time.time()
+        #end = time.time()
         #print(f"Problem detection took {end - start} seconds")
         if not all_problems:
             return "No problems detected."
@@ -39,7 +39,6 @@ def problem_detector(user_id, session_id, automation_id):
         if not problems_w_id:
             return f"Detected {len(problems_w_id)} problems but Error: Unable to save detected problems to DB."
         else:
-            utils.update_chat_state("update-problems", "", session_id, user_id, "")
             problems_id = [problem['id'] for problem in problems_w_id]
             return f"Detected {len(problems_w_id)} problems (problems ids: {problems_id}). Problem cards with details are available for the user in the interface under the Problems section."
        
