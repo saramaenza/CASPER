@@ -18,21 +18,32 @@
     <link href="https://fonts.googleapis.com/css2?family=Lilita+One&display=swap" rel="stylesheet">
 </head>
 <body>
+    <div class="overlay" id="overlay">
+        <div class="confirm-dialog" id="confirm-dialog">
+            <h3 class="confirm-dialog-title">Titolo</h3>
+              <p class="confirm-dialog-description">Descrizione</p>
+              <div class="confirm-buttons">
+                  <button class="confirm-btn no">No</button>
+                  <button class="confirm-btn yes">Si</button>
+                  <button class="confirm-btn ok">Ok</button>
+              </div>
+        </div>
+    </div>
     <div class="container">
         <div class="chat-container">
+            
             <div id="left-container">
                 <div id="rules-head">
                     <div id="welcome">                        
                         <div id="initial-name"></div>
-                        <!-- <a href="/configuration" target="_blank" rel="noopener noreferrer">Configs</a> -->
                     </div>
 
                     <div id="rules-buttons-container">
                         <div type="button" id="show-rules" class="selector-button selector-selected"><i class='bx bxs-magic-wand' ></i> Automazioni <span class="circle-number" id="n_automations"></span></div>
                         <div type="button" id="show-devices" class="selector-button selector-unselected"><i class='bx bxs-washer'></i> Dispositivi <span class="circle-number" id="n_devices"></span></div>
                         <div type="button" id="show-problems" class="selector-button selector-unselected"><i class='bx bx-alarm-exclamation'></i> Problemi <span class="circle-number" id="n_problems"></span></div>
-                       <!--  <input type="button" disabled id="download" class="rule-button" value="Download regole">
-                        <input  type="button" id="aggiorna" class="rule-button" value="Aggiorna lista regole">-->
+                        <div type="button" id="show-goal-adv" class="selector-button selector-unselected"><i class='bx bx-crosshair'></i> Ottimizza <span class="circle-number" id="n_goal_advisor"></span></div>
+                        <div type="button" id="show-preferences" class="selector-button selector-unselected"><i class='bx bx-cog'></i> Preferenze </span></div>
                     </div>
                 </div>
                 
@@ -43,1020 +54,333 @@
                 </div>
 
                 <div id="problems-main-container" class="leftbar-unselected">
-                    <!--<div class="carousel__buttons">-->
-                        <div class="carousel-wrapper">
-                            <div id="carousel-messages">
-                               
-                            </div>
-                            <div id="carousel-controls" class="carousel-controls" style="display: none;">
-                                <button class="control-btn" id="prevBtn">‹</button>
-                                <button class="control-btn" id="nextBtn">›</button>
-                            </div>
-                            
-                            <div class="carousel" id="carouselTrack"><!--
-                               
-                                <div class="card">
-                                    <div class="card-container">
-                                        <div class="card-header">
-                                            <div class="problem-icon">⚠️</div>
-                                            <div class="problem-content">
-                                                <div class="problem-title">Catena di attivazione tra automazioni</div>
-                                                <div class="problem-id">Catena 1.1</div>
-                                            </div>
-                                        </div>
-                                        <div class="card-body">
-                                            <span class="card-text">
-                                               L'automazione "nome automazione 1" si attiva alle 9:00 e accende la luce, mentre l'automazione "nome automazione 2" si attiva quando la luce viene accesa e chiude la porta. Questo crea una catena di attivazione tra le due automazioni.
-                                            </span>
-                                            
-                                            <div class="conflict-diagram">
-                                                <div class="automation-flow">
-                                                    <div class="automation-chain-card">
-                                                        <div class="card-icon window">
-                                                                <img src="data:image/png;base64,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" alt="window-emoji">
-                                                            </div>
-                                                        <div class="card-chain-title">When it's 10 o'clock and it's not raining, open the window</div>
-                                                        <div class="card-chain-subtitle">Open window morning</div>
-                                                    </div>
-
-                                                    <div class="flow-arrow">→</div>
-
-                                                    <div class="variable-chain-card">
-                                                        <div class="card-icon temperature">🌡️</div>
-                                                        <div class="card-chain-variable">temperature</div>
-                                                    </div>
-
-                                                    <div class="flow-arrow">→</div>
-
-                                                    <div class="automation-chain-card">
-                                                        <div class="card-icon door">🚪</div>
-                                                        <div class="card-chain-title">When the temperature drops below 18°, turn on the heating system</div>
-                                                        <div class="card-chain-subtitle">Heating system on when it's cold</div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            
-                                            <p class="card-title">Come posso risolvere?</p>
-                                            <div class="accordion stay-open">
-                                                <div class="accordion-item">
-                                                <h2 class="accordion-header">
-                                                    <button class="accordion-button" onclick="toggleStayOpen(this)">
-                                                    Modifica l'automazione "nome automazione
-                                                    </button>
-                                                </h2>
-                                                <div class="accordion-collapse active">
-                                                    <div class="accordion-body">
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault1">
-                                                            <label class="form-check-label" for="radioDefault1">
-                                                            Default radio
-                                                            </label>
-                                                        </div>
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
-                                                            <label class="form-check-label" for="radioDefault2">
-                                                            Default radio
-                                                            </label>
-                                                        </div>
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
-                                                            <label class="form-check-label" for="radioDefault2">
-                                                            Default radio
-                                                            </label>
-                                                        </div>
-                                                        
-                                                    </div>
-                                                </div>
-                                                </div>
-                                            
-                                                <div class="accordion-item">
-                                                <h2 class="accordion-header">
-                                                    <button class="accordion-button" onclick="toggleStayOpen(this)">
-                                                    Modifica l'automazione "nome automazione 2"
-                                                    </button>
-                                                </h2>
-                                                <div class="accordion-collapse">
-                                                    <div class="accordion-body">
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault1">
-                                                            <label class="form-check-label" for="radioDefault1">
-                                                            Default radio
-                                                            </label>
-                                                        </div>
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
-                                                            <label class="form-check-label" for="radioDefault2">
-                                                            Default radio
-                                                            </label>
-                                                        </div>
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
-                                                            <label class="form-check-label" for="radioDefault2">
-                                                            Default radio
-                                                            </label>
-                                                        </div>
-                                                        
-                                                    </div>
-                                                </div>
-                                                </div>
-                                            
-                                            </div>
-                                            <div class="action-buttons">
-                                                <button class="btn btn-ignore">Ignora</button>
-                                                <button class="btn btn-resolve">Risolvi</button>
-                                            </div>
-
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="card">
-                                    <div class="card-container">
-                                        <div class="card-header">
-                                            <div class="problem-icon">⚠️</div>
-                                            <div class="problem-content">
-                                                <div class="problem-title">Catena di attivazione tra automazioni</div>
-                                                <div class="problem-id">Catena 1.1</div>
-                                            </div>
-                                        </div>
-                                        <div class="card-body">
-                                            <span class="card-text">
-                                               L'automazione "nome automazione 1" si attiva alle 9:00 e accende la luce, mentre l'automazione "nome automazione 2" si attiva quando la luce viene accesa e chiude la porta. Questo crea una catena di attivazione tra le due automazioni.
-                                            </span>
-                                            
-                                            <div class="conflict-diagram">
-                                                <div class="automation-flow">
-                                                    <div class="automation-chain-card">
-                                                        <div class="card-icon light">💡</div>
-                                                        <div class="card-chain-title">alle 9, accendi la luce</div>
-                                                        <div class="card-chain-subtitle">nome automazione 1</div>
-                                                    </div>
-
-                                                    <div class="flow-arrow">→</div>
-
-                                                    <div class="automation-chain-card">
-                                                        <div class="card-icon door">🚪</div>
-                                                        <div class="card-chain-title">quando si accende la luce, chiudi la porta</div>
-                                                        <div class="card-chain-subtitle">nome automazione 2</div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            
-                                            <p class="card-title">Come posso risolvere?</p>
-                                            <div class="accordion stay-open">
-                                                <div class="accordion-item">
-                                                <h2 class="accordion-header">
-                                                    <button class="accordion-button" onclick="toggleStayOpen(this)">
-                                                    Modifica l'automazione "nome automazione
-                                                    </button>
-                                                </h2>
-                                                <div class="accordion-collapse active">
-                                                    <div class="accordion-body">
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault1">
-                                                            <label class="form-check-label" for="radioDefault1">
-                                                            Default radio
-                                                            </label>
-                                                        </div>
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
-                                                            <label class="form-check-label" for="radioDefault2">
-                                                            Default radio
-                                                            </label>
-                                                        </div>
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
-                                                            <label class="form-check-label" for="radioDefault2">
-                                                            Default radio
-                                                            </label>
-                                                        </div>
-                                                        
-                                                    </div>
-                                                </div>
-                                                </div>
-                                            
-                                                <div class="accordion-item">
-                                                <h2 class="accordion-header">
-                                                    <button class="accordion-button" onclick="toggleStayOpen(this)">
-                                                    Modifica l'automazione "nome automazione 2"
-                                                    </button>
-                                                </h2>
-                                                <div class="accordion-collapse">
-                                                    <div class="accordion-body">
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault1">
-                                                            <label class="form-check-label" for="radioDefault1">
-                                                            Default radio
-                                                            </label>
-                                                        </div>
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
-                                                            <label class="form-check-label" for="radioDefault2">
-                                                            Default radio
-                                                            </label>
-                                                        </div>
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
-                                                            <label class="form-check-label" for="radioDefault2">
-                                                            Default radio
-                                                            </label>
-                                                        </div>
-                                                        
-                                                    </div>
-                                                </div>
-                                                </div>
-                                            
-                                            </div>
-                                            <div class="action-buttons">
-                                                <button class="btn btn-ignore">Ignora</button>
-                                                <button class="btn btn-resolve">Risolvi</button>
-                                            </div>
-
-                                        </div>
-                                    </div>
-                                </div>              
-
-                               <div class="card">
-                                    <div class="card-container">
-                                        <div class="card-header">
-                                            <div class="problem-icon">⚠️</div>
-                                            <div class="problem-content">
-                                                <div class="problem-title">Conflitto tra automazioni luce cucina</div>
-                                                <div class="problem-id">CONFLITTO 1.1</div>
-                                            </div>
-                                        </div>
-                                        <div class="card-body">
-                                            <span class="card-text">
-                                                Le automazioni 'Accendi la luce in cucina quando il forno viene spento' (id 2) e 'Spegni luce cucina quando il forno viene spento' (id 1) sono in conflitto perché entrambe si attivano quando il forno viene spento, ma una accende e l'altra spegne la stessa luce (light.luce_cucina), causando un comportamento imprevedibile.
-                                            </span>
-                                            <div class="conflict-diagram">
-                                                <div class="diagram-title">quando il forno viene spento</div>
-                                                <table class="conflict_rappresentation_containers">
-                                                    <tr>
-                                                        <td>
-                                                        <div class="action-box">
-                                                            <div class="card-icon light">💡</div>
-                                                            <b>accendi la luce in cucina</b>
-                                                        </div>
-                                                        </td>
-                                                        <td class="conflict-icon-td">
-                                                            <div class="conflict-icon">⚡</div>
-                                                        </td>
-                                                        <td>
-                                                        <div class="action-box">
-                                                            <div class="card-icon light">💡</div>
-                                                            <b>spegni la luce della cucina</b>
-                                                        </div>
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>
-                                                        <div>
-                                                            <i>Accendi la luce in cucina quando il forno viene spento</i>
-                                                        </div>
-                                                        </td>
-                                                        <td>
-                                                        </td>
-                                                        <td>
-                                                        <div>
-                                                            <i>Spegni luce cucina quando il forno viene spento</i>
-                                                        </div>
-                                                        </td>
-                                                    </tr>
-                                                </table>
-                                            </div>
-                                            
-                                            <p class="card-title">Come posso risolvere?</p>
-                                            <div class="accordion stay-open">
-                                                <div class="accordion-item">
-                                                <h2 class="accordion-header">
-                                                    <button class="accordion-button" onclick="toggleStayOpen(this)">
-                                                    Modifica l'automazione "Accendi aria condizionata mattina"
-                                                    </button>
-                                                </h2>
-                                                <div class="accordion-collapse active">
-                                                    <div class="accordion-body">
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault1">
-                                                            <label class="form-check-label" for="radioDefault1">
-                                                            Default radio
-                                                            </label>
-                                                        </div>
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
-                                                            <label class="form-check-label" for="radioDefault2">
-                                                            Default radio
-                                                            </label>
-                                                        </div>
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
-                                                            <label class="form-check-label" for="radioDefault2">
-                                                            Default radio
-                                                            </label>
-                                                        </div>
-                                                        
-                                                    </div>
-                                                </div>
-                                                </div>
-                                            
-                                                <div class="accordion-item">
-                                                <h2 class="accordion-header">
-                                                    <button class="accordion-button" onclick="toggleStayOpen(this)">
-                                                    Modifica l'automazione "Chiudi finestre aria condizionata accesa"
-                                                    </button>
-                                                </h2>
-                                                <div class="accordion-collapse">
-                                                    <div class="accordion-body">
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault1">
-                                                            <label class="form-check-label" for="radioDefault1">
-                                                            Default radio
-                                                            </label>
-                                                        </div>
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
-                                                            <label class="form-check-label" for="radioDefault2">
-                                                            Default radio
-                                                            </label>
-                                                        </div>
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
-                                                            <label class="form-check-label" for="radioDefault2">
-                                                            Default radio
-                                                            </label>
-                                                        </div>
-                                                        
-                                                    </div>
-                                                </div>
-                                                </div>
-                                            
-                                            </div>
-                                            <div class="action-buttons">
-                                                <button class="btn btn-ignore">Ignora</button>
-                                                <button class="btn btn-resolve">Risolvi</button>
-                                            </div>
-
-                                        </div>
-                                    </div>
-                                </div>      
-                                
-                                <div class="card">
-                                    <div class="card-container">
-                                        <div class="card-header">
-                                            <div class="problem-icon">⚠️</div>
-                                            <div class="problem-content">
-                                                <div class="problem-title">Conflitto tra automazioni luce cucina</div>
-                                                <div class="problem-id">CONFLITTO 2.1</div>
-                                            </div>
-                                        </div>
-                                        <div class="card-body">
-                                            <span class="card-text">
-                                                Le automazioni 'Accendi la luce in cucina quando il forno viene spento' (id 2) e 'Spegni luce cucina quando il forno viene spento' (id 1) sono in conflitto perché entrambe si attivano quando il forno viene spento, ma una accende e l'altra spegne la stessa luce (light.luce_cucina), causando un comportamento imprevedibile.
-                                            </span>
-                                            <div class="conflict-diagram">
-                                                <div class="diagram-title">quando il forno viene spento</div>
-                                                <div class="condition-box">
-                                                            se piove
-                                                </div>
-                                                <table class="conflict_rappresentation_containers">
-                                                    
-                                                    <tr>
-                                                        <td>
-                                                        <div class="action-box">
-                                                            <div class="card-icon light">💡</div>
-                                                            <b>accendi la luce in cucina</b>
-                                                        
-                                                        </div>
-                                                        </td>
-                                                        <td class="conflict-icon-td">
-                                                            <div class="conflict-icon">⚡</div>
-                                                        </td>
-                                                        <td>
-                                                        <div class="action-box">
-                                                            <div class="card-icon light">💡</div>
-                                                            <b>spegni la luce della cucina</b>
-                                                   
-                                                        </div>
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>
-                                                        <div>
-                                                            <i>Accendi la luce in cucina quando il forno viene spento</i>
-                                                        </div>
-                                                        </td>
-                                                        <td>
-                                                        </td>
-                                                        <td>
-                                                        <div>
-                                                            <i>Spegni luce cucina quando il forno viene spento</i>
-                                                        </div>
-                                                        </td>
-                                                    </tr>
-                                            
-                                                </table>
-                                            </div>
-                                            
-                                            <p class="card-title">Come posso risolvere?</p>
-                                            <div class="accordion stay-open">
-                                                <div class="accordion-item">
-                                                <h2 class="accordion-header">
-                                                    <button class="accordion-button" onclick="toggleStayOpen(this)">
-                                                    Modifica l'automazione "Accendi aria condizionata mattina"
-                                                    </button>
-                                                </h2>
-                                                <div class="accordion-collapse active">
-                                                    <div class="accordion-body">
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault1">
-                                                            <label class="form-check-label" for="radioDefault1">
-                                                            Default radio
-                                                            </label>
-                                                        </div>
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
-                                                            <label class="form-check-label" for="radioDefault2">
-                                                            Default radio
-                                                            </label>
-                                                        </div>
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
-                                                            <label class="form-check-label" for="radioDefault2">
-                                                            Default radio
-                                                            </label>
-                                                        </div>
-                                                        
-                                                    </div>
-                                                </div>
-                                                </div>
-                                            
-                                                <div class="accordion-item">
-                                                <h2 class="accordion-header">
-                                                    <button class="accordion-button" onclick="toggleStayOpen(this)">
-                                                    Modifica l'automazione "Chiudi finestre aria condizionata accesa"
-                                                    </button>
-                                                </h2>
-                                                <div class="accordion-collapse">
-                                                    <div class="accordion-body">
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault1">
-                                                            <label class="form-check-label" for="radioDefault1">
-                                                            Default radio
-                                                            </label>
-                                                        </div>
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
-                                                            <label class="form-check-label" for="radioDefault2">
-                                                            Default radio
-                                                            </label>
-                                                        </div>
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
-                                                            <label class="form-check-label" for="radioDefault2">
-                                                            Default radio
-                                                            </label>
-                                                        </div>
-                                                        
-                                                    </div>
-                                                </div>
-                                                </div>
-                                            
-                                            </div>
-                                            <div class="action-buttons">
-                                                <button class="btn btn-ignore">Ignora</button>
-                                                <button class="btn btn-resolve">Risolvi</button>
-                                            </div>
-
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="card">
-                                    <div class="card-container">
-                                        <div class="card-header">
-                                            <div class="problem-icon">⚠️</div>
-                                            <div class="problem-content">
-                                                <div class="problem-title">Conflitto tra automazioni luce cucina</div>
-                                                <div class="problem-id">CONFLITTO 3</div>
-                                            </div>
-                                        </div>
-                                        <div class="card-body">
-                                            <span class="card-text">
-                                                Le automazioni 'Accendi la luce in cucina quando il forno viene spento' (id 2) e 'Spegni luce cucina quando il forno viene spento' (id 1) sono in conflitto perché entrambe si attivano quando il forno viene spento, ma una accende e l'altra spegne la stessa luce (light.luce_cucina), causando un comportamento imprevedibile.
-                                            </span>
-                                            <div class="conflict-diagram">
-                                                <div class="diagram-title">quando il forno viene spento</div>
-                                                <table class="conflict_rappresentation_containers">
-                                                    <tr>
-                                                        <td>
-                                                        <div class="condition-box">
-                                                            se piove
-                                                        </div>
-                                                        </td>
-                                                        <td>
-                                                        </td>
-                                                        <td>
-                                                        <div class="condition-box">
-                                                            se è mattina
-                                                        </div>
-                                                        </td>
-                                                    </tr>
-                                                    
-                                                    <tr>
-                                                        <td>
-                                                        <div class="action-box">
-                                                            <div class="card-icon light">💡</div>
-                                                            <b>accendi la luce in cucina</b>
-                                                        </div>
-                                                        </td>
-                                                        <td class="conflict-icon-td">
-                                                            <div class="conflict-icon">⚡</div>
-                                                        </td>
-                                                        <td>
-                                                        <div class="action-box">
-                                                            <div class="card-icon light">💡</div>
-                                                            <b>spegni la luce della cucina</b>
-                                                        </div>
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>
-                                                        <div>
-                                                            <i>Accendi la luce in cucina quando il forno viene spento</i>
-                                                        </div>
-                                                        </td>
-                                                        <td>
-                                                        </td>
-                                                        <td>
-                                                        <div>
-                                                            <i>Spegni luce cucina quando il forno viene spento</i>
-                                                        </div>
-                                                        </td>
-                                                    </tr>
-                                                </table>
-                                            </div>
-                                            
-                                            <p class="card-title">Come posso risolvere?</p>
-                                            <div class="accordion stay-open">
-                                                <div class="accordion-item">
-                                                <h2 class="accordion-header">
-                                                    <button class="accordion-button" onclick="toggleStayOpen(this)">
-                                                    Modifica l'automazione "Accendi aria condizionata mattina"
-                                                    </button>
-                                                </h2>
-                                                <div class="accordion-collapse active">
-                                                    <div class="accordion-body">
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault1">
-                                                            <label class="form-check-label" for="radioDefault1">
-                                                            Default radio
-                                                            </label>
-                                                        </div>
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
-                                                            <label class="form-check-label" for="radioDefault2">
-                                                            Default radio
-                                                            </label>
-                                                        </div>
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
-                                                            <label class="form-check-label" for="radioDefault2">
-                                                            Default radio
-                                                            </label>
-                                                        </div>
-                                                        
-                                                    </div>
-                                                </div>
-                                                </div>
-                                            
-                                                <div class="accordion-item">
-                                                <h2 class="accordion-header">
-                                                    <button class="accordion-button" onclick="toggleStayOpen(this)">
-                                                    Modifica l'automazione "Chiudi finestre aria condizionata accesa"
-                                                    </button>
-                                                </h2>
-                                                <div class="accordion-collapse">
-                                                    <div class="accordion-body">
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault1">
-                                                            <label class="form-check-label" for="radioDefault1">
-                                                            Default radio
-                                                            </label>
-                                                        </div>
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
-                                                            <label class="form-check-label" for="radioDefault2">
-                                                            Default radio
-                                                            </label>
-                                                        </div>
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
-                                                            <label class="form-check-label" for="radioDefault2">
-                                                            Default radio
-                                                            </label>
-                                                        </div>
-                                                        
-                                                    </div>
-                                                </div>
-                                                </div>
-                                            
-                                            </div>
-                                            <div class="action-buttons">
-                                                <button class="btn btn-ignore">Ignora</button>
-                                                <button class="btn btn-resolve">Risolvi</button>
-                                            </div>
-
-                                        </div>
-                                    </div>
-                                </div> 
-
-                                <div class="card">
-                                    <div class="card-container">
-                                        <div class="card-header">
-                                            <div class="problem-icon">⚠️</div>
-                                            <div class="problem-content">
-                                                <div class="problem-title">Conflitto tra automazioni luce cucina</div>
-                                                <div class="problem-id">CONFLITTO 3</div>
-                                            </div>
-                                        </div>
-                                        <div class="card-body">
-                                            <span class="card-text">
-                                                Le automazioni 'Accendi la luce in cucina quando il forno viene spento' (id 2) e 'Spegni luce cucina quando il forno viene spento' (id 1) sono in conflitto perché entrambe si attivano quando il forno viene spento, ma una accende e l'altra spegne la stessa luce (light.luce_cucina), causando un comportamento imprevedibile.
-                                            </span>
-                                            <div class="conflict-diagram">
-                                                <div class="diagram-title">quando il forno viene spento</div>
-                                                <table class="conflict_rappresentation_containers">
-                                                    <tr>
-                                                        <td>
-                                                        <div class="condition-box">
-                                                            se piove
-                                                        </div>
-                                                        </td>
-                                                        <td>
-                                                        </td>
-                                                        <td>
-                                                        <div class="condition-box">
-                                                            se è mattina
-                                                        </div>
-                                                        </td>
-                                                    </tr>
-                                                    
-                                                    <tr>
-                                                        <td>
-                                                        <div class="action-box">
-                                                            <div class="card-icon light">💡</div>
-                                                            <b>accendi la luce in cucina</b>
-                                                        </div>
-                                                        </td>
-                                                        <td class="conflict-icon-td">
-                                                            <div class="conflict-icon">⚡</div>
-                                                        </td>
-                                                        <td>
-                                                        <div class="action-box">
-                                                            <div class="card-icon light">💡</div>
-                                                            <b>spegni la luce della cucina</b>
-                                                        </div>
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>
-                                                        <div>
-                                                            <i>Accendi la luce in cucina quando il forno viene spento</i>
-                                                        </div>
-                                                        </td>
-                                                        <td>
-                                                        </td>
-                                                        <td>
-                                                        <div>
-                                                            <i>Spegni luce cucina quando il forno viene spento</i>
-                                                        </div>
-                                                        </td>
-                                                    </tr>
-                                                </table>
-                                            </div>
-                                            
-                                            <p class="card-title">Come posso risolvere?</p>
-                                            <div class="accordion stay-open">
-                                                <div class="accordion-item">
-                                                <h2 class="accordion-header">
-                                                    <button class="accordion-button" onclick="toggleStayOpen(this)">
-                                                    Modifica l'automazione "Accendi aria condizionata mattina"
-                                                    </button>
-                                                </h2>
-                                                <div class="accordion-collapse active">
-                                                    <div class="accordion-body">
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault1">
-                                                            <label class="form-check-label" for="radioDefault1">
-                                                            Default radio
-                                                            </label>
-                                                        </div>
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
-                                                            <label class="form-check-label" for="radioDefault2">
-                                                            Default radio
-                                                            </label>
-                                                        </div>
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
-                                                            <label class="form-check-label" for="radioDefault2">
-                                                            Default radio
-                                                            </label>
-                                                        </div>
-                                                        
-                                                    </div>
-                                                </div>
-                                                </div>
-                                            
-                                                <div class="accordion-item">
-                                                <h2 class="accordion-header">
-                                                    <button class="accordion-button" onclick="toggleStayOpen(this)">
-                                                    Modifica l'automazione "Chiudi finestre aria condizionata accesa"
-                                                    </button>
-                                                </h2>
-                                                <div class="accordion-collapse">
-                                                    <div class="accordion-body">
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault1">
-                                                            <label class="form-check-label" for="radioDefault1">
-                                                            Default radio
-                                                            </label>
-                                                        </div>
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
-                                                            <label class="form-check-label" for="radioDefault2">
-                                                            Default radio
-                                                            </label>
-                                                        </div>
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
-                                                            <label class="form-check-label" for="radioDefault2">
-                                                            Default radio
-                                                            </label>
-                                                        </div>
-                                                        
-                                                    </div>
-                                                </div>
-                                                </div>
-                                            
-                                            </div>
-                                            <div class="action-buttons">
-                                                <button class="btn btn-ignore">Ignora</button>
-                                                <button class="btn btn-resolve">Risolvi</button>
-                                            </div>
-
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="card">
-                                    <div class="card-container">
-                                        <div class="card-header">
-                                            <div class="problem-icon">⚠️</div>
-                                            <div class="problem-content">
-                                                <div class="problem-title">Conflitto tra automazioni luce cucina</div>
-                                                <div class="problem-id">CONFLITTO 3</div>
-                                            </div>
-                                        </div>
-                                        <div class="card-body">
-                                            <span class="card-text">
-                                                Le automazioni 'Accendi la luce in cucina quando il forno viene spento' (id 2) e 'Spegni luce cucina quando il forno viene spento' (id 1) sono in conflitto perché entrambe si attivano quando il forno viene spento, ma una accende e l'altra spegne la stessa luce (light.luce_cucina), causando un comportamento imprevedibile.
-                                            </span>
-                                            <div class="conflict-diagram">
-                                   
-                                                <table class="conflict_rappresentation_containers">
-                                                    <tr>
-                                                        <td class="diagram-title">when it starts to rain</td>
-                                                        <td></td>
-                                                        <td class="diagram-title">when gas is detected</td>
-                                                    </tr>
-                                                    
-                                                    <tr>
-                                                        <td>
-                                                        <div class="action-box">
-                                                            <div class="card-icon window">
-                                                                <img src="data:image/png;base64,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" alt="window-emoji">
-                                                            </div>
-                                                            <b>close all windows</b>
-                                                        </div>
-                                                        </td>
-                                                        <td class="conflict-icon-td">
-                                                            <div class="conflict-icon">⚡</div>
-                                                        </td>
-                                                        <td>
-                                                        <div class="action-box">
-                                                            <div class="card-icon window">
-                                                                <img src="data:image/png;base64,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" alt="window-emoji">
-                                                            </div>
-                                                            <b>open the kitchen window</b>
-                                                        </div>
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>
-                                                        <div>
-                                                            <i>Closed window when it starts to rain</i>
-                                                        </div>
-                                                        </td>
-                                                        <td>
-                                                        </td>
-                                                        <td>
-                                                        <div>
-                                                            <i>Turn off kitchen light when gas is detected</i>
-                                                        </div>
-                                                        </td>
-                                                    </tr>
-                                                </table>
-                                            </div>
-                                            
-                                            <p class="card-title">Come posso risolvere?</p>
-                                            <div class="accordion stay-open">
-                                                <div class="accordion-item">
-                                                <h2 class="accordion-header">
-                                                    <button class="accordion-button" onclick="toggleStayOpen(this)">
-                                                    Modifica l'automazione "Accendi aria condizionata mattina"
-                                                    </button>
-                                                </h2>
-                                                <div class="accordion-collapse active">
-                                                    <div class="accordion-body">
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault1">
-                                                            <label class="form-check-label" for="radioDefault1">
-                                                            Default radio
-                                                            </label>
-                                                        </div>
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
-                                                            <label class="form-check-label" for="radioDefault2">
-                                                            Default radio
-                                                            </label>
-                                                        </div>
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
-                                                            <label class="form-check-label" for="radioDefault2">
-                                                            Default radio
-                                                            </label>
-                                                        </div>
-                                                        
-                                                    </div>
-                                                </div>
-                                                </div>
-                                            
-                                                <div class="accordion-item">
-                                                <h2 class="accordion-header">
-                                                    <button class="accordion-button" onclick="toggleStayOpen(this)">
-                                                    Modifica l'automazione "Chiudi finestre aria condizionata accesa"
-                                                    </button>
-                                                </h2>
-                                                <div class="accordion-collapse">
-                                                    <div class="accordion-body">
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault1">
-                                                            <label class="form-check-label" for="radioDefault1">
-                                                            Default radio
-                                                            </label>
-                                                        </div>
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
-                                                            <label class="form-check-label" for="radioDefault2">
-                                                            Default radio
-                                                            </label>
-                                                        </div>
-                                                        <div class="form-check">
-                                                            <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault2" >
-                                                            <label class="form-check-label" for="radioDefault2">
-                                                            Default radio
-                                                            </label>
-                                                        </div>
-                                                        
-                                                    </div>
-                                                </div>
-                                                </div>
-                                            
-                                            </div>
-                                            <div class="action-buttons">
-                                                <button class="btn btn-ignore">Ignora</button>
-                                                <button class="btn btn-resolve">Risolvi</button>
-                                            </div>
-
-                                        </div>
-                                    </div>
-                                </div>!-->
-                            </div>
+                    <div class="loader-container" style="display: none;">
+                        <div class="loader"></div>
+                    </div>
+                    <div class="carousel-wrapper">
+                        <div id="carousel-messages">
                         
                         </div>
+                        <div id="carousel-controls" class="carousel-controls" style="display: none;">
+                            <button class="control-btn" id="prevBtn">‹</button>
+                            <button class="control-btn" id="nextBtn">›</button>
+                        </div>
                         
-       
+                        <div class="carousel" id="carouselTrack">    
+                            
+                        </div>
+                    
+                    </div>     
                 </div>
+
+                <div id="goal-adv-container" class="leftbar-unselected">
+                    <div class="automation-list-wrapper">
+                        <div class="problem-goal-container">
+                            <div class="automation-card problem-goal-card" style="display: block;" onclick="toggleCardExpansion(this)">
+                    
+                                <div class="card-header">
+                                    <div style="display: flex; align-items: center; float: right;">
+                                        <div class="automation-icon kitchen-icon">⚡</div>
+                                        <div>
+                                            <div class="automation-title">Accendi luce ripostiglio</div>
+                                            <div class="automation-id">ID 1750851243473</div>
+                                        </div>
+                                    </div>
+                                    <div style="float: left;">
+                                        <span class="goal-tag">🔋 Risparmio Energetico</span>
+                                    
+                                        <span class="severity-badge severity-high">Alta</span>
+                                    </div>                     
+                                
+                                </div>
+                                <div class="automation-description">Questa automazione non ha una descrizione</div>
+                                
+                                <div class="expand-button">
+                                    <i class="expand-icon"></i>
+                                </div>
+                            </div>
+                            <div class="problem-goal-explanation-container">
+                                <div class="problem-goal-explanation" display="none">
+                                    <div class="expanded-section">
+                                        Spiegazione del problema... Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean volutpat odio non neque egestas tristique. Vestibulum pellentesque ligula at elementum ultricies. Fusce feugiat ligula nibh, sit amet euismod mauris hendrerit id. Duis vel metus blandit, placerat eros id, euismod diam. Nunc at eros sed magna faucibus aliquam.
+                                        <p class="card-title">Come posso risolvere?</p>
+                                        <div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault0-0">
+                                                <label class="form-check-label" for="radioDefault0-0">Ogni giorno alle 08:59, spegni la presa del condizionatore.</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="radioDefault">
+                                                <label class="form-check-label" for="radioDefault0-1">Ogni giorno alle 09:00, se la presa del condizionatore è accesa, spegnila.</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="expanded-actions action-buttons">
+                                        
+                                        <button class="btn btn-ignore" id="1750933449751_1750933449750_switch.shellyplug_55d77d" problemid="1">Ignora</button>
+                                        <button class="btn btn-resolve" id="1750933449751_1750933449750_switch.shellyplug_55d77d" problemid="1">Risolvi</button>
+                                        
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="problem-goal-container">
+                            <div class="automation-card problem-goal-card" style="display: block;" onclick="toggleCardExpansion(this)">
+                    
+                                <div class="card-header">
+                                    <div style="display: flex; align-items: center; float: right;">
+                                        <div class="automation-icon kitchen-icon">⚡</div>
+                                        <div>
+                                            <div class="automation-title">Accendi luce ripostiglio</div>
+                                            <div class="automation-id">ID 1750851243473</div>
+                                        </div>
+                                    </div>
+                                    <div style="float: left;">
+                                        <span class="goal-tag">🛡️ Sicurezza</span>
+                                    
+                                        <span class="severity-badge severity-critical">Critico</span>
+                                    </div>                     
+                                
+                                </div>
+                                <div class="automation-description">Questa automazione non ha una descrizione</div>
+                                
+                                <div class="expand-button">
+                                    <i class="expand-icon"></i>
+                                </div>
+                            </div>
+                            <div class="problem-goal-explanation-container">
+                                <div class="problem-goal-explanation" display="none">
+                                    <div class="expanded-section">
+                                        Spiegazione del problema... Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean volutpat odio non neque egestas tristique. Vestibulum pellentesque ligula at elementum ultricies. Fusce feugiat ligula nibh, sit amet euismod mauris hendrerit id. Duis vel metus blandit, placerat eros id, euismod diam. Nunc at eros sed magna faucibus aliquam.                                        <p class="card-title">Come posso risolvere?</p>
+                                        <div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault0-0">
+                                                <label class="form-check-label" for="radioDefault0-0">Ogni giorno alle 08:59, spegni la presa del condizionatore.</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="radioDefault">
+                                                <label class="form-check-label" for="radioDefault0-1">Ogni giorno alle 09:00, se la presa del condizionatore è accesa, spegnila.</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="expanded-actions action-buttons">
+                                        
+                                        <button class="btn btn-ignore" id="1750933449751_1750933449750_switch.shellyplug_55d77d" problemid="1">Ignora</button>
+                                        <button class="btn btn-resolve" id="1750933449751_1750933449750_switch.shellyplug_55d77d" problemid="1">Risolvi</button>
+                                        
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="problem-goal-container">
+                            <div class="automation-card problem-goal-card" style="display: block;" onclick="toggleCardExpansion(this)">
+                    
+                                <div class="card-header">
+                                    <div style="display: flex; align-items: center; float: right;">
+                                        <div class="automation-icon kitchen-icon">⚡</div>
+                                        <div>
+                                            <div class="automation-title">Accendi luce ripostiglio</div>
+                                            <div class="automation-id">ID 1750851243473</div>
+                                        </div>
+                                    </div>
+                                    <div style="float: left;">
+                                        <span class="goal-tag">🌱 Benessere</span>
+                                    
+                                        <span class="severity-badge severity-medium">Medio</span>
+                                    </div>                     
+                                
+                                </div>
+                                <div class="automation-description">Questa automazione non ha una descrizione</div>
+                                
+                                <div class="expand-button">
+                                    <i class="expand-icon"></i>
+                                </div>
+                            </div>
+                            <div class="problem-goal-explanation-container">
+                                <div class="problem-goal-explanation" display="none">
+                                    <div class="expanded-section">
+                                        Spiegazione del problema... Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean volutpat odio non neque egestas tristique. Vestibulum pellentesque ligula at elementum ultricies. Fusce feugiat ligula nibh, sit amet euismod mauris hendrerit id. Duis vel metus blandit, placerat eros id, euismod diam. Nunc at eros sed magna faucibus aliquam. 
+                                        <p class="card-title">Come posso risolvere?</p>
+                                        <div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault0-0">
+                                                <label class="form-check-label" for="radioDefault0-0">Ogni giorno alle 08:59, spegni la presa del condizionatore.</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="radioDefault">
+                                                <label class="form-check-label" for="radioDefault0-1">Ogni giorno alle 09:00, se la presa del condizionatore è accesa, spegnila.</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="expanded-actions action-buttons">
+                                        
+                                        <button class="btn btn-ignore" id="1750933449751_1750933449750_switch.shellyplug_55d77d" problemid="1">Ignora</button>
+                                        <button class="btn btn-resolve" id="1750933449751_1750933449750_switch.shellyplug_55d77d" problemid="1">Risolvi</button>
+                                        
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="problem-goal-container">
+                            <div class="automation-card problem-goal-card" style="display: block;" onclick="toggleCardExpansion(this)">
+                    
+                                <div class="card-header">
+                                    <div style="display: flex; align-items: center; float: right;">
+                                        <div class="automation-icon kitchen-icon">⚡</div>
+                                        <div>
+                                            <div class="automation-title">Accendi luce ripostiglio</div>
+                                            <div class="automation-id">ID 1750851243473</div>
+                                        </div>
+                                    </div>
+                                    <div style="float: left;">
+                                        <span class="goal-tag">❤️ Salute</span>
+                                    
+                                        <span class="severity-badge severity-low">Basso</span>
+                                    </div>                     
+                                
+                                </div>
+                                <div class="automation-description">Questa automazione non ha una descrizione</div>
+                                
+                                <div class="expand-button">
+                                    <i class="expand-icon"></i>
+                                </div>
+                            </div>
+                            <div class="problem-goal-explanation-container">
+                                <div class="problem-goal-explanation" display="none">
+                                    <div class="expanded-section">
+                                        Spiegazione del problema... Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean volutpat odio non neque egestas tristique. Vestibulum pellentesque ligula at elementum ultricies. Fusce feugiat ligula nibh, sit amet euismod mauris hendrerit id. Duis vel metus blandit, placerat eros id, euismod diam. Nunc at eros sed magna faucibus aliquam.                                        <p class="card-title">Come posso risolvere?</p>
+                                        <div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="radioDefault" id="radioDefault0-0">
+                                                <label class="form-check-label" for="radioDefault0-0">Ogni giorno alle 08:59, spegni la presa del condizionatore.</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="radioDefault">
+                                                <label class="form-check-label" for="radioDefault0-1">Ogni giorno alle 09:00, se la presa del condizionatore è accesa, spegnila.</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="expanded-actions action-buttons">
+                                        
+                                        <button class="btn btn-ignore" id="1750933449751_1750933449750_switch.shellyplug_55d77d" problemid="1">Ignora</button>
+                                        <button class="btn btn-resolve" id="1750933449751_1750933449750_switch.shellyplug_55d77d" problemid="1">Risolvi</button>
+                                        
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            
+
+                <div id="preferences-container" class="leftbar-unselected">
+                    
+                </div>  
+                
             </div>
             <div id="chat">
-                <div class="chat-header">
-                    <div id="logo">
-                         <svg style="width:60px" xmlns="http://www.w3.org/2000/svg" viewBox="-1.5 -13.125 11 12.63">
-                            <defs>
-                                <linearGradient id="myGradient" x1="0%" y1="0%" x2="100%" y2="0%" gradientUnits="userSpaceOnUse">
-                                    <stop offset="0%" stop-color="#0066FF">
-                                        <animate attributeName="stop-color" 
-                                                values="#0066FF;#00FF88;#8B5CF6;#0066FF"
-                                                dur="8s" 
-                                                repeatCount="indefinite"/>
-                                        <animate attributeName="stop-opacity" 
-                                                values="1;0.85;1"
-                                                dur="4s" 
-                                                repeatCount="indefinite"/>
-                                    </stop>
-                                    <stop offset="40%" stop-color="#00FF88">
-                                        <animate attributeName="stop-color" 
-                                                values="#00FF88;#8B5CF6;#0066FF;#00FF88"
-                                                dur="8s" 
-                                                repeatCount="indefinite"/>
-                                        <animate attributeName="stop-opacity" 
-                                                values="0.85;1;0.85"
-                                                dur="5s" 
-                                                repeatCount="indefinite"/>
-                                    </stop>
-                                    <stop offset="70%" stop-color="#8B5CF6">
-                                        <animate attributeName="stop-color" 
-                                                values="#8B5CF6;#0066FF;#00FF88;#8B5CF6"
-                                                dur="8s" 
-                                                repeatCount="indefinite"/>
-                                        <animate attributeName="stop-opacity" 
-                                                values="1;0.85;1"
-                                                dur="5s" 
-                                                repeatCount="indefinite"/>
-                                    </stop>
-                                </linearGradient>
-                                <clipPath id="housePath">
-                                    <path d="M 0 0 L 8 0 C 9 0 9 -1 9 -1 C 9 -1 9 -1 9 -1 V -8 Q 9 -9 8 -10 C 3 -14 5 -14 0 -10 Q -1 -9 -1 -8 V -1 Q -1 0 0 0"/>
-                                </clipPath>
-                            </defs>
-                            <image 
-                                href="img/favicon.png" 
-                                x="-0.5" 
-                                y="-11.2" 
-                                width="9" 
-                                clip-path="url(#housePath)"
-                                preserveAspectRatio="xMidYMid slice"/>
+                <!-- <div class="chat-container-cover">Chat</div> -->
+                
+                    <div class="chat-header">
+                        <div id="logo">
+                            <svg style="width:60px" xmlns="http://www.w3.org/2000/svg" viewBox="-1.5 -13.125 11 12.63">
+                                <defs>
+                                    <linearGradient id="myGradient" x1="0%" y1="0%" x2="100%" y2="0%" gradientUnits="userSpaceOnUse">
+                                        <stop offset="0%" stop-color="#0066FF">
+                                            <animate attributeName="stop-color" 
+                                                    values="#0066FF;#00FF88;#8B5CF6;#0066FF"
+                                                    dur="8s" 
+                                                    repeatCount="indefinite"/>
+                                            <animate attributeName="stop-opacity" 
+                                                    values="1;0.85;1"
+                                                    dur="4s" 
+                                                    repeatCount="indefinite"/>
+                                        </stop>
+                                        <stop offset="40%" stop-color="#00FF88">
+                                            <animate attributeName="stop-color" 
+                                                    values="#00FF88;#8B5CF6;#0066FF;#00FF88"
+                                                    dur="8s" 
+                                                    repeatCount="indefinite"/>
+                                            <animate attributeName="stop-opacity" 
+                                                    values="0.85;1;0.85"
+                                                    dur="5s" 
+                                                    repeatCount="indefinite"/>
+                                        </stop>
+                                        <stop offset="70%" stop-color="#8B5CF6">
+                                            <animate attributeName="stop-color" 
+                                                    values="#8B5CF6;#0066FF;#00FF88;#8B5CF6"
+                                                    dur="8s" 
+                                                    repeatCount="indefinite"/>
+                                            <animate attributeName="stop-opacity" 
+                                                    values="1;0.85;1"
+                                                    dur="5s" 
+                                                    repeatCount="indefinite"/>
+                                        </stop>
+                                    </linearGradient>
+                                    <clipPath id="housePath">
+                                        <path d="M 0 0 L 8 0 C 9 0 9 -1 9 -1 C 9 -1 9 -1 9 -1 V -8 Q 9 -9 8 -10 C 3 -14 5 -14 0 -10 Q -1 -9 -1 -8 V -1 Q -1 0 0 0"/>
+                                    </clipPath>
+                                </defs>
+                                <image 
+                                    href="img/favicon.png" 
+                                    x="-0.5" 
+                                    y="-11.2" 
+                                    width="9" 
+                                    clip-path="url(#housePath)"
+                                    preserveAspectRatio="xMidYMid slice"/>
 
-                            <path d="M 0 -1 L 7.998 -1.022 Q 9 -1 9 -2 V -8 Q 9 -9 8 -10 C 3.022 -13.5 5 -13.5 0 -10 Q -1 -9 -1 -8 V -2.06 Q -1 -1 0 -1"
-                                stroke="url(#myGradient)" 
-                                stroke-width="0.5" 
-                                fill="none"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"/>
-          
-                        </svg>
-                        <div class="agent-info">
-                            <div class="agent-name">CASPER</div>
-                            <div class="status-indicator-chat inactive"></div>
-                            <div class="agent-status"></div>
-                        </div>
-                    </div>
-                    <div class="chat-controls">
-                        <div class="toggle-container">
-                            <div class="toggle-switch-theme dark" id="toggleSwitch" style="transform: translateY(0px) scale(1);">
-                                <div class="toggle-bg-icons sun-bg">☀️</div>
-                                <div class="toggle-bg-icons moon-bg"><img width="23" height="23" src="https://img.icons8.com/retro/32/crescent-moon.png" alt="crescent-moon"/></div>
-                                <div class="toggle-ball dark" id="toggleBall">
-                                    <span class="sun-icon">☀️</span>
-                                    <span class="moon-icon"><img width="23" height="23" src="https://img.icons8.com/retro/32/crescent-moon.png" alt="crescent-moon"/></span>
-                                </div>
+                                <path d="M 0 -1 L 7.998 -1.022 Q 9 -1 9 -2 V -8 Q 9 -9 8 -10 C 3.022 -13.5 5 -13.5 0 -10 Q -1 -9 -1 -8 V -2.06 Q -1 -1 0 -1"
+                                    stroke="url(#myGradient)" 
+                                    stroke-width="0.5" 
+                                    fill="none"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"/>
+            
+                            </svg>
+                            <div class="agent-info">
+                                <div class="agent-name">CASPER</div>
+                                <div class="status-indicator-chat inactive"></div>
+                                <div class="agent-status"></div>
                             </div>
                         </div>
-                        <div class="control-btn logout-btn" id="logout">🚪 Logout</div>
-                    </div>    
-                </div>
-                <div id="msgContainer">
-                    <!-- <div class="infoMsgContainer">
-                        <div class="infoLabel">Info di Sistema</div>
-                        <div class = "infoMsg">Il chatbot ci mette qualche secondo a rispondere, aspettare il caricamento della risposta. </div>
-                    </div> -->
-                    <!-- <div class="botMsgContainer">
-                        <div class="botLabel">Rulebot</div>
-                        <div class = "botMsg">Ciao, io sono RuleBot! Posso eseguire dei compiti per te in maniera automatica.</div>
+                        <div class="chat-controls">
+                            <div class="toggle-container">
+                                <div class="toggle-switch-theme dark" id="toggleSwitch" style="transition: all 0.3s ease;">
+                                    <div class="toggle-bg-icons sun-bg">☀️</div>
+                                    <div class="toggle-bg-icons moon-bg"><img width="23" height="23" src="https://img.icons8.com/retro/32/crescent-moon.png" alt="crescent-moon"/></div>
+                                    <div class="toggle-ball dark" id="toggleBall">
+                                        <span class="sun-icon">☀️</span>
+                                        <span class="moon-icon"><img width="23" height="23" src="https://img.icons8.com/retro/32/crescent-moon.png" alt="crescent-moon"/></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="reset-btn tooltip" id="reset">
+                                <svg class="reset-icon" viewBox="0 0 24 24">
+                                    <path d="M17.65,6.35C16.2,4.9 14.21,4 12,4c-4.42,0 -7.99,3.58 -7.99,8s3.57,8 7.99,8c3.73,0 6.84,-2.55 7.73,-6h-2.08c-0.82,2.33 -3.04,4 -5.65,4 -3.31,0 -6,-2.69 -6,-6s2.69,-6 6,-6c1.66,0 3.14,0.69 4.22,1.78L13,11h7V4L17.65,6.35z"></path>
+                                </svg>
+                            </div>
+                            <div class="control-btn logout-btn" id="logout">🚪 Logout</div>
+                        </div>    
                     </div>
-                    <div class="userMsgContainer">
-                        <div class="userLabel">Utente</div>
-                        <div class = "userMsg">Ciao</div>
+                    <div id="msgContainer">
                     </div>
-                    
-                    <div class="chat-state"><i class='bx bxs-analyse bx-spin'></i>Genero la spiegazione del conflitto</div>
-                    <div class="botMsgContainer isTyping">
-                        <div class="botLabel">Rulebot</div>
-                        <div class="botMsg"><img src="icons/typing.gif" class="typeGif"></div>
-                    </div> -->
-                </div>
-                <div id="inputContainer">
-                    <textarea id="inputBox" name="inputBox" placeholder="Inserisci qua il tuo input..."></textarea>
-                    <button id="send" class="inputButton send"><img class="buttonIcon" src="icons/send.png" alt=""></button>
-                    <!-- <button id="speech">🎤</button> -->
-                </div>
+                    <div id="inputContainer">
+                        <textarea id="inputBox" name="inputBox" placeholder="Inserisci qua il tuo input..."></textarea>
+                        <button id="send" class="inputButton send"><img class="buttonIcon" src="icons/send.png" alt=""></button>
+                    </div>
+                
             </div>
         </div>
         <div id="right-container">
             <div id="token-info">
-                <!--<span>Total Token Usage: <span id="tokens">0</span></span>
-                <span>Total Conversation Cost: <span id="cost">0</span></span>-->
             </div>
         </div>
     </div>

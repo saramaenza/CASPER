@@ -24,7 +24,7 @@ const uuid = require('uuid');
 const bcrypt = require('bcryptjs')
 const cookieParser = require('cookie-parser')
 const jwt = require('jsonwebtoken')
-const {setServerConfig, createUser, getUser, verifyToken, isLogged, createGoogleUser, userInfo, verifyEmail, getProblems, getAutomations, getConfiguration, saveConfiguration,  saveSelectedConfiguration, saveAutomations, saveAutomation, deleteRule, closeDatabaseConnection} = require('./db_methods.cjs');
+const {setServerConfig, createUser, getUser, verifyToken, isLogged, createGoogleUser, userInfo, verifyEmail, getProblems, getAutomations, getConfiguration, saveConfiguration,  saveSelectedConfiguration, saveAutomations, saveAutomation, deleteRule, closeDatabaseConnection, ignoreProblem} = require('./db_methods.cjs');
 const JWT_SECRET = 'sdjkfh8923yhjdksbfma@#*(&@*!^#&@bhjb2qiuhesdbhjdsfg839ujkdhfjk'
 // =======================================
 const { getEntities, getAutomationsHA, postAutomationHA, getEntitiesStates, toggleAutomation, deleteAutomation} = require('./utils.cjs');
@@ -253,6 +253,14 @@ app.get('/verification/:tag', async function(req, res) {
   else res.send("A error occurred during the mail verification")
 });
 // --- --- --- --- --- --- --- --- --- ---
+app.get('/reset_conv', verifyToken, (req, res) =>{
+  
+  res.clearCookie('chat_session_id');
+  const convId = uuid.v4()
+  res.cookie('chat_session_id', convId)
+  res.json({status: 'ok', session_id: convId});
+});
+
 
 app.use('/send_message', verifyToken, async (req, res) => {
   try {
@@ -461,6 +469,24 @@ app.post('/toggle_automation', verifyToken, async (req, res) =>{
   } catch (error) {
     console.log('/toggle_automation error:')
     console.log(error)
+    return res.json({status: 'error'});
+  }
+});
+
+app.post('/ignore_problem', verifyToken, async (req, res) =>{
+  try {
+    const problemId = req.body.data.problemId;
+    const userId = req.body.id;
+    const response = await ignoreProblem(userId, problemId);
+    if (response) {
+      return res.json({status: 'ok'});
+    } else {
+      return res.json({status: 'error', message: 'Failed to ignore problem.'});
+    }
+  } catch (error) {
+    console.log('/ignore_problem error:')
+    console.log(error)
+    return res.json({status: 'error', message: 'An error occurred while ignoring the problem.'});
   }
 });
 

@@ -153,6 +153,8 @@ def post_problem(user_id, input_problem):
             p_len = len(problems['problems'])
             for index in range(len(input_problem)):
                 input_problem[index]['id'] = str(p_len + index + 1)
+                input_problem[index]['ignore'] = False
+                input_problem[index]['solved'] = False
             problems['problems'].extend(input_problem)
             collection.update_one(
                 {"_id": problems["_id"]},
@@ -316,6 +318,36 @@ def save_automation(user_id, automation_id, config):
     except Exception as e:
         print("--> Save Single Automation Error <--")
         print(user_id, automation_id)
+        print(e)
+        print("----------------")
+        return e
+
+def solve_problem(user_id, problem_id, automation, automation_natural_language):
+    """
+    Segna un problema come risolto per l'utente specificato.
+    user_id: str -> ID dell'utente
+    problem_id: str -> ID del problema da risolvere
+    """
+    try:
+        collection = db["problems"]
+        problems = collection.find_one({"user_id": user_id})
+        if problems is not None:
+            for problem in problems['problems']:
+                if problem['id'] == problem_id:
+                    problem['solved'] = True
+                    problem['solution'] = {
+                        "automation": automation,
+                        "natural_language": automation_natural_language
+                    }
+                    collection.update_one(
+                        {"_id": problems["_id"]},
+                        {"$set": {"problems": problems['problems'], "last_update": datetime.now()}}
+                    )
+                    return True
+        return False
+    except Exception as e:
+        print("--> Solve Problem Error <--")
+        print(user_id, problem_id)
         print(e)
         print("----------------")
         return e

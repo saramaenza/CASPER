@@ -11,6 +11,7 @@ from langgraph.graph.message import add_messages
 from langgraph.prebuilt import ToolNode, tools_condition
 from langgraph.checkpoint.memory import MemorySaver
 from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.messages import trim_messages
 
 from config import get_server_choice
 import tools as _tools
@@ -27,6 +28,8 @@ memory = MemorySaver()
 llm = gpt4
 tools = [_tools.do_instant_actions, _tools.generate_automation, _tools.get_automation, _tools.get_automation_list, _tools.get_problem, _tools.get_entity_log] #_tools.conflict_check, _tools.energy_check, _tools.save_automation
 llm_tools = llm.bind_tools(tools)
+#Imposto il trimmer con "token_counter=len" per contare i mesaggi come se fossero token
+trimmer = trim_messages(strategy="last", max_tokens=10, token_counter = len, include_system=True, start_on="human")
 app = Flask(__name__)
 
 class State(TypedDict):
@@ -37,12 +40,12 @@ class State(TypedDict):
 
 graph_builder = StateGraph(State)
 
-prompt_template = ChatPromptTemplate([
+sys_template = ChatPromptTemplate([
     ("system", prompts.casper)
 ])
 
 def chatbot(state: State, config: dict):
-    formatted_prompt = prompt_template.invoke({
+    formatted_prompt = sys_template.invoke({
         "user_name": _db.get_user_name(config["configurable"]["user_id"]),
         "home_devices": _db.get_devices(config["configurable"]["user_id"]),
         "time_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -52,6 +55,7 @@ def chatbot(state: State, config: dict):
     if not any(getattr(msg, "role", None) == "system" for msg in messages):
         messages = formatted_prompt.to_messages() + messages
 
+    messages = trimmer.invoke(messages)
     llm_response = llm_tools.invoke(messages)
     if hasattr(llm_response, "tool_calls"):
         tool_calls = utils.inject_user_id(llm_response, config["configurable"]["user_id"], config["configurable"]["thread_id"])

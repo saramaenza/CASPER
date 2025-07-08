@@ -14,12 +14,13 @@ class HomeAssistantClient:
 
     def _check_response(self, response: requests.Response) -> str:
         if response.status_code == 200:
-            # Try to parse as JSON first, fall back to text if it's not JSON
             try:
                 return response.json()
-            except (json.JSONDecodeError, ValueError):
-                return response.text
+            except json.JSONDecodeError:
+                # Se non è JSON valido, restituisci il testo
+                return response.text.strip()
         else:
+            print(f"HTTP Error {response.status_code}: {response.text}")
             response.raise_for_status()
 
     def _make_get_request(self, url_path: str) -> str:

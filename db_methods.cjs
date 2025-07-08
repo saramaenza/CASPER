@@ -171,6 +171,7 @@ const getProblems = async (userId) => {
     }
 };
 
+
 const getAutomations=async (userId) => {
     
     try {
@@ -333,27 +334,85 @@ const deleteRule = async (userId, ruleId, haDeleteFunc) => {
     try {
         const database = client.db(dbName);
         const automations = database.collection('automations');
-        
+        const problems = database.collection('problems');
+        // elimina l'automazione dal database
         const userAutomations = await automations.findOne({ 'user_id': userId });
         
-        if (!userAutomations) return false;
-        
+        if (!userAutomations) {
+            return false;
+        }
+
         const newAutomations = userAutomations.automation_data.filter(
-            auto => auto.id.toString() !== ruleId.toString()
+            auto => {
+                const match = auto.id.toString() !== ruleId.toString();
+                return match;
+            }
         );
+                
         await automations.updateOne(
             { 'user_id': userId },
             { $set: { 'automation_data': newAutomations } }
         );
+
+        // Elimina i problemi che coinvolgono questa automazione
+        const userProblems = await problems.findOne({ 'user_id': userId });
+        
+        if (userProblems && userProblems.problems) {          
+            userProblems.problems.forEach((problem, index) => {
+                if (problem.rules) {
+                }
+            });
+            
+            // Filtra i problemi che NON coinvolgono l'automazione eliminata
+            const filteredProblems = userProblems.problems.filter(problem => {
+                if (!problem.rules || !Array.isArray(problem.rules)) {
+                    return true;
+                }
+                
+                // Controlla se il problema coinvolge l'automazione eliminata
+                const involvesDeletedRule = problem.rules.some(rule => {
+                    const ruleIdStr = rule.id ? rule.id.toString() : '';
+                    const targetIdStr = ruleId.toString();
+                    const matches = ruleIdStr === targetIdStr;      
+                    return matches;
+                });
+                
+                if (involvesDeletedRule) {
+                    return false; // Esclude questo problema
+                }
+                
+                return true; // Mantiene questo problema
+            });
+            
+            // Aggiorna la collezione problems
+            const updateResult = await problems.updateOne(
+                { 'user_id': userId },
+                { 
+                    $set: { 
+                        'problems': filteredProblems,
+                        'last_update': new Date()
+                    }
+                }
+            );
+            
+        } 
+        
+        // elimina l'automazione da Home Assistant
         const config = await getConfiguration(userId);
+        
+        if (!config || !config.auth) {
+            return false;
+        }
+                
         const haResponse = await haDeleteFunc(config.auth.url, config.auth.token, ruleId);
+        
         if (!haResponse) {
-            console.log(`Errore durante la cancellazione dell'automazione ${ruleId} su Home Assistant.`);
             return false;
         }
         return true;
+        
     } catch (err) {
-        console.log('Errore in Db deleteRule:', err);
+        console.log('Errore in deleteRule:', err);
         return false;
     }
 }
@@ -386,6 +445,8 @@ const toggleAutomation = async (userId, automationId, state) => {
             { 'user_id': userId },
             { $set: { 'automation_data': userAutomations.automation_data } }
         );
+
+        await updateAllProblemsState(userId);
         
         return true;
     } catch (err) {
@@ -393,6 +454,139 @@ const toggleAutomation = async (userId, automationId, state) => {
         return false;
     }
 }
+
+const ignoreProblem = async (userId, problemId) => {
+    try {
+        const database = client.db(dbName);
+        const problems = database.collection('problems');
+        
+        const userProblems = await problems.findOne({ 'user_id': userId });
+        
+        if (!userProblems) return false;
+        
+        // Trova il problema e imposta ignored a true
+        const updatedProblems = userProblems.problems.map(problem => {
+            if (problem.id.toString() === problemId.toString()) {
+                return { ...problem, ignore: true };
+            }
+            return problem;
+        });
+        
+        // Aggiorna il documento con i problemi modificati
+        await problems.updateOne(
+            { 'user_id': userId },
+            { $set: { 'problems': updatedProblems } }
+        );
+        
+        return true;
+    } catch (err) {
+        console.log('Errore in ignoreProblem:', err);
+        return false;
+    }
+};
+
+const changeStateProblem = async (userId, problemId, newState = null) => {
+    try {
+        const database = client.db(dbName);
+        const problems = database.collection('problems');
+        const automations = database.collection('automations');
+        
+        const userProblems = await problems.findOne({ 'user_id': userId });
+        const userAutomations = await automations.findOne({ 'user_id': userId });
+        
+        if (!userProblems || !userAutomations) {
+            return false;
+        }
+
+        // Trova il problema specifico
+        const targetProblem = userProblems.problems.find(problem => 
+            problem.id.toString() === problemId.toString()
+        );
+        
+        if (!targetProblem || !targetProblem.rules) {
+            return false;
+        }
+
+        // Calcola lo stato automaticamente se non fornito
+        let calculatedState = newState;
+        
+        if (calculatedState === null) {
+            // Estrai gli ID delle automazioni coinvolte nel problema
+            const ruleIds = targetProblem.rules.map(rule => rule.id.toString());
+            
+            // Trova gli stati delle automazioni coinvolte
+            const involvedAutomations = userAutomations.automation_data.filter(automation => 
+                ruleIds.includes(automation.id.toString())
+            );
+            
+            const allStates = involvedAutomations.map(auto => auto.state || 'unknown');
+            
+            console.log(`Stati delle automazioni coinvolte:`, allStates);
+            
+            if (allStates.length === 0) {
+                calculatedState = "unknown";
+            } else if (allStates.every(state => state === "on")) {
+                calculatedState = "on";
+            } else if (allStates.some(state => state === "off")) {
+                calculatedState = "off";
+            } else {
+                calculatedState = "partial";
+            }
+            
+        }
+
+        // Aggiorna il problema con il nuovo stato
+        const updatedProblems = userProblems.problems.map(problem => {
+            if (problem.id.toString() === problemId.toString()) {
+                return { ...problem, state: calculatedState };
+            }
+            return problem;
+        });
+        
+        // Salva nel database
+        await problems.updateOne(
+            { 'user_id': userId },
+            { $set: { 'problems': updatedProblems } }
+        );
+        
+        return { success: true, newState: calculatedState };
+        
+    } catch (err) {
+        return false;
+    }
+};
+
+const updateAllProblemsState = async (userId) => {
+    try {
+        const database = client.db(dbName);
+        const problems = database.collection('problems');
+        
+        const userProblems = await problems.findOne({ 'user_id': userId });
+        
+        if (!userProblems || !userProblems.problems) {
+            return { success: true, updatedCount: 0 };
+        }
+
+        let updatedCount = 0;
+        
+        // Aggiorna ogni problema automaticamente
+        for (const problem of userProblems.problems) {
+            if (problem.ignore === true || problem.solved === true) {
+                continue;
+            }
+            
+            const result = await changeStateProblem(userId, problem.id);
+            if (result && result.success) {
+                updatedCount++;
+            }
+        }
+        
+        return { success: true, updatedCount };
+        
+    } catch (err) {
+        return false;
+    }
+};
 
 // const getHAAutomation = async (userId, automationId) => {
 //     
@@ -440,5 +634,8 @@ module.exports = {
     deleteRule,
     closeDatabaseConnection,
     toggleAutomation,
+    ignoreProblem,
+    changeStateProblem,
+    updateAllProblemsState
 };
 

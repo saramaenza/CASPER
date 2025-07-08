@@ -1,52 +1,33 @@
-
 //import jwt_decode from "./jwt-decode";
 const lang = Cookies.get("lang");
 const tokenRaw = Cookies.get("auth-token");
-const chat_session_id = Cookies.get("chat_session_id");
+let chat_session_id = Cookies.get("chat_session_id");
 const token = jwt_decode(tokenRaw);
 const userId = token.id;
-//const name = token.name.charAt(0).toUpperCase() + token.name.slice(1);
 const userName = token.name;
 let isReminderText = false;
 let entitiesStates;
 let statusInterval = null;
 const intervalUpdate = 20000; // Aggiorna lo stato del chatbot ogni 20 secondi
-
 const base_link = window.location.origin;
 const getRuleList = `${base_link}/get_rule_list`; // chiamata POST per ricevere la lista delle regole
 const getDevices = `${base_link}/get_config`; // chiamata POST per ricevere la lista delle regole
 const getEntitiesStates = `${base_link}/get_entities_states`; // chiamata POST per ricevere lo stato delle entità
 const sendMessage = `${base_link}/send_message`; // chiamata POST per ricevere la lista delle regole
-const changeRule = `${base_link}/changeRule`; // chiamata POST per aggiornare le regole dopo il cancellamento
 const getProblemList = `${base_link}/get_problems`; // chiamata GET per ricevere la lista dei problemi
-const getGoals = `${base_link}/get_goals`; // chiamata POST per ricevere la lista dei goal
 const ping = `${base_link}/post_chat_state`; // chiamata POST per mantere la sessione attiva
-const toggleAutomation = `${base_link}/toggle_automation`; // chiamata POST per ricevere la lista delle regole
-const downButton = document.querySelector("#download");
-const aggiorna = document.querySelector("#aggiorna");
-let currentIndex = 0;
+const toggleAutomation = `${base_link}/toggle_automation`; // chiamata per accendere/spegnere un'automazione
+const ignoreProblem = `${base_link}/ignore_problem`; // chiamata per ignorare un problema
+const resetConversationUrl = `${base_link}/reset_conv`; // chiamata per resettare la conversazione
+
 const carousel = document.querySelector(".carousel");
-let carouselItems = document.querySelectorAll(".carousel__item");
-const [btnLeftCarousel, btnRightCarousel] = document.querySelectorAll(
-  ".carousel-button"
-);
-let carouselCount = carouselItems.length;
-let pos = 0;
-let translateX = 0;
 const toggleSwitch = document.getElementById('toggleSwitch');
 const toggleBall = document.getElementById('toggleBall');
-
 let carouselObject = null
-
-// Immagine del profilo a pallina
-//const userProfile = document.querySelector('#profile');
 const initial = document.querySelector('#initial-name');
-//const profileInfo = document.querySelector('#profile-info');
-const reset = document.querySelector('#reset');
-
-let choosenSolution = null; // {"rule_name": "nome della regola", "rule_id": "id della regola", "solution": "soluzione scelta"}
-
 const sse = new EventSource("/sse");
+
+let choosenSolution = null;
 
 const sendPing = async () => {
   const response = await fetch(ping, {
@@ -82,6 +63,7 @@ sse.addEventListener("message", async ({ data }) => {
   else if (message.action == "update-problems") {
     //message.state = []
     let problemsList = await getProblems()
+    problemsList = problemsList.filter(problem => !problem.ignore && !problem.solved && problem.state != "off");
     printUserProblems(problemsList);
     carouselObject.update(problemsList);
   }
@@ -93,6 +75,8 @@ sse.addEventListener("message", async ({ data }) => {
 const rulesContainer = document.querySelector('#rules-container');
 const problemsContainer = document.querySelector('#problems-main-container');
 const devicesContainer = document.querySelector('#devices-list-container');
+const goalAdvContainer = document.querySelector('#goal-adv-container');
+const preferencesContainer = document.querySelector('#preferences-container');
 
 document.getElementById('show-rules').addEventListener('click', function() {
   if (this.classList.contains('selector-selected')) return;
@@ -103,6 +87,10 @@ document.getElementById('show-rules').addEventListener('click', function() {
     document.getElementById('show-devices').classList.add('selector-unselected');
     document.getElementById('show-problems').classList.remove('selector-selected');
     document.getElementById('show-problems').classList.add('selector-unselected');
+    document.getElementById('show-goal-adv').classList.remove('selector-selected');
+    document.getElementById('show-goal-adv').classList.add('selector-unselected');
+    document.getElementById('show-preferences').classList.remove('selector-selected');
+    document.getElementById('show-preferences').classList.add('selector-unselected');
   }
   rulesContainer.classList.remove('leftbar-unselected');
   rulesContainer.classList.add('leftbar-selected');
@@ -110,6 +98,10 @@ document.getElementById('show-rules').addEventListener('click', function() {
   devicesContainer.classList.add('leftbar-unselected');
   problemsContainer.classList.remove('leftbar-selected');
   problemsContainer.classList.add('leftbar-unselected');
+  goalAdvContainer.classList.remove('leftbar-selected');
+  goalAdvContainer.classList.add('leftbar-unselected');
+  preferencesContainer.classList.remove('leftbar-selected');
+  preferencesContainer.classList.add('leftbar-unselected');
 });
 
 document.getElementById('show-devices').addEventListener('click', function() {
@@ -121,6 +113,10 @@ document.getElementById('show-devices').addEventListener('click', function() {
     document.getElementById('show-rules').classList.add('selector-unselected');
     document.getElementById('show-problems').classList.remove('selector-selected');
     document.getElementById('show-problems').classList.add('selector-unselected');
+    document.getElementById('show-goal-adv').classList.remove('selector-selected');
+    document.getElementById('show-goal-adv').classList.add('selector-unselected');
+    document.getElementById('show-preferences').classList.remove('selector-selected');
+    document.getElementById('show-preferences').classList.add('selector-unselected');
   }
   rulesContainer.classList.remove('leftbar-selected');
   rulesContainer.classList.add('leftbar-unselected');
@@ -128,6 +124,10 @@ document.getElementById('show-devices').addEventListener('click', function() {
   devicesContainer.classList.add('leftbar-selected');
   problemsContainer.classList.remove('leftbar-selected');
   problemsContainer.classList.add('leftbar-unselected');
+  goalAdvContainer.classList.remove('leftbar-selected');
+  goalAdvContainer.classList.add('leftbar-unselected');
+  preferencesContainer.classList.remove('leftbar-selected');
+  preferencesContainer.classList.add('leftbar-unselected');
 });
 
 document.getElementById('show-problems').addEventListener('click', function() {
@@ -139,6 +139,10 @@ document.getElementById('show-problems').addEventListener('click', function() {
     document.getElementById('show-devices').classList.add('selector-unselected');
     document.getElementById('show-rules').classList.remove('selector-selected');
     document.getElementById('show-rules').classList.add('selector-unselected');
+    document.getElementById('show-goal-adv').classList.remove('selector-selected');
+    document.getElementById('show-goal-adv').classList.add('selector-unselected');
+    document.getElementById('show-preferences').classList.remove('selector-selected');
+    document.getElementById('show-preferences').classList.add('selector-unselected');
   }
   rulesContainer.classList.remove('leftbar-selected');
   rulesContainer.classList.add('leftbar-unselected');
@@ -146,10 +150,78 @@ document.getElementById('show-problems').addEventListener('click', function() {
   devicesContainer.classList.add('leftbar-unselected');
   problemsContainer.classList.remove('leftbar-unselected');
   problemsContainer.classList.add('leftbar-selected');
+  goalAdvContainer.classList.remove('leftbar-selected');
+  goalAdvContainer.classList.add('leftbar-unselected');
+  preferencesContainer.classList.remove('leftbar-selected');
+  preferencesContainer.classList.add('leftbar-unselected');
+});
+
+document.getElementById('show-goal-adv').addEventListener('click', function() {
+  if(this.classList.contains('selector-selected')) return;
+  else {
+    this.classList.remove('selector-unselected'); 
+    this.classList.add('selector-selected'); 
+    document.getElementById('show-devices').classList.remove('selector-selected');
+    document.getElementById('show-devices').classList.add('selector-unselected');
+    document.getElementById('show-rules').classList.remove('selector-selected');
+    document.getElementById('show-rules').classList.add('selector-unselected');
+    document.getElementById('show-problems').classList.remove('selector-selected');
+    document.getElementById('show-problems').classList.add('selector-unselected');
+    document.getElementById('show-preferences').classList.remove('selector-selected');
+    document.getElementById('show-preferences').classList.add('selector-unselected');
+  }
+  rulesContainer.classList.remove('leftbar-selected');
+  rulesContainer.classList.add('leftbar-unselected');
+  devicesContainer.classList.remove('leftbar-selected');
+  devicesContainer.classList.add('leftbar-unselected');
+  problemsContainer.classList.add('leftbar-unselected');
+  problemsContainer.classList.remove('leftbar-selected');
+  preferencesContainer.classList.remove('leftbar-selected');
+  preferencesContainer.classList.add('leftbar-unselected');
+  goalAdvContainer.classList.add('leftbar-selected');
+  goalAdvContainer.classList.remove('leftbar-unselected');
+});
+
+document.getElementById('show-preferences').addEventListener('click', function() {
+  if(this.classList.contains('selector-selected')) return;
+  else {
+    this.classList.remove('selector-unselected'); 
+    this.classList.add('selector-selected'); 
+    document.getElementById('show-devices').classList.remove('selector-selected');
+    document.getElementById('show-devices').classList.add('selector-unselected');
+    document.getElementById('show-rules').classList.remove('selector-selected');
+    document.getElementById('show-rules').classList.add('selector-unselected');
+    document.getElementById('show-problems').classList.remove('selector-selected');
+    document.getElementById('show-problems').classList.add('selector-unselected');
+    document.getElementById('show-goal-adv').classList.remove('selector-selected');
+    document.getElementById('show-goal-adv').classList.add('selector-unselected');
+  }
+  rulesContainer.classList.remove('leftbar-selected');
+  rulesContainer.classList.add('leftbar-unselected');
+  devicesContainer.classList.remove('leftbar-selected');
+  devicesContainer.classList.add('leftbar-unselected');
+  problemsContainer.classList.add('leftbar-unselected');
+  problemsContainer.classList.remove('leftbar-selected');
+  goalAdvContainer.classList.add('leftbar-selected');
+  goalAdvContainer.classList.add('leftbar-unselected');
+  preferencesContainer.classList.add('leftbar-selected');
+  preferencesContainer.classList.remove('leftbar-unselected');
 });
 
 let rulesList;
 window.addEventListener('load', async ()=>{
+  // Show initial loader
+  devicesContainer.innerHTML = `
+      <div class="loader-container">
+          <div class="loader"></div>
+      </div>
+  `;
+  rulesContainer.innerHTML = `
+      <div class="loader-container">
+          <div class="loader"></div>
+      </div>
+  `;
+  problemsContainer.querySelector('.loader-container').style.display = 'flex';
   const greeting = document.createElement('h1');
   greeting.textContent = `Ciao, ${userName}`;
   initial.appendChild(greeting);
@@ -159,7 +231,7 @@ window.addEventListener('load', async ()=>{
   }, intervalUpdate);
   let chatID = document.createElement('div');
   chatID.className = 'chat-id';
-  chatID.innerHTML = `Chat ID: ${chat_session_id}`;
+  chatID.textContent = `Chat ID: ${chat_session_id}`;
   initial.appendChild(chatID);
   let rulesList = await getRulesParam() //GET regole
   //problemList = await getData(`${getProblems}?id=${userId}`) //GET problemi
@@ -173,10 +245,11 @@ window.addEventListener('load', async ()=>{
   printUserRule(rulesList); //PRINT regole
   printUserDevices(devicesList); //PRINT devices
   let problemsList = await getProblems()
+  problemsList = problemsList.filter(problem => !problem.ignore && !problem.solved && problem.state != "off");
   printUserProblems(problemsList);
   carouselObject = new Carousel(problemsList)
   //open_delete_rule();
-
+  printUserPreferences();
   if (lang == 'en'){
     getBotResponse('hello my dear');
     generateTypingMsg('bot');
@@ -186,30 +259,6 @@ window.addEventListener('load', async ()=>{
   }
 
 })
-
-async function updateEntitiesStates(){
-  entitiesStates = await getData(`${getEntitiesStates}?id=${userId}`)
-  let devicesList = await getData(`${getDevices}?id=${userId}`) //GET problemi
-  dinamicallyPopulateEntityValue(devicesList['selected']);
-}
-
-// Identifica in entitiesStates l'entità corrispondente e restituisce lo stato
-function dinamicallyPopulateEntityValue(devices){
-  //devices = device['slected']
-  const cleanList = formatDeviceList(devices);
-  for (let element of Object.entries(cleanList)) {
-    let devices = element[1];
-    for (let device of devices) {
-      const entityId = device[2]; // Nome dell'entità
-      const currentEntity = entitiesStates.find(entity => entity.entity_id === entityId);
-      document.querySelector(`div[entityid='${entityId}'] .item-value`).textContent = currentEntity.state + (currentEntity.attributes.unit_of_measurement ? currentEntity.attributes.unit_of_measurement : "");
-      if (currentEntity.state === "unavailable") {
-        document.querySelector(`div[entityid='${entityId}'] .item-indicator`).classList.add('inactive');
-      }
-    }
-  }
-}
-
 
 logoutButton = document.querySelector('#logout');
 logoutButton.addEventListener('click', ()=>{
@@ -257,8 +306,11 @@ async function deleteAutomation(rule_id) {
       console.log("Delete Automation response: ", data);
       document.querySelector(`div [ruleid='${rule_id}']`).remove();
       let rulesList = await getRulesParam() //GET regole
+      let problemsList = await getProblems()  //GET problemi
+      problemsList = problemsList.filter(problem => !problem.ignore && !problem.solved);
       printUserRule(rulesList);
       document.querySelector('#n_automations').innerText = rulesList.length;
+      document.querySelector('#n_problems').innerText = problemsList.length;
     })
     .catch(error => {
       console.log(error);
@@ -342,14 +394,10 @@ async function deleteAutomation(rule_id) {
     });
   }
 
+
 async function printUserRule(rules) {
   document.querySelector('#n_automations').innerText = rules.length;
   const rulesContainer = document.querySelector('#rules-container');
-   rulesContainer.innerHTML = `
-        <div class="loader-container">
-            <div class="loader"></div>
-        </div>
-    `;
 
   if (rules.length > 0) {
     // Wrapper per tutte le automation-card
@@ -373,8 +421,9 @@ async function printUserRule(rules) {
     automationListWrapper.appendChild(searchContainer);
 
     rules.forEach((element, index) => {
-      let automationState = element['state'] === "on" ? "active": ""; // Stato di default se non specificato
-      let automationEntity = element['entity_id']
+      const ruleState = element['state']
+      let automationState = ruleState === "on" ? "active": ""; // Stato di default se non specificato
+      const automationEntity = element['entity_id']
       element = element['config'];
       
       setTimeout(() => {
@@ -387,7 +436,7 @@ async function printUserRule(rules) {
 
         // Status indicator
         const statusIndicator = document.createElement('div');
-        statusIndicator.className = 'status-indicator';
+        statusIndicator.className = ruleState === "on" ? 'status-indicator': 'status-indicator inactive';
         card.appendChild(statusIndicator);
 
         // CARD HEADER
@@ -424,17 +473,18 @@ async function printUserRule(rules) {
         // Toggle switch
         const toggleSwitch = document.createElement('div');
         toggleSwitch.className = `toggle-switch ${automationState}`; // aggiungi/rimuovi 'active' per stato ON/OFF
-        toggleSwitch.setAttribute('entity', automationEntity || "automation."+element['alias'].toLowerCase()
-          .replace(/°/g, 'deg')
-          .replace(/[àáâãäå]/g, 'a')
-          .replace(/[èéêë]/g, 'e') 
-          .replace(/[ìíîï]/g, 'i')
-          .replace(/[òóôõö]/g, 'o')
-          .replace(/[ùúûü]/g, 'u')
-          .replace(/[^a-zA-Z0-9\s]/g, '_')
-          .split(' ')
-          .join('_')
-          .replace(/__/g, '_'));
+        toggleSwitch.setAttribute('entity', automationEntity || "automation." + 
+          element['alias']
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '') // Rimuove diacritici/accenti
+            .toLowerCase()
+            .replace(/°/g, 'deg')
+            .replace(/[^a-zA-Z0-9\s]/g, '_')
+            .split(' ')
+            .join('_')
+            .replace(/_+/g, '_')
+            .replace(/^_|_$/g, '')
+        );
         toggleSwitch.setAttribute('ruleid', element['id']);
         toggleSwitch.setAttribute('title', 'Accendi/Spegni Automazione');
 
@@ -469,44 +519,8 @@ async function printUserRule(rules) {
           event.stopPropagation();
           const ruleId = deleteButton.getAttribute('ruleid');
           const ruleName = "ID:"+ruleId+" - " +automationTitle.textContent;
-
-          // Crea l'overlay
-          const overlay = document.createElement('div');
-          overlay.className = 'overlay';
-
-          // Crea il dialog
-          const dialog = document.createElement('div');
-          dialog.className = 'confirm-dialog';
-          dialog.innerHTML = `
-              <h3>Conferma eliminazione</h3>
-              <p>Sei sicuro di voler eliminare la regola "${ruleName}"?</p>
-              <div class="confirm-buttons">
-                  <button class="confirm-btn no">No</button>
-                  <button class="confirm-btn yes">Si</button>
-              </div>
-          `;
-
-          overlay.appendChild(dialog);
-          document.body.appendChild(overlay);
-
-          // Gestisci i click sui bottoni
-          const buttons = dialog.querySelectorAll('.confirm-btn');
-          buttons.forEach(button => {
-              button.addEventListener('click', async () => {
-                  // Aggiungi la classe fadeOut
-                  overlay.classList.add('fadeOut');
-                  
-                  // Rimuovi l'overlay dopo che l'animazione è completata
-                  setTimeout(async () => {
-                      if (button.classList.contains('yes')) {
-                          await deleteAutomation(ruleId);
-                          
-                          //deleteRule(ruleId, rules);
-                      }
-                      overlay.remove();
-                  }, 200); // Stesso tempo dell'animazione CSS
-              });
-          });
+          generateDialog("confirm", "Conferma eliminazione", `Sei sicuro di voler eliminare la regola "${ruleName}"?`, async () => { await deleteAutomation(ruleId); });
+          
       });
       }, index * 100);
     });
@@ -540,57 +554,46 @@ async function printUserRule(rules) {
 
         // Toggle functionality
         const toggle = card.querySelector('.toggle-switch');
+        const toggleSlider = card.querySelector('.toggle-slider');
         const indicator = card.querySelector('.status-indicator');
         // Toggle functionality
         if (toggle) {
+          let tmp_toggle = toggleSlider.innerHTML;
           toggle.addEventListener('click', async function () {
-            const toggleCall = await triggerToggleAutomation(
-              this.getAttribute('ruleid'),
-              this.getAttribute('entity')
-            )
-            if (toggleCall.status === "error") {
-              // Crea l'overlay
-              const overlay = document.createElement('div');
-              overlay.className = 'overlay';
+          
+            toggleSlider.innerHTML=  `
+                <div class="loader-container">
+                    <div class="loader mini-loader"></div>
+                </div>
+            `;
 
-              // Crea il dialog
-              const dialog = document.createElement('div');
-              dialog.className = 'confirm-dialog';
-              dialog.innerHTML = `
-                  <h3>Errore</h3>
-                  <p>Errore durante il cambio di stato dell'automazione</p>
-                  <div class="confirm-buttons">
-                      <button class="confirm-btn ok">OK</button>
-                  </div>
-              `;
-
-              overlay.appendChild(dialog);
-              document.body.appendChild(overlay);
-
-              // Gestisci il click sul bottone OK
-              const okButton = dialog.querySelector('.ok');
-              okButton.addEventListener('click', () => {
-                  // Aggiungi la classe fadeOut
-                  overlay.classList.add('fadeOut');
-                  
-                  // Rimuovi l'overlay dopo che l'animazione è completata
-                  setTimeout(() => {
-                      overlay.remove();
-                  }, 200); // Stesso tempo dell'animazione CSS
-              });
-              
-              return;
+          let toggleCall = await triggerToggleAutomation(
+            this.getAttribute('ruleid'),
+            this.getAttribute('entity')
+          )
+          if (toggleCall.status === "error") {
+            generateDialog("info", "Errore", "Errore durante il cambio di stato dell'automazione", () => {});
+            toggleSlider.innerHTML = tmp_toggle;
+            return;
           }
-            const state = toggleCall.state=="on" ? "active" : "";
-            if (state === "active") {
-              if (!this.classList.contains('active')) {
-                this.classList.add('active');
-                indicator.classList.remove('inactive');
-              }
-            }else {
-              this.classList.remove('active');
-              indicator.classList.add('inactive');
+
+          let state = toggleCall.state=="on" ? "active" : "";
+          toggleSlider.innerHTML = tmp_toggle;
+          if (state === "active") {
+            if (!this.classList.contains('active')) {
+              this.classList.add('active');
+              indicator.classList.remove('inactive');
             }
+          }else {
+            this.classList.remove('active');
+            indicator.classList.add('inactive');
+          }
+
+          await new Promise(resolve => setTimeout(resolve, 500));
+
+          const problemList = await getProblems()
+          let filteredProblems = problemList.filter(problem => !problem.ignore && !problem.solved && problem.state == "on");
+          document.querySelector('#n_problems').innerText = filteredProblems.length;
             
           });
         }
@@ -640,7 +643,7 @@ function getAutomationIconInfo(automation) {
     if (text.includes("ventilatore") || text.includes("fan") || text.includes("purificatore") || text.includes("air purifier")) {
         return {
             icon: "💨",
-            className: "living-icon"
+            className: "air-icon"
         };
     }
     if(text.includes("aria condizionata") || text.includes("air conditioning") || text.includes("ac")) {
@@ -744,13 +747,6 @@ async function printUserDevices(devicesList) {
     document.querySelector('#n_devices').innerText = devicesList['selected'].length;
     const devices = devicesList['selected'];
     const devicesContainer = document.querySelector('#devices-list-container');
-
-    // Show initial loader
-    devicesContainer.innerHTML = `
-        <div class="loader-container">
-            <div class="loader"></div>
-        </div>
-    `;
     
     if (devicesList != true && devices != undefined) {
         const devicesListWrapper = document.createElement('div');
@@ -905,6 +901,213 @@ async function printUserDevices(devicesList) {
     }
 }
 
+
+function printUserPreferences() {
+    // Pulisce il container
+    preferencesContainer.innerHTML = '';
+
+    // Container principale
+    const container_preferences = document.createElement('div');  
+    container_preferences.id = 'preferences';
+
+    // Container 
+    const container = document.createElement('div');
+    container.className = 'container_preferences';
+
+    // Header
+    const header = document.createElement('div');
+    header.className = 'header';
+
+    const title = document.createElement('h1');
+    title.className = 'title';
+    title.textContent = 'I Miei Obiettivi';
+
+    const subtitle = document.createElement('p');
+    subtitle.className = 'subtitle';
+    subtitle.textContent = 'Trascina per riordinare la tua classifica personale';
+
+    header.appendChild(title);
+    header.appendChild(subtitle);
+
+    // Lista ranking
+    const rankingList = document.createElement('ul');
+    rankingList.className = 'ranking-list';
+    rankingList.id = 'rankingList';
+
+    // Dati degli obiettivi
+    const goals = [
+        { id: 'sicurezza', name: 'Sicurezza', icon: '🛡️' },
+        { id: 'salute', name: 'Salute', icon: '❤️' },
+        { id: 'risparmio', name: 'Risparmio Energetico', icon: '🔋' },
+        { id: 'benessere', name: 'Benessere', icon: '🌱' }
+    ];
+
+    // Crea gli elementi della lista
+    goals.forEach((goal, index) => {
+        const goalItem = document.createElement('li');
+        goalItem.className = 'goal-item';
+        goalItem.draggable = true;
+        goalItem.setAttribute('data-goal', goal.id);
+
+        // Numero ranking
+        const rankNumber = document.createElement('div');
+        rankNumber.className = 'rank-number';
+        rankNumber.textContent = index + 1;
+
+        // Contenuto obiettivo
+        const goalContent = document.createElement('div');
+        goalContent.className = 'goal-content';
+
+        const goalIcon = document.createElement('div');
+        goalIcon.className = `goal-icon ${goal.id}`;
+        goalIcon.textContent = goal.icon;
+
+        const goalName = document.createElement('span');
+        goalName.className = 'goal-name';
+        goalName.textContent = goal.name;
+
+        goalContent.appendChild(goalIcon);
+        goalContent.appendChild(goalName);
+
+        // Handle per il drag
+        const dragHandle = document.createElement('div');
+        dragHandle.className = 'drag-handle';
+        dragHandle.textContent = '⋮⋮';
+
+        // Assembla l'elemento
+        goalItem.appendChild(rankNumber);
+        goalItem.appendChild(goalContent);
+        goalItem.appendChild(dragHandle);
+
+        rankingList.appendChild(goalItem);
+    });
+
+    // Assembla tutto
+    container_preferences.appendChild(container);
+    container.appendChild(header);
+    container.appendChild(rankingList);
+    preferencesContainer.appendChild(container_preferences);
+
+    // Aggiunge la funzionalità di drag and drop
+    initializeDragAndDropForPreferences();
+}
+
+// Funzione specifica per inizializzare il drag and drop delle preferenze
+function initializeDragAndDropForPreferences() {
+    const rankingList = document.getElementById('rankingList');
+    if (!rankingList) return; // Sicurezza: esce se l'elemento non esiste
+    
+    let draggedElement = null;
+    let draggedIndex = null;
+    const goalItems = rankingList.querySelectorAll('.goal-item');
+
+    // Aggiungi event listeners a tutti gli elementi
+    goalItems.forEach((item, index) => {
+        item.addEventListener('dragstart', handleDragStart);
+        item.addEventListener('dragend', handleDragEnd);
+        item.addEventListener('dragover', handleDragOver);
+        item.addEventListener('drop', handleDrop);
+        item.addEventListener('dragenter', handleDragEnter);
+        item.addEventListener('dragleave', handleDragLeave);
+    });
+
+    function handleDragStart(e) {
+        draggedElement = this;
+        draggedIndex = Array.from(rankingList.children).indexOf(this);
+        this.classList.add('dragging');
+        
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/html', this.outerHTML);
+    }
+
+    function handleDragEnd(e) {
+        this.classList.remove('dragging');
+        
+        // Rimuovi le classi di drag-over da tutti gli elementi
+        const currentGoalItems = rankingList.querySelectorAll('.goal-item');
+        currentGoalItems.forEach(item => {
+            item.classList.remove('drag-over');
+        });
+        
+        draggedElement = null;
+        draggedIndex = null;
+    }
+
+    function handleDragOver(e) {
+        if (e.preventDefault) {
+            e.preventDefault();
+        }
+        
+        e.dataTransfer.dropEffect = 'move';
+        return false;
+    }
+
+    function handleDragEnter(e) {
+        if (this !== draggedElement) {
+            this.classList.add('drag-over');
+        }
+    }
+
+    function handleDragLeave(e) {
+        this.classList.remove('drag-over');
+    }
+
+    function handleDrop(e) {
+        if (e.stopPropagation) {
+            e.stopPropagation();
+        }
+
+        if (draggedElement !== this) {
+            const currentIndex = Array.from(rankingList.children).indexOf(this);
+            
+            if (draggedIndex < currentIndex) {
+                rankingList.insertBefore(draggedElement, this.nextSibling);
+            } else {
+                rankingList.insertBefore(draggedElement, this);
+            }
+            
+            // Aggiorna i numeri di ranking
+            updateRankingNumbers();
+            
+            // Aggiungi effetto visivo
+            draggedElement.classList.add('pulse');
+            setTimeout(() => {
+                draggedElement.classList.remove('pulse');
+            }, 600);
+            
+            // Salva la nuova classifica
+            saveRanking();
+        }
+
+        this.classList.remove('drag-over');
+        return false;
+    }
+
+    function updateRankingNumbers() {
+        const items = rankingList.querySelectorAll('.goal-item');
+        items.forEach((item, index) => {
+            const rankNumber = item.querySelector('.rank-number');
+            rankNumber.textContent = index + 1;
+        });
+    }
+
+    function saveRanking() {
+        const items = rankingList.querySelectorAll('.goal-item');
+        const ranking = Array.from(items).map((item, index) => ({
+            goal: item.dataset.goal,
+            position: index + 1,
+            name: item.querySelector('.goal-name').textContent
+        }));
+        
+        // Salva in memoria (puoi estendere per salvare in localStorage se necessario)
+        console.log('Nuova classifica:', ranking);
+    }
+
+    // Inizializza la classifica
+    updateRankingNumbers();
+}
+
+
 function getIcon(name, type) {
     // Convert to lowercase for case-insensitive comparison
     const text = name.toLowerCase();
@@ -973,34 +1176,10 @@ function getIcon(name, type) {
     }
 }
 
-//cancella una regola dalla lista
-async function deleteRule(id, obj){
-    let size = Object.keys(obj).length;
-    let tmp;
-    for (let i = 0; i<size; i++){
-      if (obj[i].ruleid == id){
-        tmp = i;
-      }
-    }
-    obj.splice(tmp, 1);
-    document.querySelector(`div [ruleid='${id}']`).remove();
-    //document.getElementById(`${id}`).parentElement.remove();
-    let newsize = Object.keys(obj).length;
-    for (let i = 0; i<newsize; i++){
-      obj[i].id = i+1; 
-    }
-    postData(obj, changeRule)
-  }
-
-  // =============================================
-
 const msgContainer = document.querySelector('#msgContainer');
 const queryText = document.querySelector("#inputBox");
 const inputButton = document.querySelector(".inputButton");
-const buttonIcon = document.querySelector(".buttonIcon");
-
 let justSent = false;
-
 
 // ===================== Message Generator =======================//
 inputButton.addEventListener('click', (event)=>{
@@ -1088,6 +1267,27 @@ function generateTypingMsg(type){//type = user | bot
     
     MsgContainer.scrollIntoView()
 }
+
+document.getElementById('reset').addEventListener('click', resetConversation);
+
+// Funzione per resettare la chat
+function resetConversation() {
+    // Crea l'overlay
+    generateDialog("info", "Da fixare", "Sembra funzionare ma c'e qualcosa che non va, da debuggare :D", () => {});
+    return;
+    generateDialog("confirm", "Reset della chat", "Sei sicuro di voler resettare la chat con Casper?", async ()=>{
+      let response = await getData(resetConversationUrl)
+      if (response.status === "ok") {
+        msgContainer.innerHTML = ''; // Pulisce il contenitore dei messaggi
+        document.querySelector(".chat-id").textContent = "Chat ID: "+response.session_id; // Aggiorna l'ID della sessione
+        chat_session_id = response.session_id; // Aggiorna la variabile globale della sessione
+      }else{
+        generateDialog("info", "Errore", "Errore durante il reset della chat, riprova più tardi.", () => {});
+      }
+    });
+    
+}
+
 
 function addChatState(state, id){
   const box = document.createElement('div');
@@ -1241,20 +1441,7 @@ async function generateBotMsg(messages){
     justSent = false;
     //readMessage(toRead);
 }
-function deleteTyping() {
-    if(document.querySelector('.isTyping') != null)
-    document.querySelector('.isTyping').remove();
-}
 
-let tokens_span = document.querySelector("#tokens")
-let cost_span = document.querySelector("#cost")
-function updateTokens(data){
-
-  let total_tokens = data[0]
-  let total_cost = data[1]
-  if (total_tokens > -1) tokens_span.innerHTML = total_tokens
-  if (total_cost > -1)cost_span.innerHTML = total_cost
-}
 // ========================= InputButton Change ===================== //
 queryText.addEventListener("keydown", (event) =>{
 	if (event.keyCode == 13 && queryText.value == ""){
@@ -1264,80 +1451,15 @@ queryText.addEventListener("keydown", (event) =>{
 		generateUserMsg();
 	}
 })
-queryText.addEventListener("keyup", (event) =>{
-    /* if (queryText.value !== ""){
-        buttonIcon.src = "icons/send.png"
-        inputButton.className = "inputButton send"
-    }else{
-        buttonIcon.src = "icons/microphone.png"
-        inputButton.className = "inputButton speech"
-    } */
-	
-		if (event.keyCode == 13 && !event.shiftKey) generateUserMsg();
-	//}
-    
-});
-
-
-// ================= Rule description display =================== //
-
-function displayDesc(el) {
-  const ruleId = el.getAttribute('ruleid');
-  const ruleDesc = document.querySelector(`div[descid='${ruleId}']`);
-  const isClosed = ruleDesc.classList.contains('closed');
-
-  if (isClosed) {
-    // Apertura
-    ruleDesc.style.maxHeight = ruleDesc.scrollHeight + 'px'; // Imposta l'altezza dinamica
-    ruleDesc.classList.remove('closed');
-    ruleDesc.classList.add('open');
-
-    // Rimuovi maxHeight dopo la transizione per evitare problemi su resize
-    ruleDesc.addEventListener('transitionend', function handler() {
-      ruleDesc.style.maxHeight = 'none';
-      ruleDesc.removeEventListener('transitionend', handler);
-    });
-  } else {
-    // Chiusura
-    ruleDesc.style.maxHeight = ruleDesc.scrollHeight + 'px'; // Necessario per calcolare l'altezza corrente
-    requestAnimationFrame(() => {
-      ruleDesc.style.maxHeight = '0px'; // Riduci l'altezza a 0
-    });
-    ruleDesc.classList.remove('open');
-    ruleDesc.classList.add('closed');
-  }
-}
-
-function displayProblemDesc(el) {
-
-  const ruleId = el.getAttribute('problemid');
-  const ruleDesc = document.querySelector(`div[problemdescid='${ruleId}']`);
-  const state = ruleDesc.classList.contains('closed') ? 'closed' : 'open';
-  if (state === 'closed') {
-
-    ruleDesc.style.maxHeight = '1000px';
-    ruleDesc.style.padding = '1em';
-    ruleDesc.classList.remove('closed');
-    ruleDesc.classList.add('open');
-  } else {
-    ruleDesc.style.maxHeight = '0';
-    setTimeout(() => {
-      ruleDesc.style.padding = '0';
-    }, 500);
-    ruleDesc.classList.remove('open');
-    ruleDesc.classList.add('closed');
-  }
-}
-
 
 // ===================== Carousel ======================= //
 
-
 function printUserProblems(problemsList) {
+  problemsContainer.querySelector('.loader-container').style.display = 'none';
   const carouselControls = document.getElementById('carousel-controls');
   const carouselMessages = document.getElementById('carousel-messages');
-  document.querySelector('#n_problems').innerText = problemsList.length || 0;
-  
+ 
+  let trueProblemNumber = 0;
   if (!problemsList || problemsList.length === 0) {
       // Nascondi i controlli e mostra il messaggio
       carouselControls.style.display = 'none';
@@ -1348,19 +1470,23 @@ function printUserProblems(problemsList) {
               <span class="no-problems-submessage">Se hai bisogno di aiuto, chiedi a Casper!</span>
           </div>
       `;
+      document.querySelector('#n_problems').innerText = 0;
   } else {
     // Mostra i controlli e nascondi il messaggio
+      
       carousel.innerHTML = ''; // Pulisce il contenuto del carousel
       carouselControls.style.display = 'flex';
       carouselMessages.innerHTML = '';
       carouselMessages.style.display = 'none';
       for (const [index, problem] of problemsList.entries()){
+        if (problem['ignore'] == true || problem['solved'] == true) continue; // Ignora i problemi marcati come "ignore"
         if (problem['type'] == 'conflict'){
           createConflictCard(
             index == 0,
             `Conflitto ${problem['id']}`,
             problem
           )
+          trueProblemNumber++;
         }
         else if (problem['type'].split('-')[1] == 'chain'){
           createChainCard(
@@ -1368,17 +1494,19 @@ function printUserProblems(problemsList) {
             `Catena ${problem['id']}`,
             problem
           )
+          trueProblemNumber++;
         }else{
           //TODO: aggiungere i problemi di tipo "energy"
           console.log("Nessun problema associato a questo account");
         }
-      }   
+      }
+      document.querySelector('#n_problems').innerText = trueProblemNumber;
   }
 }
 
 function createChainCard(isActive, headerText, chainInfo) {
     const regex = /^event(?:s|o|i)?:\s*(?<event>.*?)(?:\s*(?:condition(?:s)?|condizion(?:e|i)):\s*(?<condition>.*?))?\s*(?:action(?:s)?|azion(?:i|e)):\s*(?<action>.*)$/i;
-
+    
     const rule1 = chainInfo['rules'][0];
     const rule1_id = rule1['id'];
     const rule1_name = rule1['name'];
@@ -1386,8 +1514,33 @@ function createChainCard(isActive, headerText, chainInfo) {
     const rule2_id = rule2['id'];
     const rule2_name = rule2['name'];
 
-    const rule1_match = rule1['description'].match(regex);
-    const rule2_match = rule2['description'].match(regex);
+    // DETERMINA LA DIREZIONE DELLA CATENA
+    const chainDirection = chainInfo['direction'] || 'rule1_to_rule2';
+    const isReversed = chainDirection === 'rule2_to_rule1';
+    
+    // IMPOSTA L'ORDINE CORRETTO PER LA VISUALIZZAZIONE
+    let firstRule, secondRule, firstRuleId, firstRuleName, secondRuleId, secondRuleName;
+    
+    if (isReversed) {
+        // Se la direzione è rule2 → rule1, inverti l'ordine visuale
+        firstRule = rule2;
+        secondRule = rule1;
+        firstRuleId = rule2_id;
+        firstRuleName = rule2_name;
+        secondRuleId = rule1_id;
+        secondRuleName = rule1_name;
+    } else {
+        // Direzione normale: rule1 → rule2
+        firstRule = rule1;
+        secondRule = rule2;
+        firstRuleId = rule1_id;
+        firstRuleName = rule1_name;
+        secondRuleId = rule2_id;
+        secondRuleName = rule2_name;
+    }
+
+    const rule1_match = firstRule['description'].match(regex);
+    const rule2_match = secondRule['description'].match(regex);
 
     // Early return if invalid format
     if (!rule1_match?.groups || !rule2_match?.groups) {
@@ -1447,7 +1600,7 @@ function createChainCard(isActive, headerText, chainInfo) {
     const automationFlow = document.createElement("div");
     automationFlow.className = "automation-flow";
 
-    // First automation card
+    // FIRST AUTOMATION CARD (basato sulla direzione)
     const firstAutomation = document.createElement("div");
     firstAutomation.className = "automation-chain-card";
 
@@ -1464,7 +1617,7 @@ function createChainCard(isActive, headerText, chainInfo) {
 
     const firstSubtitle = document.createElement("div");
     firstSubtitle.className = "card-chain-subtitle";
-    firstSubtitle.textContent = rule1_name;
+    firstSubtitle.textContent = firstRuleName;
 
     // Assemble first automation card
     firstAutomation.appendChild(firstIcon);
@@ -1476,16 +1629,16 @@ function createChainCard(isActive, headerText, chainInfo) {
     firstArrow.className = "flow-arrow";
     firstArrow.textContent = "→";
 
-    // Variable card (created outside if statement)
+    // Variable card (per catene indirette)
     const variableCard = document.createElement("div");
     variableCard.className = "variable-chain-card";
 
-    // Second arrow (created outside if statement)
+    // Second arrow
     const secondArrow = document.createElement("div");
     secondArrow.className = "flow-arrow";
     secondArrow.textContent = "→";
 
-    // Second automation card
+    // SECOND AUTOMATION CARD (basato sulla direzione)
     const secondAutomation = document.createElement("div");
     secondAutomation.className = "automation-chain-card";
 
@@ -1502,7 +1655,7 @@ function createChainCard(isActive, headerText, chainInfo) {
 
     const secondSubtitle = document.createElement("div");
     secondSubtitle.className = "card-chain-subtitle";
-    secondSubtitle.textContent = rule2_name;
+    secondSubtitle.textContent = secondRuleName;
 
     // Populate variable card if indirect chain
     if(chainInfo.type == "indirect-chain") {
@@ -1534,7 +1687,7 @@ function createChainCard(isActive, headerText, chainInfo) {
     secondAutomation.appendChild(secondTitle);
     secondAutomation.appendChild(secondSubtitle);
 
-    // Assemble the flow
+    // ASSEMBLE THE FLOW 
     automationFlow.appendChild(firstAutomation);
     automationFlow.appendChild(firstArrow);
     
@@ -1571,7 +1724,18 @@ function createChainCard(isActive, headerText, chainInfo) {
         const button = document.createElement("button");
         button.className = "accordion-button";
         button.setAttribute("onclick", "toggleStayOpen(this)");
-        button.textContent = `Modifica l'automazione "${automationID === rule1_id ? rule1_name : rule2_name}"`;
+        
+        // DETERMINA IL NOME CORRETTO BASATO SULL'ID
+        let automationName = "";
+        if (automationID === rule1_id) {
+            automationName = rule1_name;
+        } else if (automationID === rule2_id) {
+            automationName = rule2_name;
+        } else {
+            automationName = "Automazione sconosciuta";
+        }
+        
+        button.textContent = `Modifica l'automazione "${automationName}"`;
 
         header.appendChild(button);
         item.appendChild(header);
@@ -1615,12 +1779,83 @@ function createChainCard(isActive, headerText, chainInfo) {
     const ignoreButton = document.createElement("button");
     ignoreButton.className = "btn btn-ignore";
     ignoreButton.textContent = "Ignora";
-    ignoreButton.id = chainInfo["id_chain"];
+    ignoreButton.id = chainInfo["unique_id"];
+    ignoreButton.setAttribute("problemid", chainInfo["id"]);
+    ignoreButton.addEventListener("click", (e) => {
+      generateDialog("confirm", "Conferma ignora", "Sei sicuro di voler ignorare questo problema?", () => {
+        postData(
+          {problemId: e.target.getAttribute("problemid")},
+          ignoreProblem)
+        .then((response) => {
+          e.target.closest('.card').remove();
+          let n_prob = document.querySelector('#n_problems').innerText
+          let new_n_prob = parseInt(n_prob) - 1;
+          document.querySelector('#n_problems').innerText = new_n_prob;
+          if(new_n_prob == 0) {
+            document.querySelector('.carousel-controls').style.display = 'none';
+            document.getElementById('carousel-messages').style.display = 'flex';
+            document.getElementById('carousel-messages').innerHTML = `
+                <div class="no-problems-message">
+                    Non sono presenti problemi nella tua smart home 😊
+                    <br>
+                    <span class="no-problems-submessage">Se hai bisogno di aiuto, chiedi a Casper!</span>
+                </div>
+            `;  
+          }
+          console.log("Problem ignored:", response);
+        }).catch((error) => {
+          generateDialog("info", "Errore", "Si è verificato un errore e non posso eliminare il problema",() => {});
+          console.error("Error ignoring problem:", error);
+        });
+      });
+    });
 
     const solveButton = document.createElement("button");
     solveButton.className = "btn btn-resolve";
     solveButton.textContent = "Risolvi";
-    solveButton.id = chainInfo["id_chain"];
+    solveButton.id =  chainInfo["unique_id"];
+    solveButton.setAttribute("problemid", chainInfo["id"]);
+    solveButton.addEventListener("click", async (e) => { 
+     if (choosenSolution != null) {
+ 
+        e.target.innerHTML = `
+          <span>Risoluzione...</span>
+        `;
+        e.target.disabled = true;
+
+        let problemId = e.target.getAttribute("problemid");
+        let ruleId = choosenSolution.rule_id;
+        let ruleName = choosenSolution.rule_name;
+        let structured = choosenSolution.solution;
+        const message = `<solve_problem>The user want to solve the problem with ID:${problemId} by modifing the automation '${ruleName}'(Automation ID:${ruleId}) in the following way: ${structured}</solve_problem>`;
+        console.log("Solve button clicked with message:", message);
+        
+        getBotResponse(message);
+        
+        // Aggiorna il contatore dei problemi
+        let n_prob = document.querySelector('#n_problems').innerText;
+        let new_n_prob = parseInt(n_prob) - 1;
+        document.querySelector('#n_problems').innerText = new_n_prob;
+        
+        // Se non ci sono più problemi, mostra il messaggio
+        if(new_n_prob == 0) {
+          document.querySelector('.carousel-controls').style.display = 'none';
+          document.getElementById('carousel-messages').style.display = 'flex';
+          document.getElementById('carousel-messages').innerHTML = `
+              <div class="no-problems-message">
+                  Non sono presenti problemi nella tua smart home 😊
+                  <br>
+                  <span class="no-problems-submessage">Se hai bisogno di aiuto, chiedi a Casper!</span>
+              </div>
+          `;  
+        }
+        // Rimuovi la carta dal DOM
+        e.target.closest('.card').remove();
+
+      } else {
+        generateDialog("info", "Selezione richiesta", "Seleziona una soluzione prima di procedere.", () => {});
+      }
+    });
 
     actionButtons.appendChild(ignoreButton);
     actionButtons.appendChild(solveButton);
@@ -1727,8 +1962,6 @@ function createConflictCard(isActive, headerText, conflictInfo) {
     conflictTable.style.width = "100%";
     conflictTable.style.borderCollapse = "collapse";
     conflictTable.style.tableLayout = "fixed";
-
- 
 
     if(type_of_conflict.includes("same_event")){
         // Titolo diagramma
@@ -1903,6 +2136,19 @@ function createConflictCard(isActive, headerText, conflictInfo) {
             label.setAttribute("for", input.id);
             label.textContent = alternative["natural_language"];
 
+             input.addEventListener("change", () => {
+                if (input.checked) {
+                  choosenSolution = {
+                    "rule_id": automationID,
+                    "rule_name": temp_mapping.get(automationID)["name"],
+                    "solution": alternative["structured"],
+                  }
+                  console.log("Choosen solution:", choosenSolution);
+                } else {
+                  choosenSolution = null;
+                }
+            });
+
             formCheck.appendChild(input);
             formCheck.appendChild(label);
             body.appendChild(formCheck);
@@ -1922,12 +2168,84 @@ function createConflictCard(isActive, headerText, conflictInfo) {
     const ignoreButton = document.createElement("button");
     ignoreButton.className = "btn btn-ignore";
     ignoreButton.textContent = "Ignora";
-    ignoreButton.id = conflictInfo["id_conflict"];
-
+    ignoreButton.id = conflictInfo["unique_id"];
+    ignoreButton.setAttribute("problemid", conflictInfo["id"]);
+    ignoreButton.addEventListener("click", (e) => {
+      generateDialog("confirm", "Conferma ignora", "Sei sicuro di voler ignorare questo problema?", () => {
+        postData(
+          {problemId: e.target.getAttribute("problemid")},
+          ignoreProblem)
+        .then((response) => {
+          e.target.closest('.card').remove();
+          let n_prob = document.querySelector('#n_problems').innerText;
+          let new_n_prob = parseInt(n_prob) - 1;
+          document.querySelector('#n_problems').innerText = new_n_prob;
+          if(new_n_prob == 0) {
+            document.querySelector('.carousel-controls').style.display = 'none';
+            document.getElementById('carousel-messages').style.display = 'flex';
+            document.getElementById('carousel-messages').innerHTML = `
+                <div class="no-problems-message">
+                    Non sono presenti problemi nella tua smart home 😊
+                    <br>
+                    <span class="no-problems-submessage">Se hai bisogno di aiuto, chiedi a Casper!</span>
+                </div>
+            `;  
+          }
+          console.log("Problem ignored:", response);
+        }).catch((error) => {
+          generateDialog("info", "Errore", "Si è verificato un errore e non posso eliminare il problema",() => {});
+          console.error("Error ignoring problem:", error);
+        });
+      });
+    });
     const solveButton = document.createElement("button");
     solveButton.className = "btn btn-resolve";
     solveButton.textContent = "Risolvi";
-    solveButton.id = conflictInfo["id_conflict"];
+    solveButton.id =  conflictInfo["unique_id"];
+    solveButton.setAttribute("problemid", conflictInfo["id"]);
+    
+    solveButton.addEventListener("click", async (e) => { 
+     if (choosenSolution != null) {
+ 
+        e.target.innerHTML = `
+          <span>Risoluzione...</span>
+        `;
+        e.target.disabled = true;
+
+        let problemId = e.target.getAttribute("problemid");
+        let ruleId = choosenSolution.rule_id;
+        let ruleName = choosenSolution.rule_name;
+        let structured = choosenSolution.solution;
+        const message = `<solve_problem>The user want to solve the problem with ID:${problemId} by modifing the automation '${ruleName}'(Automation ID:${ruleId}) in the following way: ${structured}</solve_problem>`;
+        console.log("Solve button clicked with message:", message);
+        
+        getBotResponse(message);
+        
+        // Aggiorna il contatore dei problemi
+        let n_prob = document.querySelector('#n_problems').innerText;
+        let new_n_prob = parseInt(n_prob) - 1;
+        document.querySelector('#n_problems').innerText = new_n_prob;
+        
+        // Se non ci sono più problemi, mostra il messaggio
+        if(new_n_prob == 0) {
+          document.querySelector('.carousel-controls').style.display = 'none';
+          document.getElementById('carousel-messages').style.display = 'flex';
+          document.getElementById('carousel-messages').innerHTML = `
+              <div class="no-problems-message">
+                  Non sono presenti problemi nella tua smart home 😊
+                  <br>
+                  <span class="no-problems-submessage">Se hai bisogno di aiuto, chiedi a Casper!</span>
+              </div>
+          `;  
+        }
+
+        // Rimuovi la carta dal DOM
+        e.target.closest('.card').remove();
+
+      } else {
+        generateDialog("info", "Selezione richiesta", "Seleziona una soluzione prima di procedere.", () => {});
+      }
+    });
 
     actionButtons.appendChild(ignoreButton);
     actionButtons.appendChild(solveButton);
@@ -2102,7 +2420,6 @@ class Carousel {
 
 }
 
-
 // Send button functionality
 document.querySelector('.inputButton').addEventListener('click', function() {
     const input = document.querySelector('.inputButton');
@@ -2124,8 +2441,6 @@ function removeHomeAssistantEntities(text) {
   const homeAssistantEntityRegex = /\s*\([a-zA-Z_][a-zA-Z0-9_]*\.[a-zA-Z0-9_.-]+[^)]*\)/g;
   return text.replace(homeAssistantEntityRegex, '');
 }
-
-
 
 // ===================== Device List ======================= //
 
@@ -2156,14 +2471,6 @@ toggleSwitch.addEventListener('click', function() {
     toggleBall.classList.toggle('dark');
 });
 
-// Aggiunge effetto hover con il mouse
-toggleSwitch.addEventListener('mouseenter', function() {
-    this.style.transform = 'translateY(-2px) scale(1.02)';
-});
-
-toggleSwitch.addEventListener('mouseleave', function() {
-    this.style.transform = 'translateY(0) scale(1)';
-});
 
 // Funzione per impostare il tema
 function setTheme(isDark = false) {
@@ -2257,9 +2564,9 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function updateChatbotStatus() {
+  let status = document.querySelector('.agent-status');
+  let indicator = document.querySelector('.status-indicator-chat');
    try {
-        let status = document.querySelector('.agent-status');
-        let indicator = document.querySelector('.status-indicator-chat');
         const response = await fetch('/chatbot_status', {
             headers: { 'Cache-Control': 'no-cache' }
         });
@@ -2281,22 +2588,101 @@ async function updateChatbotStatus() {
         return chatbotStatus;
     } catch (error) {
         console.log('Status check failed:', error);
+        status.textContent = "Errore di connessione";
+        indicator.classList.add('error');
+        indicator.classList.remove('inactive');
         return 'unknown';
     }
 }
 
-
-document.addEventListener("visibilitychange", () => {
-  if (document.hidden) {
-    if (statusInterval){
-      clearInterval(statusInterval);
-      statusInterval = null;
+// Identifica in entitiesStates l'entità corrispondente e restituisce lo stato
+function dinamicallyPopulateEntityValue(devices){
+  //devices = device['slected']
+  const cleanList = formatDeviceList(devices);
+  for (let element of Object.entries(cleanList)) {
+    let devices = element[1];
+    for (let device of devices) {
+      const entityId = device[2]; // Nome dell'entità
+      const currentEntity = entitiesStates.find(entity => entity.entity_id === entityId);
+      document.querySelector(`div[entityid='${entityId}'] .item-value`).textContent = currentEntity.state + (currentEntity.attributes.unit_of_measurement ? currentEntity.attributes.unit_of_measurement : "");
+      if (currentEntity.state === "unavailable") {
+        document.querySelector(`div[entityid='${entityId}'] .item-indicator`).classList.add('inactive');
+      }
     }
-  } else {
-    // Page became visible!
-    statusInterval = setInterval(async () => {
-        await updateChatbotStatus();
-    }, intervalUpdate);
-    
   }
-});
+}
+
+function toggleCardExpansion(element) {
+    // Check if this is a problem-goal-card
+    if (element.classList.contains('problem-goal-card')) {
+        const explanationContainer = element.nextElementSibling;
+        if (explanationContainer && explanationContainer.classList.contains('problem-goal-explanation-container')) {
+            explanationContainer.classList.toggle('open');
+            
+            // Toggle the expand button icon
+            const expandButton = element.querySelector('.expand-button');
+            if (expandButton) {
+                element.classList.toggle('active');
+                expandButton.classList.toggle('expanded');
+            }
+        }
+        return;
+    }
+    
+    // Original logic for expandable-card
+    const card = element.closest('.expandable-card');
+    const expandButton = card.querySelector('.expand-button');
+    const expandedContent = card.querySelector('.expanded-content');
+    
+    // Toggle delle classi active
+    expandButton.classList.toggle('active');
+    expandedContent.classList.toggle('active');
+    
+    // Aggiorna l'altezza dinamicamente
+    if (expandedContent.classList.contains('active')) {
+        expandedContent.style.maxHeight = expandedContent.scrollHeight + 'px';
+    } else {
+        expandedContent.style.maxHeight = '0px';
+    }
+}
+
+const overlay = document.getElementById('overlay');
+const dialog = document.querySelector('.confirm-dialog');
+const dialogTitle = document.querySelector('.confirm-dialog-title');
+const dialogDescription = document.querySelector('.confirm-dialog-description');
+const btnYes = document.querySelector('.confirm-btn.yes');
+const btnNo = document.querySelector('.confirm-btn.no');  
+const btnOk = document.querySelector('.confirm-btn.ok');
+function generateDialog(type, title, description, yesCallback){
+  //type: "confirm" (Ha i bottoni "Si", "No"), "info" (Ha il bottone "OK")
+    overlay.style.display = 'flex';
+    //dialog.style.display = 'block';
+    dialogTitle.innerText = title;
+    dialogDescription.innerText = description;
+    if (type === "confirm") {
+        btnYes.style.display = 'inline-block';
+        btnNo.style.display = 'inline-block';
+        btnOk.style.display = 'none';
+    } else if (type === "info") {
+        btnYes.style.display = 'none';
+        btnNo.style.display = 'none';
+        btnOk.style.display = 'inline-block';
+    }
+
+    const buttons = dialog.querySelectorAll('.confirm-btn');
+    buttons.forEach(button => {
+        button.addEventListener('click', async () => {
+            // Aggiungi la classe fadeOut all'overlay per l'animazione di uscita
+            overlay.classList.add('fadeOut');
+            // Rimuovi l'overlay dopo che l'animazione è completata
+            setTimeout(async () => {
+                if (button.classList.contains('yes')) {
+                    yesCallback();
+                }
+                overlay.classList.remove('fadeOut');
+                overlay.style.display= 'none';
+            }, 200); // Stesso tempo dell'animazione CSS dell'overlay
+        });
+    });
+
+}
