@@ -2,7 +2,7 @@ import numpy as np
 import skfuzzy as fuzz
 from skfuzzy import control as ctrl
 import skfuzzy.control as ctrl
-from fuzzy_utils import getData, rule_to_natural_language, evaluate_rules
+from problems.fuzzy_utils import getData, rule_to_natural_language, evaluate_rules
 
 # Define fuzzy variables
 illuminance = ctrl.Antecedent(np.arange(0, 102, 1), 'illuminance')

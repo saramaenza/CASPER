@@ -1,10 +1,7 @@
 import numpy as np
 import skfuzzy as fuzz
 from skfuzzy import control as ctrl
-from datetime import date
-from datetime import datetime
-from fuzzy_utils import getData, rule_to_natural_language, evaluate_rules
-from collections import defaultdict
+from problems.fuzzy_utils import getData, rule_to_natural_language, evaluate_rules
 
 # Define fuzzy variables
 temperature = ctrl.Antecedent(np.arange(0, 41, 1), 'temperature')

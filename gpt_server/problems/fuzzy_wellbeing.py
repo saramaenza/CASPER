@@ -4,7 +4,7 @@ from skfuzzy import control as ctrl
 from datetime import date
 from datetime import datetime
 import skfuzzy.control as ctrl
-from fuzzy_utils import getData, rule_to_natural_language, evaluate_rules, getSeason
+from problems.fuzzy_utils import getData, rule_to_natural_language, evaluate_rules, getSeason
 import pytz
 
 # Define fuzzy variables
@@ -175,7 +175,7 @@ rule7_14 = ctrl.Rule(illuminance['medium'] & time_of_day['none'], wellbeing_prob
 rule7_15 = ctrl.Rule(illuminance['low'] & time_of_day['none'], wellbeing_problem['no']) 
 
 def getWellBeingFuzzy(rules, area, environment, environmentVariables):
-    print("\n********* WELL BEING ************\n")
+    #print("\n********* WELL BEING ************\n")
     # Funzione di supporto per ottenere i dati
 
     # Ottieni i dati

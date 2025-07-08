@@ -2,7 +2,7 @@ import numpy as np
 import skfuzzy as fuzz
 from skfuzzy import control as ctrl
 import skfuzzy.control as ctrl
-from fuzzy_utils import getData, rule_to_natural_language, evaluate_rules
+from problems.fuzzy_utils import getData, rule_to_natural_language, evaluate_rules
 
 # Define fuzzy variables
 energy = ctrl.Antecedent(np.arange(0, 101, 1), 'energy')
@@ -108,7 +108,7 @@ def getEnergySavingFuzzy(rules, area, environment, nameDevice, environmentVariab
     
     
     data_env = {
-        "energy": float(energyValue) if energyValue not in [None, 'unavailable', 'unknown'] else 0,
+        "energy": 600,
         "window_open": windowStateValue,
         "fan_state": fanStateValue,
         "light_state": lightState,

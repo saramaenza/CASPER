@@ -4,7 +4,7 @@ from skfuzzy import control as ctrl
 from datetime import datetime
 import skfuzzy.control as ctrl
 import pytz
-from fuzzy_utils import getData, rule_to_natural_language, evaluate_rules
+from problems.fuzzy_utils import getData, rule_to_natural_language, evaluate_rules
 
 # Define fuzzy variables
 time_of_day = ctrl.Antecedent(np.arange(0, 25, 1), 'time_of_day')
@@ -125,7 +125,7 @@ def getHealthFuzzy(rules, area, environment, environmentVariables):
     data_env = {
         "illuminance": int(lightLevelValue) if lightLevelValue not in [None, 'unavailable', 'unknown'] else 0,
         "time_of_day": timeOfTheDayValue,
-        "sound_pressure": float(soundPressureValue),
+        "sound_pressure": 200,
         "aqi": float(aqiValue),
         "co2_level": float(co2Value)
     }

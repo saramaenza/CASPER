@@ -1,6 +1,8 @@
 import os
+from marshmallow import pprint
 import time
 import db_functions as _db
+from problems.goal_advisor import detectGoalAdvisor
 import utils
 from problems.conflicts import ConflictDetector
 from problems.chains import ChainsDetector
@@ -26,11 +28,18 @@ def problem_detector(user_id, session_id, automation_id):
         chain_detector = ChainsDetector(ha_client, user_id)
         conflict_detector = ConflictDetector(ha_client, user_id)
         
-        direct_chains = chain_detector.detect_chains(data, new_automation, "direct")
-        indirect_chains = chain_detector.detect_chains(data, new_automation, "indirect")
-        conflicts = conflict_detector.detect_conflicts(data, new_automation)
-
-        all_problems = direct_chains + indirect_chains + conflicts
+        #direct_chains = chain_detector.detect_chains(data, new_automation, "direct")
+        #indirect_chains = chain_detector.detect_chains(data, new_automation, "indirect")
+        #conflicts = conflict_detector.detect_conflicts(data, new_automation)
+        all_goals = {}
+        goals =  ["security", "well-being", "energy saving", "health"]
+        for goal in goals:
+            goal_advisor = detectGoalAdvisor(new_automation, goal, user_id)
+            all_goals[goal] = goal_advisor
+        pprint("All goals detected:")
+        pprint(all_goals)
+        #all_problems = direct_chains + indirect_chains + conflicts
+        all_problems = None
         #end = time.time()
         #print(f"Problem detection took {end - start} seconds")
         if not all_problems:
