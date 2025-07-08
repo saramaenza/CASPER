@@ -25,7 +25,7 @@ def problem_detector(user_id, session_id, automation_id):
 
         chain_detector = ChainsDetector(ha_client, user_id)
         conflict_detector = ConflictDetector(ha_client, user_id)
-
+        
         direct_chains = chain_detector.detect_chains(data, new_automation, "direct")
         indirect_chains = chain_detector.detect_chains(data, new_automation, "indirect")
         conflicts = conflict_detector.detect_conflicts(data, new_automation)

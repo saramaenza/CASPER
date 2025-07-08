@@ -77,6 +77,11 @@ class HomeAssistantClient:
         template = '{% for entity in states %}{% if entity.attributes.friendly_name == "' + friendly_name + '" %}{{ entity.attributes.device_class }}{% endif %}{% endfor %}'
         return self.render_template(template)
     
+    def getRoomDevice(self, device_id: str) -> str:
+        """Get the area/room name for a device"""
+        template = '{{ area_name(device_attr("' + device_id + '", "area_id")) }}'
+        return self.render_template(template)
+
     def save_automation(self, automation_json: Dict[str, Any], automation_id: str) -> str:
         if 'id' in automation_json:
             automation_json['id'] = str(automation_json['id'])
