@@ -32,7 +32,6 @@ def problem_detector(user_id, session_id, automation_id):
         indirect_chains = chain_detector.detect_chains(data, new_automation, "indirect")
         conflicts = conflict_detector.detect_conflicts(data, new_automation)
         all_goals = {}
-        
         goals =  ["security", "well-being", "energy saving", "health"]
         for goal in goals:
             goal_advisor = detectGoalAdvisor(new_automation, goal, user_id, ha_client)
