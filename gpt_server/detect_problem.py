@@ -45,11 +45,12 @@ def problem_detector(user_id, session_id, automation_id):
         if not all_problems:
             return "No problems detected."
         problems_w_id = _db.post_problem(user_id, all_problems)
+        filtered_problems = [problems for problems in problems_w_id if problems.get('state', 'on') == "on"]
         if not problems_w_id:
-            return f"Detected {len(problems_w_id)} problems but Error: Unable to save detected problems to DB."
+            return f"Detected {len(filtered_problems)} problems but Error: Unable to save detected problems to DB."
         else:
-            problems_id = [problem['id'] for problem in problems_w_id]
-            return f"Detected {len(problems_w_id)} problems (problems ids: {problems_id}). Problem cards with details are available for the user in the interface under the Problems section."
+            problems_id = [problem['id'] for problem in filtered_problems]
+            return f"Detected {len(filtered_problems)} problems (problems ids: {problems_id}). Problem cards with details are available for the user in the interface under the Problems section."
        
     except Exception as e:
         return f"Error: {e}"
