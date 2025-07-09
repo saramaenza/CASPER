@@ -87,7 +87,7 @@ def getNegative(list_variables_goals, var_effect, variable, userGoal, area, name
         "health": getHealthFuzzy,
         "security": getSecurityFuzzy,
         "safety": getSafetyFuzzy,
-        "energy saving": lambda fuzzy_rules, area, environment, environmentVariables: getEnergySavingFuzzy(fuzzy_rules, area, environment, nameDevice, environmentVariables)
+        "energy": lambda fuzzy_rules, area, environment, environmentVariables: getEnergySavingFuzzy(fuzzy_rules, area, environment, nameDevice, environmentVariables)
     }
 
     for effect in negative_effects:
@@ -281,13 +281,13 @@ def detectGoalAdvisor(automation, goal, user_id, ha_client_instance):
                         "type": "goal_advisor",
                         "unique_id": unique_id_chain,
                         "negative_effects": negativeEffect,
+                        "goal": goal,
+                        "state": "on",
                         "rules": [{
                             "id": id_automation,
                             "name": ruleName,
                             "description": description,
-                        }],
-                        "goal": goal,
-                        "state": "on"
+                        }]
                     })
 
                     # Inserimento del documento nella collezione

@@ -361,3 +361,41 @@ def solve_problem(user_id, problem_id, automation, automation_natural_language):
         print(e)
         print("----------------")
         return e
+    
+def post_goal(user_id, goal, goal_body):
+    """
+    Aggiunge un obiettivo alla lista degli obiettivi per l'utente specificato.
+    goal_body: array[dict -> {'id': str, 'type': str...}]
+    """
+    try:
+        collection = db["goals"]
+        goals = collection.find_one({"user_id": user_id})
+        if goals is not None:
+            if goal in goals:
+                max_id = max([int(g['id']) for g in goals[goal]], default=0)
+            else:
+                max_id = 0
+                goals[goal] = []
+            for index in range(len(goal_body)):
+                goal_body[index]['id'] = str(max_id + index + 1)
+            goals[goal].extend(goal_body)
+            collection.update_one(
+                {"_id": goals["_id"]},
+                {"$set": {goal: goals[goal], "last_update": datetime.now()}}
+            )
+        else:
+            for index in range(len(goal_body)):
+                goal_body[index]['id'] = str(index + 1)
+            collection.insert_one({
+                "user_id": user_id,
+                goal: goal_body,
+                "created": datetime.now(),
+                "last_update": datetime.now()
+            })
+        return goal or None
+    except Exception as e:
+        print("--> Post Goal Error <--")
+        print(user_id)
+        print(e)
+        print("----------------")
+        return e
