@@ -2029,6 +2029,7 @@ td {
     transform: translateY(20px);
     animation: fadeInUp 0.6s ease-out forwards;
     border: 1px solid var(--border-color);
+    cursor: pointer;
 }
 
 .goal-item-overview:nth-child(1) { animation-delay: 0.1s; }
@@ -2044,7 +2045,7 @@ td {
 }
 
 .goal-item-overview:hover {
-    border-color: #d1d1d6;
+  background-color: var(--selector-hover);
 }
 
 .goal-info {
