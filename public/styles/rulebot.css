@@ -2004,7 +2004,27 @@ td {
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     text-align: center;
-    padding: 10px;
+    padding: 7px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInUp 0.6s ease-out forwards;
+    border: 1px solid var(--border-color);
+}
+
+.goal-item-overview:nth-child(1) { animation-delay: 0.1s; }
+.goal-item-overview:nth-child(2) { animation-delay: 0.2s; }
+.goal-item-overview:nth-child(3) { animation-delay: 0.3s; }
+.goal-item-overview:nth-child(4) { animation-delay: 0.4s; }
+
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .goal-item-overview:hover {
@@ -2017,28 +2037,27 @@ td {
     align-items: center;
     gap: 6px; 
     margin-top: 8px; 
+    align-items: center;
+    text-align: center;
 }
 
 .goal-name {
     font-size: 14px;
     font-weight: 500;
-    color: #1d1d1f;
     margin-left: 0; 
-}
-
-.goal-icon {
-    font-size: 16px;
-    opacity: 0.7;
+    text-align: center;
 }
 
 .goal-score {
     margin-top: 0px; 
+    display: flex;
+    justify-content: center;
 }
 
 .circular-progress {
     position: relative;
-    width: 40px;
-    height: 40px;
+    width: 45px;
+    height: 45px;
 }
 
 .circular-progress svg {
@@ -2055,12 +2074,45 @@ td {
 
 .circular-progress .progress-circle {
     fill: none;
-    stroke: #007aff;
     stroke-width: 3;
     stroke-linecap: round;
     stroke-dasharray: 113.1;
     stroke-dashoffset: 113.1;
-    transition: stroke-dashoffset 1s ease-in-out;
+    transition: stroke-dashoffset 2s ease-in-out, stroke 0.3s ease;
+    animation: fillProgress 2s ease-in-out forwards;
+}
+
+@keyframes fillProgress {
+    from {
+        stroke-dashoffset: 113.1;
+    }
+    to {
+        stroke-dashoffset: var(--progress-offset);
+    }
+}
+
+/* Rosso per valori bassi (0-25%) */
+.progress-low .progress-circle {
+    stroke: #ef4444;
+    --progress-offset: 96.4;
+}
+
+/* Arancione per valori medio-bassi (26-50%) */
+.progress-medium-low .progress-circle {
+    stroke: #f97316;
+    --progress-offset: 73.5;
+}
+
+/* Giallo per valori medi (51-75%) */
+.progress-medium .progress-circle {
+    stroke: #eab308;
+    --progress-offset: 39.6;
+}
+
+/* Verde per valori alti (76-100%) */
+.progress-high .progress-circle {
+    stroke: #22c55e;
+    --progress-offset: 17;
 }
 
 .circular-progress .progress-text {
@@ -2068,9 +2120,9 @@ td {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 600;
-    color: #1d1d1f;
+    color: var(--text-primary);
 }
 
 .overall-score {
@@ -2159,23 +2211,6 @@ td {
     font-size: 14px;
     color: #666;
     text-align: center;
-}
-
-/* Colori specifici per goal */
-.goal-item:nth-child(1) .progress-circle {
-    stroke: #34c759;
-}
-
-.goal-item:nth-child(2) .progress-circle {
-    stroke: #ff3b30;
-}
-
-.goal-item:nth-child(3) .progress-circle {
-    stroke: #ff9500;
-}
-
-.goal-item:nth-child(4) .progress-circle {
-    stroke: #007aff;
 }
 
  @media (max-width: 480px) {
