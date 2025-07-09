@@ -116,7 +116,7 @@ def getHealthFuzzy(rules, area, environment, environmentVariables):
     soundPressureValue = getData(area, "sound_pressure", environmentVariables) or 0
     aqiValue = getData(area, "aqi", environmentVariables) or 0
     co2Value = getData(area, "carbon_dioxide", environmentVariables) or 0
-     
+
    
     time_zone = pytz.timezone('Europe/Rome')
     timeOfTheDayValue = datetime.now(time_zone).hour
@@ -125,7 +125,7 @@ def getHealthFuzzy(rules, area, environment, environmentVariables):
     data_env = {
         "illuminance": int(lightLevelValue) if lightLevelValue not in [None, 'unavailable', 'unknown'] else 0,
         "time_of_day": timeOfTheDayValue,
-        "sound_pressure": 200,
+        "sound_pressure": soundPressureValue,
         "aqi": float(aqiValue),
         "co2_level": float(co2Value)
     }
