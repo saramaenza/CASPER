@@ -53,7 +53,7 @@ app.use(function (req, res, next) {
 
 //const rawData = fs.readFileSync('configs.json');
 //const configs = JSON.parse(rawData)['grimilde']; //0 per giove, 1 per africa
-const python_server = "http://127.0.0.1:8080"
+const python_server = "http://127.0.0.1:8080/demo"
 
 const port = process.env.PORT || configs.port; //3500 || 443
 let server = null;
@@ -68,9 +68,6 @@ if(configs.key_path != ""){
 else {
   server = app;
 }
-//C:/Certbot/live/africa.isti.cnr.it/
-//C:/Certbot/live/giove.isti.cnr.it-0001/
-//const server = https.createServer(options, app);
 
 server.listen(port, () => console.log('Server running on port ' + port));
 

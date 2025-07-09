@@ -136,7 +136,7 @@ def get_problem(user_id, problem_id=None):
         if problems is not None:
             if problem_id is not None:
                 for problem in problems['problems']:
-                    if problem['id'] == problem_id:
+                    if problem['id'] == problem_id and problem.get('state', 'on') == "on" and not problem.get('ignore', False) and not problem.get('solved', False):
                         return problem
             else:
                 return problems['problems'] if problems else []
