@@ -23,6 +23,7 @@ def problem_detector(user_id, session_id, automation_id):
         data = _db.get_automations(user_id)
         new_automation = _db.get_automation(user_id, automation_id)
         if not data:
+            print("No automations found for user in Detect problem:", user_id)
             return "Error: Automation not found."
 
         chain_detector = ChainsDetector(ha_client, user_id)
@@ -31,12 +32,14 @@ def problem_detector(user_id, session_id, automation_id):
         direct_chains = chain_detector.detect_chains(data, new_automation, "direct")
         indirect_chains = chain_detector.detect_chains(data, new_automation, "indirect")
         conflicts = conflict_detector.detect_conflicts(data, new_automation)
-        all_goals = {}
+        #all_goals = {}
         
-        goals =  ["security", "well-being", "energy saving", "health"]
+        goals =  ["security", "well-being", "energy", "health"]
         for goal in goals:
             goal_advisor = detectGoalAdvisor(new_automation, goal, user_id, ha_client)
-            all_goals[goal] = goal_advisor
+            #all_goals[goal] = goal_advisor
+            if goal_advisor is not None and len(goal_advisor) > 0:
+                _db.post_goal(user_id, goal, goal_advisor)
         
         all_problems = direct_chains + indirect_chains + conflicts
 

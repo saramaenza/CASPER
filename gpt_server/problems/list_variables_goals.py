@@ -204,7 +204,7 @@ list_variables_goals = {
 "energy": {    
   "negative_effect_on_goal": [
     {  
-      "goal": "energy saving",
+      "goal": "energy",
       "description": "Questo dispositivo consuma una quantità significativa di energia",
       "when": [{
         "fuzzyRulesToCheck": "rule1",
@@ -212,7 +212,7 @@ list_variables_goals = {
       }] 
     },
     {  
-      "goal": "energy saving",
+      "goal": "energy",
       "description": "La finestra aperta e il purificatore d'aria acceso causano spreco di energia",
       "when": [{
         "fuzzyRulesToCheck": "rule2",
@@ -220,7 +220,7 @@ list_variables_goals = {
       }] 
     },
     {  
-      "goal": "energy saving",
+      "goal": "energy",
       "description": "La luce nella stanza è accesa senza che ci sia nessuno, causando spreco di energia",
       "when": [{
         "fuzzyRulesToCheck": "rule3",
@@ -228,7 +228,7 @@ list_variables_goals = {
       }] 
     },
     {  
-      "goal": "energy saving",
+      "goal": "energy",
       "description": "La luce è accesa quando nessuno è in casa, causando spreco di energia",
       "when": [{
         "fuzzyRulesToCheck": "rule4",
@@ -236,7 +236,7 @@ list_variables_goals = {
       }] 
     },
     {  
-      "goal": "energy saving",
+      "goal": "energy",
       "description": "Il riscaldamento è acceso quando nessuno è in casa, causando spreco di energia",
       "when": [{
         "fuzzyRulesToCheck": "rule5",
