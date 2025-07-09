@@ -17,72 +17,26 @@ from problems.fuzzy_health import getHealthFuzzy
 from problems.fuzzy_energy_saving import getEnergySavingFuzzy
 from problems.fuzzy_security import getSecurityFuzzy
 from problems.fuzzy_safety import getSafetyFuzzy
-
 from problems.fuzzy_utils import getData
-
-from ha_client import HomeAssistantClient
-
-HA_BASE_URL = "http://luna.isti.cnr.it:8123" # Example
-HA_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiI2ODdmNGEyMDg5ZjA0NDc2YjQ2ZGExNWM3ZTYwNTRjYyIsImlhdCI6MTcxMTA5ODc4MywiZXhwIjoyMDI2NDU4NzgzfQ.lsqxXXhaSBa5BuoXbmho_XsEkq2xeCAeXL4lu7c2LMk" # Example
-ha_client_instance = HomeAssistantClient(base_url=HA_BASE_URL, token=HA_TOKEN)
-
-
-# Add parent directory (gpt_server) to sys.path for standalone testing
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
 import models
 import prompts
 from langchain_core.messages import HumanMessage, SystemMessage
 llm = models.gpt4
 import responses
-
-# --- Testing Setup ---
-# IMPORTANT: Replace with your actual Home Assistant URL and Long-Lived Access Token
-
-headers = {
-    "Authorization": "Bearer " + HA_TOKEN,
-    "content-type": "application/json",
-}
-
-
+from ha_client import HomeAssistantClient
 #### For testing purposes ####
 from problems.list_devices_variables import list_devices # Changed for testing
 from problems.list_variables_goals import list_variables_goals # Changed for testing
 
-import json
+# --- Testing Setup ---
+# IMPORTANT: Replace with your actual Home Assistant URL and Long-Lived Access Token
+#TODO: url e todo in base alla configurazione del server
+HA_BASE_URL = "http://luna.isti.cnr.it:8123" # Example  
+HA_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiI2ODdmNGEyMDg5ZjA0NDc2YjQ2ZGExNWM3ZTYwNTRjYyIsImlhdCI6MTcxMTA5ODc4MywiZXhwIjoyMDI2NDU4NzgzfQ.lsqxXXhaSBa5BuoXbmho_XsEkq2xeCAeXL4lu7c2LMk" # Example
+ha_client_instance = HomeAssistantClient(base_url=HA_BASE_URL, token=HA_TOKEN)
 
-
-''' Muovere tutto in fuzzy_utils ?'''
-#Search for the entity ID of the automation based on the ID of the automation's 'attributes' element
-def findAutomationEntityId(data, id):
-    for item in data:
-        if 'attributes' in item and item['attributes'].get('id') == id:
-            entity_id_automation = item['entity_id']
-    return entity_id_automation
-
-
-
-#Sends an HTTP GET request to the specified URL and retrieves the response text
-def getDataResponse(url):
-    response = get(url, headers=headers)
-    return response.text
-
-
-#It returns a JSON with all the automations, including all information, such as triggers and actions
-def getAutomationsInfo(realData):
-    automationAttributeID = []
-    #realData = json.loads(realData)
-    #keep only the 'attributes' IDs of each automation
-    automationAttributeID = [item["attributes"]["id"] for item in realData if item["entity_id"].startswith("automation.")]
-    for id in automationAttributeID:
-        entityAutomationID = findAutomationEntityId(realData, id)
-        url = HA_BASE_URL + "/api/config/automation/config/"+id
-        data = json.loads(getDataResponse(url))
-        data["entity_id"] = entityAutomationID
-        rules.append(data)
-    return rules
-
-
+# Add parent directory (gpt_server) to sys.path for standalone testing
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 def getContextVariables(list_devices_variables, action_domain, eventType):
     domain_data = list_devices_variables["list_of_domains"].get(action_domain)
@@ -107,7 +61,6 @@ def getContextVariables(list_devices_variables, action_domain, eventType):
     ])
 
 
-
 def get_device_id(action):
     target = action.get("target", {})
     device_id = action.get("device_id") or target.get("device_id") or action.get("entity_id") or target.get("entity_id")
@@ -115,13 +68,7 @@ def get_device_id(action):
         device_id = re.sub(r'[\'\[\]]', '', str(device_id))
     return device_id
 
-
-#get the device name given by the user
-def getNameUserDevice(device):
-    template =  '{{ device_attr("'+str(device)+'", "name_by_user") }}'
-    return ha_client_instance.render_template(template)
-
-
+''''
 def getEventType(e):
     service = None
     type = e.get('type')
@@ -133,7 +80,7 @@ def getEventType(e):
         action = e.get("action") 
         type = re.sub(r'.*?\.', '', action) 
     return type
-
+'''
 
 def getTextType(eventType):
     if eventType == "turn_on":
@@ -301,20 +248,20 @@ def detectGoalAdvisor(automation, goal, user_id):
         
         if not device_id:
             continue
-        nameDevice = getNameUserDevice(device_id)
+        nameDevice = ha_client_instance.get_device_name_by_user(device_id)
         if(nameDevice == None or nameDevice == "None"):
             nameDevice = device_id
 
         area_id = action.get("target", {}).get("area_id")
 
         if (area_id == None):
-            #area_id = client.getRoomDevice(device_id)  #TODO
-            area_id = "Salotto"
-
+            area_id = ha_client_instance.getRoomDevice(device_id)  
+            #get the device name given by the user
+        
         eventType = action.get("type", None)
         if eventType is None:
             eventType = service.split('.')[1] 
-        type = getTextType(eventType)
+        #type = getTextType(eventType)
         
         if not device_id and not area_id:
             continue
