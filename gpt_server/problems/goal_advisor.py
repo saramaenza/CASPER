@@ -23,17 +23,9 @@ import prompts
 from langchain_core.messages import HumanMessage, SystemMessage
 llm = models.gpt4
 import responses
-from ha_client import HomeAssistantClient
 #### For testing purposes ####
 from problems.list_devices_variables import list_devices # Changed for testing
 from problems.list_variables_goals import list_variables_goals # Changed for testing
-
-# --- Testing Setup ---
-# IMPORTANT: Replace with your actual Home Assistant URL and Long-Lived Access Token
-#TODO: url e todo in base alla configurazione del server
-HA_BASE_URL = "http://luna.isti.cnr.it:8123" # Example  
-HA_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiI2ODdmNGEyMDg5ZjA0NDc2YjQ2ZGExNWM3ZTYwNTRjYyIsImlhdCI6MTcxMTA5ODc4MywiZXhwIjoyMDI2NDU4NzgzfQ.lsqxXXhaSBa5BuoXbmho_XsEkq2xeCAeXL4lu7c2LMk" # Example
-ha_client_instance = HomeAssistantClient(base_url=HA_BASE_URL, token=HA_TOKEN)
 
 # Add parent directory (gpt_server) to sys.path for standalone testing
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -67,20 +59,6 @@ def get_device_id(action):
     if device_id:
         device_id = re.sub(r'[\'\[\]]', '', str(device_id))
     return device_id
-
-''''
-def getEventType(e):
-    service = None
-    type = e.get('type')
-    if(e.get("service") != None):
-        service = e.get("service") 
-    if(type == None and service != None):
-        type = re.sub(r'.*?\.', '', service) 
-    if(type == None):
-        action = e.get("action") 
-        type = re.sub(r'.*?\.', '', action) 
-    return type
-'''
 
 def getTextType(eventType):
     if eventType == "turn_on":
@@ -221,7 +199,8 @@ def call_find_solution_llm(user_goal: str, fuzzy_rule_activated: str, automation
     return data
 
 #def detectGoalAdvisor(states, userGoal, environment, infoCtx, selectedAutomation):
-def detectGoalAdvisor(automation, goal, user_id):
+def detectGoalAdvisor(automation, goal, user_id, ha_client_instance):
+
     goalAdvisor_array = []
     config_data = _db.get_config(user_id)
 

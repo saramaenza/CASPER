@@ -307,7 +307,7 @@ async function deleteAutomation(rule_id) {
       document.querySelector(`div [ruleid='${rule_id}']`).remove();
       let rulesList = await getRulesParam() //GET regole
       let problemsList = await getProblems()  //GET problemi
-      problemsList = problemsList.filter(problem => !problem.ignore && !problem.solved);
+      problemsList = problemsList.filter(problem => !problem.ignore && !problem.solved && problem.state != "off");
       printUserRule(rulesList);
       document.querySelector('#n_automations').innerText = rulesList.length;
       document.querySelector('#n_problems').innerText = problemsList.length;
@@ -566,7 +566,7 @@ async function printUserRule(rules) {
                     <div class="loader mini-loader"></div>
                 </div>
             `;
-
+          
           let toggleCall = await triggerToggleAutomation(
             this.getAttribute('ruleid'),
             this.getAttribute('entity')
@@ -593,8 +593,9 @@ async function printUserRule(rules) {
 
           const problemList = await getProblems()
           let filteredProblems = problemList.filter(problem => !problem.ignore && !problem.solved && problem.state == "on");
-          document.querySelector('#n_problems').innerText = filteredProblems.length;
-            
+          //document.querySelector('#n_problems').innerText = filteredProblems.length;
+          printUserProblems(filteredProblems);
+          carouselObject.update(filteredProblems);
           });
         }
       });
@@ -1462,6 +1463,7 @@ function printUserProblems(problemsList) {
   let trueProblemNumber = 0;
   if (!problemsList || problemsList.length === 0) {
       // Nascondi i controlli e mostra il messaggio
+      carousel.innerHTML = '';
       carouselControls.style.display = 'none';
       carouselMessages.innerHTML = `
           <div class="no-problems-message">
@@ -1471,9 +1473,9 @@ function printUserProblems(problemsList) {
           </div>
       `;
       document.querySelector('#n_problems').innerText = 0;
+      carouselMessages.style.display = 'block';
   } else {
     // Mostra i controlli e nascondi il messaggio
-      
       carousel.innerHTML = ''; // Pulisce il contenuto del carousel
       carouselControls.style.display = 'flex';
       carouselMessages.innerHTML = '';

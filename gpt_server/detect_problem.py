@@ -28,18 +28,18 @@ def problem_detector(user_id, session_id, automation_id):
         chain_detector = ChainsDetector(ha_client, user_id)
         conflict_detector = ConflictDetector(ha_client, user_id)
         
-        #direct_chains = chain_detector.detect_chains(data, new_automation, "direct")
-        #indirect_chains = chain_detector.detect_chains(data, new_automation, "indirect")
-        #conflicts = conflict_detector.detect_conflicts(data, new_automation)
+        direct_chains = chain_detector.detect_chains(data, new_automation, "direct")
+        indirect_chains = chain_detector.detect_chains(data, new_automation, "indirect")
+        conflicts = conflict_detector.detect_conflicts(data, new_automation)
         all_goals = {}
+        
         goals =  ["security", "well-being", "energy saving", "health"]
         for goal in goals:
-            goal_advisor = detectGoalAdvisor(new_automation, goal, user_id)
+            goal_advisor = detectGoalAdvisor(new_automation, goal, user_id, ha_client)
             all_goals[goal] = goal_advisor
-        pprint("All goals detected:")
-        pprint(all_goals)
-        #all_problems = direct_chains + indirect_chains + conflicts
-        all_problems = None
+        
+        all_problems = direct_chains + indirect_chains + conflicts
+
         #end = time.time()
         #print(f"Problem detection took {end - start} seconds")
         if not all_problems:
