@@ -222,12 +222,24 @@ body{
   margin-top: 5px;
 }
 
-#rules-container, #problems-main-container, #devices-list-container, #goal-adv-container, #preferences-container{
+#rules-container, #problems-main-container, #devices-list-container, #goal-adv-container, #preferences-container {
   width: 100%;
   height: inherit;
   overflow-y: auto;
   scrollbar-width: none; 
   -ms-overflow-style: none; 
+}
+
+.automation-list-wrapper {
+  height: inherit;
+  overflow-y: auto;
+  scrollbar-width: none; 
+  -ms-overflow-style: none; 
+}
+#goal-adv-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 #msgContainer {
@@ -236,7 +248,7 @@ body{
   -ms-overflow-style: none; 
 }
 
-#rules-container::-webkit-scrollbar, #problems-main-container::-webkit-scrollbar, #devices-list-container::-webkit-scrollbar, #preferences-container::-webkit-scrollbar, #goal-adv-container::-webkit-scrollbar, #msgContainer::-webkit-scrollbar {
+#rules-container::-webkit-scrollbar, #problems-main-container::-webkit-scrollbar, #devices-list-container::-webkit-scrollbar, #preferences-container::-webkit-scrollbar, #goal-adv-container::-webkit-scrollbar, #msgContainer::-webkit-scrollbar, .automation-list-wrapper::-webkit-scrollbar {
     display: none; 
 }
 
@@ -1039,6 +1051,7 @@ td {
   flex: 1;
   overflow-y: auto;
   padding: 12px;
+  max-height: calc(100vh - 200px); /* Regola in base all'altezza del pannello overview */
 }
 
 .automation-card, .container_preferences {
@@ -1978,7 +1991,10 @@ td {
 
 /* Panoramica goal */
 .overview-panel {
-    margin-bottom: 20px;
+  padding: 12px;
+  position: sticky;
+    top: 0;
+    z-index: 10;
 }
 
 .panel-header {
