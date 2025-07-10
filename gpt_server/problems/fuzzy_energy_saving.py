@@ -107,7 +107,7 @@ def getEnergySavingFuzzy(rules, area, environment, nameDevice, environmentVariab
     
     
     data_env = {
-        "energy": 600,
+        "energy": energyValue,
         "window_open": windowStateValue,
         "fan_state": fanStateValue,
         "light_state": lightState,

@@ -70,7 +70,6 @@ def getTextType(eventType):
 def getNegative(list_variables_goals, var_effect, variable, userGoal, area, nameDevice, environment, environmentVariables, description, user_id, device_id, eventType, ha_client_instance):
     if variable not in list_variables_goals["list_of_vars"]:
         return "None"
-    
     negative_effects = list_variables_goals["list_of_vars"][variable]["negative_effect_on_goal"]
         
     result_effects = []
@@ -155,8 +154,8 @@ def getNegative(list_variables_goals, var_effect, variable, userGoal, area, name
                             updated_desc = updated_desc.replace("...", f"{value_env}{unit}")
                             effects.append((updated_desc, None, variable, None))
                     '''
-
-    if userGoal == "energy saving":
+    
+    if userGoal == "energy":
         if eventType == "turn_on":
             oppositive_action = False
             rules = _db.get_automations(user_id)
@@ -170,12 +169,17 @@ def getNegative(list_variables_goals, var_effect, variable, userGoal, area, name
                         type2 = service2.split('.')[1] 
                     id_device2 = get_device_id(action2)
                     nameDevice2 = ha_client_instance.get_device_name_by_user(id_device2)
-
                     if nameDevice2 == nameDevice or id_device2 == device_id:
                         if type2 == "turn_off":
                             oppositive_action = True
             if(oppositive_action == False):
-                result_effects.append(("Questa automazione accende l'oggetto "+nameDevice+" ma non esiste un'automazione che lo spegne.", "70", variable, data_env, "Crea un'automazione che spegne l'oggetto "+nameDevice+" quando non serve."))
+                problem_description = "Questa automazione accende l'oggetto "+nameDevice+" ma non esiste un'automazione che lo spegne."
+                solution_info = call_find_solution_llm(userGoal, problem_description, automation_description, user_id)
+                if(solution_info is not None):
+                    solution = solution_info
+                else:
+                    solution = ""
+                result_effects.append((problem_description, problem_description, variable, data_env, solution))
 
     return result_effects
             
