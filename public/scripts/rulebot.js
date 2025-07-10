@@ -1280,8 +1280,8 @@ document.getElementById('reset').addEventListener('click', resetConversation);
 // Funzione per resettare la chat
 function resetConversation() {
     // Crea l'overlay
-    generateDialog("info", "Da fixare", "Sembra funzionare ma c'e qualcosa che non va, da debuggare :D", () => {});
-    return;
+    //generateDialog("info", "Da fixare", "Sembra funzionare ma c'e qualcosa che non va, da debuggare :D", () => {});
+    //return;
     generateDialog("confirm", "Reset della chat", "Sei sicuro di voler resettare la chat con Casper?", async ()=>{
       let response = await getData(resetConversationUrl)
       if (response.status === "ok") {
