@@ -243,6 +243,7 @@ list_variables_goals = {
         "variable_effect": "none"
       }] 
     }
+    
   ]
 }    
   }

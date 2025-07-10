@@ -647,12 +647,6 @@ function getAutomationIconInfo(automation) {
             className: "air-icon"
         };
     }
-    if(text.includes("aria condizionata") || text.includes("air conditioning") || text.includes("ac")) {
-        return {
-            icon: "❄️",
-            className: "ac-icon"
-        };
-    }
     if (text.includes("lavatrice") || text.includes("washing machine")) {
         return {
             icon: "🧺",
@@ -735,6 +729,18 @@ function getAutomationIconInfo(automation) {
         return {
             icon: "🔌",
             className: "plug-icon"
+        };
+    }
+    if (text.includes("forno") || text.includes("oven") || text.includes("stove")) {
+        return {
+            icon: "🔥",
+            className: "oven-icon"
+        };
+    }
+    if(text.includes("aria condizionata") || text.includes("air conditioning") || text.includes("ac")) {
+        return {
+            icon: "❄️",
+            className: "ac-icon"
         };
     }
     // Default

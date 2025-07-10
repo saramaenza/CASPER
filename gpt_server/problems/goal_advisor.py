@@ -4,8 +4,6 @@
 from http import client
 from marshmallow import pprint
 from requests import get, post
-
-
 import sys # Added for testing
 import os # Added for testing
 import re  
@@ -69,10 +67,9 @@ def getTextType(eventType):
 
 
 #def getNegative(list_variables_goals, var_effect, variable, userGoal, area, nameDevice, environment, environmentVariables, entity_id):
-def getNegative(list_variables_goals, var_effect, variable, userGoal, area, nameDevice, environment, environmentVariables, description, user_id):
+def getNegative(list_variables_goals, var_effect, variable, userGoal, area, nameDevice, environment, environmentVariables, description, user_id, device_id, eventType, ha_client_instance):
     if variable not in list_variables_goals["list_of_vars"]:
         return "None"
-    
     negative_effects = list_variables_goals["list_of_vars"][variable]["negative_effect_on_goal"]
         
     result_effects = []
@@ -94,13 +91,11 @@ def getNegative(list_variables_goals, var_effect, variable, userGoal, area, name
 
     for effect in negative_effects:
 
-
         if effect["goal"] != userGoal:
             continue
 
         # Iterate over all "when" conditions for this effect
         for when_condition in effect["when"]:
-        
             if when_condition["variable_effect"] not in [var_effect, "none"]:
                 continue
  
@@ -110,6 +105,7 @@ def getNegative(list_variables_goals, var_effect, variable, userGoal, area, name
 
             if fuzzy_rules != "none":
                 fuzzy_function = goal_to_fuzzy_function.get(userGoal)
+ 
                 if not fuzzy_function:
                     continue
 
@@ -157,8 +153,76 @@ def getNegative(list_variables_goals, var_effect, variable, userGoal, area, name
                             updated_desc = f"{description} ({value_desired}{unit}) in {area}"
                             updated_desc = updated_desc.replace("...", f"{value_env}{unit}")
                             effects.append((updated_desc, None, variable, None))
-                    '''
+                '''
 
+    if userGoal == "energy":
+        if eventType == "turn_on":
+            has_oppositive_action = False
+            rules = _db.get_automations(user_id)
+            for rule2 in rules:
+                rule2 = rule2['config']
+                actions2 = rule2.get("actions", []) or rule2.get("action", [])
+                for action2 in actions2:
+                    type2 = action2.get("type", None)
+                    if type2 is None:
+                        service2 = action2.get("service")
+                        type2 = service2.split('.')[1] 
+                    id_device2 = get_device_id(action2)
+                    nameDevice2 = ha_client_instance.get_device_name_by_user(id_device2)
+                    if nameDevice2 == nameDevice or id_device2 == device_id:
+                        if type2 == "turn_off":
+                            has_oppositive_action = True
+            if(has_oppositive_action == False):
+                problem_description = "Questa automazione accende l'oggetto "+nameDevice+" ma non esiste un'automazione che lo spegne."
+                solution_info = call_find_solution_llm(userGoal, problem_description, automation_description, user_id)
+                if(solution_info is not None):
+                    solution = solution_info
+                else:
+                    solution = ""
+                result_effects.append((problem_description, problem_description, variable, [], solution))
+
+    if userGoal == "security":
+        dangerous_device_keywords = ["forno", "stufetta", "heater", "oven", "stove", "radiator", "riscaldamento", "stufa"]
+       
+        if eventType == "turn_on" and any(keyword in nameDevice.lower() for keyword in dangerous_device_keywords):
+
+            # Controlla se esiste già un'automazione di sicurezza per questo dispositivo
+            has_security_automation = False
+            rules = _db.get_automations(user_id)
+            
+            for rule2 in rules:
+                rule2 = rule2['config']
+                triggers = rule2.get("trigger", []) or rule2.get("triggers", [])
+                actions2 = rule2.get("actions", []) or rule2.get("action", [])
+
+                # Controlla i trigger basati sul tempo o sulla presenza con le azioni turn_off
+                for trigger in triggers:
+                    trigger_platform = trigger.get("platform", "")
+                    if trigger_platform in ["time", "state", "zone"]:  # Time or presence triggers
+                        for action2 in actions2:
+                            type2 = action2.get("type", None)
+                            if type2 is None:
+                                service2 = action2.get("service", "")
+                                if "." in service2:
+                                    type2 = service2.split('.')[1]
+                            
+                            id_device2 = get_device_id(action2)
+                            if (id_device2 == device_id or 
+                                ha_client_instance.get_device_name_by_user(id_device2) == nameDevice) and type2 == "turn_off":
+                                has_security_automation = True
+                                break
+                
+                if has_security_automation:
+                    break
+            if has_security_automation == False:
+                problem_description = f"Dispositivo potenzialmente pericoloso '{nameDevice}' viene acceso ma non esiste un'automazione di sicurezza per spegnerlo automaticamente dopo un certo tempo o in caso di assenza dell'utente."
+                solution_info = call_find_solution_llm(userGoal, problem_description, automation_description, user_id)
+                if(solution_info is not None):
+                    solution = solution_info
+                    print(f"DEBUG: Solution found: {solution}")
+                else:
+                    solution = ""
+                result_effects.append((problem_description, problem_description, variable, [], solution))
 
     return result_effects
             
@@ -253,7 +317,8 @@ def detectGoalAdvisor(automation, goal, user_id, ha_client_instance):
             effect = key
             variables = values
             for variable in variables:
-                negativeEffect = getNegative(list_variables_goals, effect, variable, goal, area, nameDevice, "real", environmentVariables, description, user_id)
+ 
+                negativeEffect = getNegative(list_variables_goals, effect, variable, goal, area, nameDevice, "real", environmentVariables, description, user_id, device_id, eventType, ha_client_instance)
 
                 if negativeEffect != None and len(negativeEffect) > 0: 
 

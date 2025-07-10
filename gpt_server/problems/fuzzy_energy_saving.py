@@ -87,7 +87,6 @@ rule5_2 = ctrl.Rule(heater_state['on'] & person['home'], energy_saving_problem['
 rule5_3 = ctrl.Rule(heater_state['off'] & person['home'], energy_saving_problem['no'])  
 rule5_4 = ctrl.Rule(heater_state['off'] & person['home'], energy_saving_problem['no']) 
 
-
 def getEnergySavingFuzzy(rules, area, environment, nameDevice, environmentVariables=None):
     #print("\n********* ENERGY SAVING ************\n")
 
@@ -108,7 +107,7 @@ def getEnergySavingFuzzy(rules, area, environment, nameDevice, environmentVariab
     
     
     data_env = {
-        "energy": 600,
+        "energy": energyValue,
         "window_open": windowStateValue,
         "fan_state": fanStateValue,
         "light_state": lightState,

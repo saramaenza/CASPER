@@ -1164,6 +1164,7 @@ td {
 .plug-icon { background: linear-gradient(135deg, #FF6B35, #ff0073); }
 .air-icon { background: linear-gradient(135deg, #ff6bc4, #ae00ff); }
 .room-icon { background: linear-gradient(135deg, #0066FF, #00FF88); }
+.oven-icon { background: linear-gradient(135deg, #5cf67d, #35e1ff); }
 
 .automation-title {
   font-size: 14px;
@@ -2018,7 +2019,7 @@ td {
     flex: 1; 
     min-width: 0; 
     border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     text-align: center;
     padding: 7px;
     display: flex;
