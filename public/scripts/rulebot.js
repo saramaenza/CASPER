@@ -629,7 +629,7 @@ function getAutomationIconInfo(automation) {
             className: "light-icon"
         };
     }
-    if (text.includes("temperatura") || text.includes("climate")) {
+    if (text.includes("temperatura") || text.includes("climate") || text.includes("riscaldamento") || text.includes("heating") || text.includes("calore") || text.includes("heat") || text.includes("stufetta") || text.includes("stufa")) {
         return {
             icon: "🌡️",
             className: "schedule-icon"

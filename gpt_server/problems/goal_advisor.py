@@ -8,6 +8,10 @@ import sys # Added for testing
 import os # Added for testing
 import re  
 from collections import OrderedDict
+# Add parent directory (gpt_server) to sys.path for standalone testing
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+# Fix import based on execution context
+
 import db_functions as _db
 
 from problems.fuzzy_wellbeing import getWellBeingFuzzy
@@ -25,8 +29,7 @@ import responses
 from problems.list_devices_variables import list_devices # Changed for testing
 from problems.list_variables_goals import list_variables_goals # Changed for testing
 
-# Add parent directory (gpt_server) to sys.path for standalone testing
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 
 def getContextVariables(list_devices_variables, action_domain, eventType):
     domain_data = list_devices_variables["list_of_domains"].get(action_domain)
@@ -86,7 +89,7 @@ def getNegative(list_variables_goals, var_effect, variable, userGoal, area, name
         "health": getHealthFuzzy,
         "security": getSecurityFuzzy,
         "safety": getSafetyFuzzy,
-        "energy": lambda fuzzy_rules, area, environment, environmentVariables: getEnergySavingFuzzy(fuzzy_rules, area, environment, nameDevice, environmentVariables)
+        "energy": lambda fuzzy_rules, area, environment, environmentVariables, ha_client_instance: getEnergySavingFuzzy(fuzzy_rules, area, environment, nameDevice, environmentVariables, ha_client_instance)
     }
 
     for effect in negative_effects:
@@ -109,7 +112,7 @@ def getNegative(list_variables_goals, var_effect, variable, userGoal, area, name
                 if not fuzzy_function:
                     continue
 
-                args = [fuzzy_rules, area, environment, environmentVariables]
+                args = [fuzzy_rules, area, environment, environmentVariables, ha_client_instance]
 
                 problem_result = fuzzy_function(*args)
 
@@ -166,7 +169,15 @@ def getNegative(list_variables_goals, var_effect, variable, userGoal, area, name
                     type2 = action2.get("type", None)
                     if type2 is None:
                         service2 = action2.get("service")
-                        type2 = service2.split('.')[1] 
+                        if service2 is None:
+                            action_field = action2.get("action")
+                            if action_field is not None and "." in action_field:
+                                type2 = action_field.split('.')[1]
+                            if type2 is None:
+                                continue
+                        else:
+                            type2 = service2.split('.')[1] 
+                    
                     id_device2 = get_device_id(action2)
                     nameDevice2 = ha_client_instance.get_device_name_by_user(id_device2)
                     if nameDevice2 == nameDevice or id_device2 == device_id:
@@ -182,7 +193,7 @@ def getNegative(list_variables_goals, var_effect, variable, userGoal, area, name
                 result_effects.append((problem_description, problem_description, variable, [], solution))
 
     if userGoal == "security":
-        dangerous_device_keywords = ["forno", "stufetta", "heater", "oven", "stove", "radiator", "riscaldamento", "stufa"]
+        dangerous_device_keywords = ["forno", "stufetta", "heater", "oven", "stove", "radiator", "riscaldamento", "stufa", "fornello"]
        
         if eventType == "turn_on" and any(keyword in nameDevice.lower() for keyword in dangerous_device_keywords):
 
@@ -264,7 +275,7 @@ def call_find_solution_llm(user_goal: str, fuzzy_rule_activated: str, automation
 
 #def detectGoalAdvisor(states, userGoal, environment, infoCtx, selectedAutomation):
 def detectGoalAdvisor(automation, goal, user_id, ha_client_instance):
-
+    automation = {'alias': 'Accendi il purificatore salotto ogni giorno a mezzogiorno per 1 ora', 'description': 'Evento: ogni giorno alle 12:00 (time)\nAzione: accendi il purificatore salotto (fan.purificatore_salotto) e spegnilo dopo 1 ora.', 'trigger': [{'platform': 'time', 'at': '12:00:00'}], 'action': [{'service': 'fan.turn_on', 'target': {'entity_id': 'fan.purificatore_camera_da_letto'}}, {'delay': '01:00:00'}, {'service': 'fan.turn_off', 'target': {'entity_id': 'fan.purificatore_salotto'}}], 'mode': 'single', 'id': '2'}
     goalAdvisor_array = []
     config_data = _db.get_config(user_id)
 
@@ -273,11 +284,9 @@ def detectGoalAdvisor(automation, goal, user_id, ha_client_instance):
     ruleName = automation.get("alias", None)   
     description = automation.get("description", None)
     id_automation = automation.get("id", None)
-    actions = automation.get("actions", [])  #recupero le azioni delle automazioni
-    if not actions:
-        actions = automation.get("action", [])
-
+    actions = automation.get("actions", []) or automation.get("action", [])
     for index, action in enumerate(actions):
+     
         domain = action.get("domain")
         entity_id = action.get("entity_id", None)
         if entity_id is None:
@@ -300,7 +309,6 @@ def detectGoalAdvisor(automation, goal, user_id, ha_client_instance):
         if (area_id == None):
             area_id = ha_client_instance.getRoomDevice(device_id)  
             #get the device name given by the user
-        
         eventType = action.get("type", None)
         if eventType is None:
             eventType = service.split('.')[1] 
@@ -353,3 +361,49 @@ states = client.get_all_states()  # Get all states (already a Python list/dict)
 
 detectGoalAdvisor(states)
 '''
+
+if __name__ == "__main__":
+    import os
+    from ha_client import HomeAssistantClient
+    
+    # url HA ufficio
+    base_url = "http://luna.isti.cnr.it:8123"
+    
+    # url HA casa simone
+    # base_url = "https://test-home.duckdns.org"
+    user_id = "6818c8ac24e5db8f9a0304e5"
+    
+    # token HA ufficio
+    token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiI2ODdmNGEyMDg5ZjA0NDc2YjQ2ZGExNWM3ZTYwNTRjYyIsImlhdCI6MTcxMTA5ODc4MywiZXhwIjoyMDI2NDU4NzgzfQ.lsqxXXhaSBa5BuoXbmho_XsEkq2xeCAeXL4lu7c2LMk"
+    
+    # Create HomeAssistant client
+    ha_client = HomeAssistantClient(base_url, token)
+    
+    automations_post = {
+      "id": "2",
+      "entity_id": "automation.accendi_il_purificatore_salotto_alle_12_00",
+      "state": "on",
+      "config": {
+        "alias": "Accendi il Purificatore salotto alle 12:00",
+        "description": "Evento: alle 12:00 (orario) Azione: accendi il Purificatore salotto (fan.purificatore_salotto)",
+        "trigger": [
+          {
+            "platform": "time",
+            "at": "12:00:00"
+          }
+        ],
+        "action": [
+          {
+            "service": "fan.turn_on",
+            "target": {
+              "entity_id": "fan.purificatore_salotto"
+            }
+          }
+        ],
+        "id": "2"
+      }
+    }
+    # Create ConflictDetector
+    detector = detectGoalAdvisor(automations_post, "energy", user_id, ha_client)
+    
+    print("Info GOAL: ", detector)

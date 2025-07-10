@@ -3,6 +3,7 @@ from marshmallow import pprint
 import time
 import db_functions as _db
 from problems.goal_advisor import detectGoalAdvisor
+from problems.revert_problem import detectRevertProblem
 import utils
 from problems.conflicts import ConflictDetector
 from problems.chains import ChainsDetector
@@ -32,15 +33,19 @@ def problem_detector(user_id, session_id, automation_id):
         direct_chains = chain_detector.detect_chains(data, new_automation, "direct")
         indirect_chains = chain_detector.detect_chains(data, new_automation, "indirect")
         conflicts = conflict_detector.detect_conflicts(data, new_automation)
-        #all_goals = {}
-        
+        """"
         goals =  ["security", "well-being", "energy", "health"]
         for goal in goals:
             goal_advisor = detectGoalAdvisor(new_automation, goal, user_id, ha_client)
-            #all_goals[goal] = goal_advisor
             if goal_advisor is not None and len(goal_advisor) > 0:
                 _db.post_goal(user_id, goal, goal_advisor)
-        
+        """
+        goals =  ["security", "energy"]
+        for goal in goals:
+            revert_problem = detectRevertProblem(new_automation, goal, user_id, ha_client)
+            if revert_problem is not None and len(revert_problem) > 0:
+                _db.post_goal(user_id, goal, revert_problem)
+
         all_problems = direct_chains + indirect_chains + conflicts
 
         #end = time.time()
