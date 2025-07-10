@@ -53,7 +53,7 @@ app.use(function (req, res, next) {
 
 //const rawData = fs.readFileSync('configs.json');
 //const configs = JSON.parse(rawData)['grimilde']; //0 per giove, 1 per africa
-const python_server = "http://127.0.0.1:8080/demo"
+const python_server = "http://127.0.0.1:8080/"
 
 const port = process.env.PORT || configs.port; //3500 || 443
 let server = null;
