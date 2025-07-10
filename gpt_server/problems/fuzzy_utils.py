@@ -1,21 +1,51 @@
 import re
 from collections import defaultdict
 import numpy as np
-
+import requests
 
 # Funzione di supporto per ottenere i dati
-def getData(area, var_name, environmentVariables=None):
-    realDataVariable = getRealDataVariable(area, var_name, environmentVariables or {})
+def getData(area, var_name, environmentVariables, ha_client):
+    realDataVariable = getRealDataVariable(area, var_name, environmentVariables or {}, ha_client)
     #print(f"realDataVariable for {var_name}: {realDataVariable}")
     return realDataVariable
 
-def getRealDataVariable(area, variable, environmentVariables):
+def getRealDataVariable(area, variable, environmentVariables, ha_client):
     for item in environmentVariables.values():
-        if isinstance(item, dict) and item.get('room') == area and item.get('class') == variable:
-            return item['state']
+        if item.get('room') == area and item.get('class') == variable:
+            entity_id = item.get('entity_id')
+            base_url = ha_client.base_url
+            auth_header = ha_client.headers.get('Authorization', '')
+            token = auth_header.replace('Bearer ', '') if auth_header.startswith('Bearer ') else None
+            state = get_entity_state_from_ha(entity_id, ha_client.base_url, token)
+            return state
+
+def get_entity_state_from_ha(entity_id, base_url, token):
+    """
+    Recupera lo stato attuale dell'entità da Home Assistant
+    """
+    url = f"{base_url}/api/states/{entity_id}"
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json"
+    }
+    
+    response = requests.get(url, headers=headers, timeout=5)
+    
+    if response.status_code == 200:
+        data = response.json()
+        state_value = data.get('state')
         
+        if state_value:
+            try:
+                return state_value
+            except ValueError:
+                return state_value
+        else:
+            return None
+    else:
+        return None
 
-
+    
 def transform_rule_to_array(expression):
     expression = str(expression)
     # Rimuove tutte le parentesi e gli operatori AND e OR

@@ -242,6 +242,14 @@ list_variables_goals = {
         "fuzzyRulesToCheck": "rule5",
         "variable_effect": "none"
       }] 
+    },
+    {  
+      "goal": "energy",
+      "description": "Il purificatore d'aria è acceso quando la qualità dell'aria è buona, causando spreco di energia",
+      "when": [{
+        "fuzzyRulesToCheck": "rule6",
+        "variable_effect": "none"
+      }] 
     }
     
   ]

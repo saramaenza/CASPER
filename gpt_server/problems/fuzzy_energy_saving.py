@@ -12,6 +12,8 @@ light_state = ctrl.Antecedent(np.arange(0, 3, 1), 'light_state')
 heater_state = ctrl.Antecedent(np.arange(0, 3, 1), 'heater_state')
 presence = ctrl.Antecedent(np.arange(0, 3, 1), 'presence')
 person = ctrl.Antecedent(np.arange(0, 3, 1), 'person')
+aqi = ctrl.Antecedent(np.arange(0, 401, 1), 'aqi')
+illuminance = ctrl.Antecedent(np.arange(0, 101, 1), 'illuminance')
 
 energy_saving_problem = ctrl.Consequent(np.arange(0, 101, 1), 'energy_saving_problem')
 
@@ -42,6 +44,17 @@ presence['none'] = fuzz.trimf(presence.universe, [2, 2, 2])
 person['home'] = fuzz.trimf(person.universe, [0, 0, 0])
 person['not_home'] = fuzz.trimf(person.universe, [1, 1, 1])
 person['none'] = fuzz.trimf(person.universe, [2, 2, 2])
+
+#rif: https://aqicn.org/scale/
+aqi['good'] = fuzz.trimf(aqi.universe, [0, 0, 50])
+aqi['moderate'] = fuzz.trimf(aqi.universe, [51, 51, 100])
+aqi['unhealthy'] = fuzz.trimf(aqi.universe, [101, 101, 200])
+aqi['very_unhealthy'] = fuzz.trimf(aqi.universe, [201, 201, 300])
+aqi['hazardous'] = fuzz.trimf(aqi.universe, [301, 400, 400])
+
+illuminance['low'] = fuzz.trimf(illuminance.universe, [0, 0, 50])
+illuminance['medium'] = fuzz.trimf(illuminance.universe, [30, 50, 70])
+illuminance['high'] = fuzz.trimf(illuminance.universe, [50, 100, 100])
 
 energy_saving_problem['no'] = fuzz.trimf(energy_saving_problem.universe, [0, 0, 20])
 energy_saving_problem['low'] = fuzz.trimf(energy_saving_problem.universe, [20, 30, 50])
@@ -87,25 +100,46 @@ rule5_2 = ctrl.Rule(heater_state['on'] & person['home'], energy_saving_problem['
 rule5_3 = ctrl.Rule(heater_state['off'] & person['home'], energy_saving_problem['no'])  
 rule5_4 = ctrl.Rule(heater_state['off'] & person['home'], energy_saving_problem['no']) 
 
-def getEnergySavingFuzzy(rules, area, environment, nameDevice, environmentVariables=None):
+# Regole per purificatore d'aria ridondante
+rule6_1 = ctrl.Rule(fan_state['on'] & aqi['good'], energy_saving_problem['high'])
+rule6_2 = ctrl.Rule(fan_state['on'] & aqi['moderate'], energy_saving_problem['low'])
+rule6_3 = ctrl.Rule(fan_state['on'] & aqi['unhealthy'], energy_saving_problem['no'])
+rule6_4 = ctrl.Rule(fan_state['on'] & aqi['very_unhealthy'], energy_saving_problem['no'])
+rule6_5 = ctrl.Rule(fan_state['on'] & aqi['hazardous'], energy_saving_problem['no'])
+rule6_6 = ctrl.Rule(fan_state['off'] & aqi['good'], energy_saving_problem['no'])
+rule6_7 = ctrl.Rule(fan_state['off'] & aqi['moderate'], energy_saving_problem['no'])
+rule6_8 = ctrl.Rule(fan_state['off'] & aqi['unhealthy'], energy_saving_problem['no'])
+rule6_9 = ctrl.Rule(fan_state['off'] & aqi['very_unhealthy'], energy_saving_problem['no'])
+rule6_10 = ctrl.Rule(fan_state['off'] & aqi['hazardous'], energy_saving_problem['no'])
+'''
+# Regole per illuminazione ridondante
+rule7_1 = ctrl.Rule(light_state['on'] & illuminance['high'], energy_saving_problem['moderate'])
+rule7_2 = ctrl.Rule(light_state['on'] & illuminance['medium'], energy_saving_problem['low'])
+rule7_3 = ctrl.Rule(light_state['on'] & illuminance['low'], energy_saving_problem['no'])
+rule7_4 = ctrl.Rule(light_state['off'] & illuminance['high'], energy_saving_problem['no'])
+rule7_5 = ctrl.Rule(light_state['off'] & illuminance['medium'], energy_saving_problem['no'])
+rule7_6 = ctrl.Rule(light_state['off'] & illuminance['low'], energy_saving_problem['no'])
+'''
+
+def getEnergySavingFuzzy(rules, area, environment, nameDevice, environmentVariables, ha_client):
     #print("\n********* ENERGY SAVING ************\n")
 
     # Ottieni i dati
-    energyValue = getData(area, "energy", environmentVariables) or 0
-    windowStateValue = getData(area, "window", environmentVariables) or 2
+    energyValue = getData(area, "energy", environmentVariables, ha_client) or 0
+    windowStateValue = getData(area, "window", environmentVariables, ha_client) or 2
     windowStateValue = 1 if windowStateValue == "Open" else 0
-    fanStateValue = getData(area, "fan", environmentVariables) or 2
+    fanStateValue = getData(area, "fan", environmentVariables, ha_client) or 2
     fanStateValue = 1 if fanStateValue == "On" else 0
-    presenceState = getData(area, "motion", environmentVariables) or 2
+    presenceState = getData(area, "motion", environmentVariables, ha_client) or 2
     presenceState = 1 if presenceState == "On" else 0
-    lightState = getData(area, "light", environmentVariables) or 2
+    lightState = getData(area, "light", environmentVariables, ha_client) or 2
     lightState = 1 if lightState == "On" else 0
-    heaterState = getData(area, "heater", environmentVariables) or 2
+    heaterState = getData(area, "heater", environmentVariables, ha_client) or 2
     heaterState = 1 if heaterState == "On" else 0
-    personState = getData(area, "person", environmentVariables) or 2
+    personState = getData(area, "person", environmentVariables, ha_client) or 2
     personState = 0 if personState == "home" else 1
-    
-    
+    aqiValue = getData(area, "aqi", environmentVariables, ha_client) or 0
+
     data_env = {
         "energy": energyValue,
         "window_open": windowStateValue,
@@ -113,7 +147,8 @@ def getEnergySavingFuzzy(rules, area, environment, nameDevice, environmentVariab
         "light_state": lightState,
         "presence": presenceState,
         "person": personState,
-        "heater_state": heaterState
+        "heater_state": heaterState,
+        "aqi": aqiValue
     }
     
     # Dizionario per mappare le regole ai loro dettagli
@@ -123,6 +158,7 @@ def getEnergySavingFuzzy(rules, area, environment, nameDevice, environmentVariab
         'rule3': {'rules': [rule3_1, rule3_2, rule3_3, rule3_4], 'inputs': ['presence', 'light_state']},
         'rule4': {'rules': [rule4_1, rule4_2, rule4_3, rule4_4], 'inputs': ['person', 'light_state']},
         'rule5': {'rules': [rule5_1, rule5_2, rule5_3, rule5_4], 'inputs': ['person', 'heater_state']},
+        'rule6': {'rules': [rule6_1, rule6_2, rule6_3, rule6_4, rule6_5, rule6_6, rule6_7, rule6_8, rule6_9, rule6_10], 'inputs': ['aqi', 'fan_state']}
     }
 
     if rules not in rule_configs:
