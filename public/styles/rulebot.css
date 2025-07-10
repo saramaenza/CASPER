@@ -1164,6 +1164,7 @@ td {
 .plug-icon { background: linear-gradient(135deg, #FF6B35, #ff0073); }
 .air-icon { background: linear-gradient(135deg, #ff6bc4, #ae00ff); }
 .room-icon { background: linear-gradient(135deg, #0066FF, #00FF88); }
+.oven-icon { background: linear-gradient(135deg, #5cf67d, #35e1ff); }
 
 .automation-title {
   font-size: 14px;
