@@ -171,6 +171,32 @@ const getProblems = async (userId) => {
     }
 };
 
+const getProblemsGoals = async (userId) => {
+    try {
+        const database = client.db(dbName);
+        const conflictsGoal = database.collection('goals');
+        const userConflictsGoal = await conflictsGoal.findOne({ 'user_id': userId });
+        if (!userConflictsGoal) return []; // Se non ci sono conflitti, restituisci un array vuoto
+        
+        // Combine all goal types into a single array
+        let allGoals = [];
+        
+        // Iterate through all possible goal types
+        const goalTypes = ["security", "well-being", "energy", "health"];
+        
+        for (const goalType of goalTypes) {
+            if (userConflictsGoal[goalType] && Array.isArray(userConflictsGoal[goalType])) {
+                allGoals = allGoals.concat(userConflictsGoal[goalType]);
+            }
+        }
+        
+        return allGoals;
+    } catch (err) {
+        console.log('error in db_methonds - getProblemsGoal');
+        console.log(err);
+        return [];
+    }
+};
 
 const getAutomations=async (userId) => {
     
@@ -704,6 +730,7 @@ module.exports = {
     userInfo,
     verifyEmail,
     getProblems,
+    getProblemsGoals,
     getAutomations,
     saveConfiguration,
     saveSelectedConfiguration,

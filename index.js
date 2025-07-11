@@ -24,7 +24,7 @@ const uuid = require('uuid');
 const bcrypt = require('bcryptjs')
 const cookieParser = require('cookie-parser')
 const jwt = require('jsonwebtoken')
-const {setServerConfig, createUser, getUser, verifyToken, isLogged, createGoogleUser, userInfo, verifyEmail, getProblems, getAutomations, getConfiguration, saveConfiguration,  saveSelectedConfiguration, saveAutomations, saveAutomation, deleteRule, closeDatabaseConnection, ignoreProblem} = require('./db_methods.cjs');
+const {setServerConfig, createUser, getUser, verifyToken, isLogged, createGoogleUser, userInfo, verifyEmail, getProblems, getProblemsGoals,getAutomations, getConfiguration, saveConfiguration,  saveSelectedConfiguration, saveAutomations, saveAutomation, deleteRule, closeDatabaseConnection, ignoreProblem} = require('./db_methods.cjs');
 const JWT_SECRET = 'sdjkfh8923yhjdksbfma@#*(&@*!^#&@bhjb2qiuhesdbhjdsfg839ujkdhfjk'
 // =======================================
 const { getEntities, getAutomationsHA, postAutomationHA, getEntitiesStates, toggleAutomation, deleteAutomation} = require('./utils.cjs');
@@ -428,6 +428,17 @@ app.use('/get_problems', verifyToken, async (req, res) => {
   try {
     let user_id = req.body.user_id;
     const data = await getProblems(user_id);
+    res.json(data);
+  } catch (error) {
+    console.log('/get_problems error:');
+    console.log(error);
+  }
+}); 
+
+app.use('/get_problems_goal', verifyToken, async (req, res) => {
+  try {
+    let user_id = req.body.user_id;
+    const data = await getProblemsGoals(user_id);
     res.json(data);
   } catch (error) {
     console.log('/get_problems error:');

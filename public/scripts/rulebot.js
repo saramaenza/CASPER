@@ -15,6 +15,7 @@ const getDevices = `${base_link}/get_config`; // chiamata POST per ricevere la l
 const getEntitiesStates = `${base_link}/get_entities_states`; // chiamata POST per ricevere lo stato delle entità
 const sendMessage = `${base_link}/send_message`; // chiamata POST per ricevere la lista delle regole
 const getProblemList = `${base_link}/get_problems`; // chiamata GET per ricevere la lista dei problemi
+const getProblemGoalList = `${base_link}/get_problems_goal`; // chiamata GET per ricevere la lista dei problemi legati ai goal
 const ping = `${base_link}/post_chat_state`; // chiamata POST per mantere la sessione attiva
 const toggleAutomation = `${base_link}/toggle_automation`; // chiamata per accendere/spegnere un'automazione
 const ignoreProblem = `${base_link}/ignore_problem`; // chiamata per ignorare un problema
@@ -245,6 +246,8 @@ window.addEventListener('load', async ()=>{
   printUserRule(rulesList); //PRINT regole
   printUserDevices(devicesList); //PRINT devices
   let problemsList = await getProblems()
+  let problemGoalList = await getProblemGoal()
+  console.log("Problem goal list: ", problemGoalList);
   problemsList = problemsList.filter(problem => !problem.ignore && !problem.solved && problem.state != "off");
   printUserProblems(problemsList);
   carouselObject = new Carousel(problemsList)
@@ -368,6 +371,27 @@ async function deleteAutomation(rule_id) {
       });
     });
   }
+
+  function getProblemGoal() {
+      return new Promise((resolve, reject) => {
+        fetch(getProblemGoalList, {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({"user_id": userId})
+        })
+        .then(response => response.json())
+        .then(data => {
+          resolve(data); // Risolve la promessa con i dati desiderati
+        })
+        .catch(error => {
+          console.log(error);
+          reject(error); // Reietta la promessa in caso di errore
+        });
+      });
+    }
 
   function triggerToggleAutomation(automationId, automationEntityId) {
     return new Promise((resolve, reject) => {
