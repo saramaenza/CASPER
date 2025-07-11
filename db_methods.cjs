@@ -335,6 +335,7 @@ const deleteRule = async (userId, ruleId, haDeleteFunc) => {
         const database = client.db(dbName);
         const automations = database.collection('automations');
         const problems = database.collection('problems');
+        const goals = database.collection('goals');
         // elimina l'automazione dal database
         const userAutomations = await automations.findOne({ 'user_id': userId });
         
@@ -396,6 +397,84 @@ const deleteRule = async (userId, ruleId, haDeleteFunc) => {
             );
             
         } 
+
+        // Elimina i goals che coinvolgono questa automazione
+        const userGoals = await goals.findOne({ 'user_id': userId });
+        
+        if (userGoals) {
+            let goalsUpdated = false;
+            const updatedGoals = {};
+            
+            // Itera attraverso ogni tipo di goal (energy, health, security, etc.)
+            for (const [goalType, goalArray] of Object.entries(userGoals)) {
+                if (goalType === '_id' || goalType === 'user_id' || goalType === 'created' || goalType === 'last_update') {
+                    continue;
+                }
+                
+                if (Array.isArray(goalArray)) {
+                    // Filtra i goals che NON coinvolgono l'automazione eliminata
+                    const filteredGoals = goalArray.filter(goal => {
+                        if (!goal.rules || !Array.isArray(goal.rules)) {
+                            return true;
+                        }
+                        
+                        // Controlla se il goal coinvolge l'automazione eliminata
+                        const involvesDeletedRule = goal.rules.some(rule => {
+                            const ruleIdStr = rule.id ? rule.id.toString() : '';
+                            const targetIdStr = ruleId.toString();
+                            return ruleIdStr === targetIdStr;
+                        });
+                        
+                        if (involvesDeletedRule) {
+                            goalsUpdated = true;
+                            return false; // Esclude questo goal
+                        }
+                        
+                        return true; // Mantiene questo goal
+                    });
+                    
+                    // Solo aggiungi il goalType se l'array non è vuoto
+                    if (filteredGoals.length > 0) {
+                        updatedGoals[goalType] = filteredGoals;
+                    } else {
+                        goalsUpdated = true; // Segna che è stato aggiornato perché abbiamo rimosso un array vuoto
+                    }
+                } else {
+                    updatedGoals[goalType] = goalArray;
+                }
+            }
+            
+            // Aggiorna la collezione goals solo se ci sono stati cambiamenti
+            if (goalsUpdated) {
+                // Usa $unset per rimuovere completamente i campi che non sono in updatedGoals
+                const fieldsToUnset = {};
+                for (const [goalType, goalArray] of Object.entries(userGoals)) {
+                    if (goalType !== '_id' && goalType !== 'user_id' && goalType !== 'created' && goalType !== 'last_update') {
+                        if (Array.isArray(goalArray) && !updatedGoals.hasOwnProperty(goalType)) {
+                            fieldsToUnset[goalType] = "";
+                        }
+                    }
+                }
+                
+                const updateOperation = {
+                    $set: {
+                        ...updatedGoals,
+                        'last_update': new Date()
+                    }
+                };
+                
+                // Aggiungi $unset solo se ci sono campi da rimuovere
+                if (Object.keys(fieldsToUnset).length > 0) {
+                    updateOperation.$unset = fieldsToUnset;
+                }
+                
+                await goals.updateOne(
+                    { 'user_id': userId },
+                    updateOperation
+                );
+                
+            }
+        }
         
         // elimina l'automazione da Home Assistant
         const config = await getConfiguration(userId);
