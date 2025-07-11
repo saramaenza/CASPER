@@ -248,7 +248,7 @@ body{
   -ms-overflow-style: none; 
 }
 
-#rules-container::-webkit-scrollbar, #problems-main-container::-webkit-scrollbar, #devices-list-container::-webkit-scrollbar, #preferences-container::-webkit-scrollbar, #goal-adv-container::-webkit-scrollbar, #msgContainer::-webkit-scrollbar, .automation-list-wrapper::-webkit-scrollbar {
+#rules-container::-webkit-scrollbar, #problems-main-container::-webkit-scrollbar, #devices-list-container::-webkit-scrollbar, #preferences-container::-webkit-scrollbar, #goal-adv-container::-webkit-scrollbar, #msgContainer::-webkit-scrollbar, .automation-list-wrapper::-webkit-scrollbar, .devices-list-wrapper::-webkit-scrollbar {
     display: none; 
 }
 
@@ -1104,7 +1104,7 @@ td {
 .no-problems-message {
     text-align: center;
     color: var(--text-primary);
-    font-size: 1.2em;
+    font-size: 20px;
     padding-top: 20px;
 }
 
@@ -1914,6 +1914,7 @@ td {
     font-size: 13px;
     color: var(--text-primary);
     border: 1px solid var(--border-color);
+    margin-right: 7px;
 }
 
 @keyframes pulse {

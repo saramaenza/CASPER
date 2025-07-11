@@ -247,10 +247,11 @@ window.addEventListener('load', async ()=>{
   printUserDevices(devicesList); //PRINT devices
   let problemsList = await getProblems()
   let problemGoalList = await getProblemGoal()
-  console.log("Problem goal list: ", problemGoalList);
   problemsList = problemsList.filter(problem => !problem.ignore && !problem.solved && problem.state != "off");
+  problemGoalList = problemGoalList.filter(problem => !problem.ignore && !problem.solved && problem.state != "off");
   printUserProblems(problemsList);
   carouselObject = new Carousel(problemsList)
+  printUserGoalProblems(problemGoalList);
   //open_delete_rule();
   printUserPreferences();
   if (lang == 'en'){
@@ -311,9 +312,11 @@ async function deleteAutomation(rule_id) {
       let rulesList = await getRulesParam() //GET regole
       let problemsList = await getProblems()  //GET problemi
       problemsList = problemsList.filter(problem => !problem.ignore && !problem.solved && problem.state != "off");
+      let problemsGoalList = await getProblemGoal()
+      problemsGoalList = problemsGoalList.filter(problem => !problem.ignore && !problem.solved && problem.state != "off");
       printUserRule(rulesList);
-      document.querySelector('#n_automations').innerText = rulesList.length;
       document.querySelector('#n_problems').innerText = problemsList.length;
+      document.querySelector('#n_goal_advisor').innerText = problemsGoalList.length;
     })
     .catch(error => {
       console.log(error);
@@ -1482,6 +1485,359 @@ queryText.addEventListener("keydown", (event) =>{
 		generateUserMsg();
 	}
 })
+
+
+function printUserGoalProblems(problemsGoalList) {
+  console.log("printUserGoalProblems", problemsGoalList);
+  
+  const goalAdvContainer = document.querySelector('#goal-adv-container');
+  goalAdvContainer.innerHTML = ''; 
+
+  printGoalOverview(problemsGoalList);
+  
+  if (!problemsGoalList || problemsGoalList.length === 0) {
+    const noProblemsDiv = document.createElement('div');
+    noProblemsDiv.className = 'no-problems-message';
+    noProblemsDiv.innerHTML = `
+      <div class="no-problems-message">
+       Le tue automazioni sono allineate con i tuoi obiettivi 😊
+       <br>
+        Se hai bisogno di aiuto, chiedi a Casper!
+      </div>
+    `;
+    goalAdvContainer.appendChild(noProblemsDiv);
+    document.querySelector('#n_goal_advisor').innerText = 0;
+    return;
+  }
+
+  goalAdvContainer.innerHTML = '';
+  document.querySelector('#n_goal_advisor').innerText = problemsGoalList.length;
+
+  // Wrapper principale
+  const automationListWrapper = document.createElement('div');
+  automationListWrapper.className = 'automation-list-wrapper';
+
+  goalAdvContainer.appendChild(automationListWrapper);
+
+  problemsGoalList.forEach((problem, index) => {
+    // Container per ogni problema
+    const problemGoalContainer = document.createElement('div');
+    problemGoalContainer.className = 'problem-goal-container';
+
+    // Card principale
+    const card = document.createElement('div');
+    card.className = 'automation-card problem-goal-card';
+    card.style.display = 'block';
+    card.setAttribute('onclick', 'toggleCardExpansion(this)');
+
+    // Header della card
+    const cardHeader = document.createElement('div');
+    cardHeader.className = 'card-header';
+
+    // Parte destra con icona e info automazione
+    const rightSection = document.createElement('div');
+    rightSection.style.display = 'flex';
+    rightSection.style.alignItems = 'center';
+    rightSection.style.float = 'right';
+
+    // Se ci sono regole associate
+    if (problem.rules && problem.rules.length > 0) {
+      const rule = problem.rules[0]; // Prendi la prima regola
+
+      // Icona automazione
+      const automationIcon = document.createElement('div');
+      const iconInfo = getAutomationIconInfo(rule);
+      automationIcon.className = `automation-icon ${iconInfo.className}`;
+      automationIcon.textContent = iconInfo.icon;
+
+      // Container per titolo e ID
+      const titleContainer = document.createElement('div');
+      
+      const automationTitle = document.createElement('div');
+      automationTitle.className = 'automation-title';
+      automationTitle.textContent = rule.name || 'Automazione senza nome';
+
+      const automationId = document.createElement('div');
+      automationId.className = 'automation-id';
+      automationId.textContent = `ID ${rule.id}`;
+
+      titleContainer.appendChild(automationTitle);
+      titleContainer.appendChild(automationId);
+
+      rightSection.appendChild(automationIcon);
+      rightSection.appendChild(titleContainer);
+    }
+
+    // Parte sinistra con tag goal e severity
+    const leftSection = document.createElement('div');
+    leftSection.style.float = 'left';
+
+    // Goal tag
+    const goalTag = document.createElement('span');
+    goalTag.className = 'goal-tag';
+    const goalIcons = {
+      'energy': '🔋 Energia',
+      'security': '🛡️ Sicurezza', 
+      'health': '❤️ Salute',
+      'well-being': '🌱 Benessere'
+    };
+    goalTag.textContent = goalIcons[problem.goal] || `🎯 ${problem.goal}`;
+
+    // Severity badge
+    const severityBadge = document.createElement('span');
+    severityBadge.className = 'severity-badge severity-medium'; //TODO: Cambia in base alla severity
+    // Imposta il testo in base alla severity
+    severityBadge.textContent = 'Medio';
+
+    leftSection.appendChild(goalTag);
+    leftSection.appendChild(severityBadge);
+
+    // Assembla header (prima right, poi left come nel template)
+    cardHeader.appendChild(rightSection);
+    cardHeader.appendChild(leftSection);
+
+    // Descrizione
+    const automationDescription = document.createElement('div');
+    automationDescription.className = 'automation-description';
+    
+    if (problem.negative_effects && problem.negative_effects.length > 0) {
+      // Prendi il primo effetto negativo che non sia vuoto
+      const firstEffect = problem.negative_effects.find(effect => 
+        Array.isArray(effect) ? effect[0] && effect[0].trim() : effect && effect.trim()
+      );
+      
+      if (Array.isArray(firstEffect)) {
+        automationDescription.textContent = firstEffect[0] || 'Questa automazione non ha una descrizione';
+      } else {
+        automationDescription.textContent = firstEffect || 'Questa automazione non ha una descrizione';
+      }
+    } else {
+      automationDescription.textContent = 'Questa automazione non ha una descrizione';
+    }
+
+    // Pulsante di espansione
+    const expandButton = document.createElement('div');
+    expandButton.className = 'expand-button';
+    
+    const expandIcon = document.createElement('i');
+    expandIcon.className = 'expand-icon';
+    expandButton.appendChild(expandIcon);
+
+    // Assembla la card
+    card.appendChild(cardHeader);
+    card.appendChild(automationDescription);
+    card.appendChild(expandButton);
+
+    // Container per il contenuto espanso
+    const explanationContainer = document.createElement('div');
+    explanationContainer.className = 'problem-goal-explanation-container';
+    
+    const explanation = document.createElement('div');
+    explanation.className = 'problem-goal-explanation';
+    explanation.setAttribute('display', 'none');
+    
+    // Sezione espansa con spiegazione dettagliata
+    const expandedSection = document.createElement('div');
+    expandedSection.className = 'expanded-section';
+    
+    // Spiegazione del problema
+    let problemExplanation = 'Spiegazione del problema non disponibile.';
+    if (problem.negative_effects && problem.negative_effects.length > 0) {
+      const effect = problem.negative_effects[0];
+      if (Array.isArray(effect) && effect[4] && effect[4].description) {
+        problemExplanation = effect[4].description;
+      } else if (Array.isArray(effect) && effect[0]) {
+        problemExplanation = effect[0];
+      }
+    }
+    
+    const problemText = document.createTextNode(problemExplanation + ' ');
+    expandedSection.appendChild(problemText);
+    
+    // Titolo "Come posso risolvere?"
+    const cardTitle = document.createElement('p');
+    cardTitle.className = 'card-title';
+    cardTitle.textContent = 'Come posso risolvere?';
+    expandedSection.appendChild(cardTitle);
+    
+    // Container per le opzioni radio
+    const optionsContainer = document.createElement('div');
+    
+    // Estrai le opzioni di risoluzione reali dai recommendations
+    let resolutionOptions = [];
+    if (problem.negative_effects && problem.negative_effects.length > 0) {
+      const effect = problem.negative_effects[0];
+      if (Array.isArray(effect) && effect[4] && effect[4].recommendations) {
+        const recommendations = effect[4].recommendations;
+        // Prendi il primo automation_id dalle recommendations
+        const firstAutomationId = Object.keys(recommendations)[0];
+        if (firstAutomationId && recommendations[firstAutomationId].alternatives) {
+          resolutionOptions = recommendations[firstAutomationId].alternatives.map(alt => alt.natural_language);
+        }
+      }
+    }
+    
+    // Se non ci sono opzioni reali, usa quelle di fallback
+    if (resolutionOptions.length === 0) {
+      resolutionOptions = [
+        'Spegni automaticamente il dispositivo dopo un determinato periodo di tempo.',
+        'Aggiungi una condizione per verificare se il dispositivo è già acceso prima di accenderlo.'
+      ];
+    }
+    
+    resolutionOptions.forEach((option, optionIndex) => {
+      const formCheck = document.createElement('div');
+      formCheck.className = 'form-check';
+      
+      const radioInput = document.createElement('input');
+      radioInput.className = 'form-check-input';
+      radioInput.type = 'radio';
+      radioInput.name = `radioDefault${index}`;
+      radioInput.id = `radioDefault${index}-${optionIndex}`;
+      
+      const label = document.createElement('label');
+      label.className = 'form-check-label';
+      label.setAttribute('for', `radioDefault${index}-${optionIndex}`);
+      label.textContent = option;
+      
+      formCheck.appendChild(radioInput);
+      formCheck.appendChild(label);
+      optionsContainer.appendChild(formCheck);
+    });
+    
+    expandedSection.appendChild(optionsContainer);
+    explanation.appendChild(expandedSection);
+    
+    // Sezione azioni con pulsanti
+    const expandedActions = document.createElement('div');
+    expandedActions.className = 'expanded-actions action-buttons';
+    
+    // Pulsante Ignora
+    const ignoreBtn = document.createElement('button');
+    ignoreBtn.className = 'btn btn-ignore';
+    ignoreBtn.id = `${problem.unique_id || problem.id}_ignore`;
+    ignoreBtn.setAttribute('problemid', problem.id);
+    ignoreBtn.textContent = 'Ignora';
+    
+    // Pulsante Risolvi
+    const resolveBtn = document.createElement('button');
+    resolveBtn.className = 'btn btn-resolve';
+    resolveBtn.id = `${problem.unique_id || problem.id}_resolve`;
+    resolveBtn.setAttribute('problemid', problem.id);
+    resolveBtn.textContent = 'Risolvi';
+    
+    expandedActions.appendChild(ignoreBtn);
+    expandedActions.appendChild(resolveBtn);
+    explanation.appendChild(expandedActions);
+    
+    explanationContainer.appendChild(explanation);
+
+    // Assembla tutto
+    problemGoalContainer.appendChild(card);
+    problemGoalContainer.appendChild(explanationContainer);
+    automationListWrapper.appendChild(problemGoalContainer);
+  });
+}
+
+function printGoalOverview(problemsGoalList) {
+  const goalAdvContainer = document.querySelector('#goal-adv-container');
+  
+  // Crea l'overview panel
+  const overviewPanel = document.createElement('div');
+  overviewPanel.className = 'overview-panel';
+  
+  const goalsContainer = document.createElement('div');
+  goalsContainer.className = 'goals-container';
+  
+  // Definisci i goals con i loro dati  #TODO: i dati "score" dovrebbero essere generati in base ai problemi rilevati
+  const goals = [
+    {
+      name: '🌱 Benessere',
+      score: 15,
+      progressClass: 'progress-low'
+    },
+    {
+      name: '🔋 Energia',
+      score: 35,
+      progressClass: 'progress-medium-low'
+    },
+    {
+      name: '❤️ Salute',
+      score: 65,
+      progressClass: 'progress-medium'
+    },
+    {
+      name: '🛡️ Sicurezza',
+      score: 85,
+      progressClass: 'progress-high'
+    }
+  ];
+  
+  // Crea ogni goal item
+  goals.forEach(goal => {
+    const goalItemOverview = document.createElement('div');
+    goalItemOverview.className = 'goal-item-overview';
+    
+    // Goal score container
+    const goalScore = document.createElement('div');
+    goalScore.className = 'goal-score';
+    
+    // Circular progress
+    const circularProgress = document.createElement('div');
+    circularProgress.className = `circular-progress ${goal.progressClass}`;
+    
+    // SVG
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', '0 0 40 40');
+    
+    // Background circle
+    const bgCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    bgCircle.setAttribute('cx', '20');
+    bgCircle.setAttribute('cy', '20');
+    bgCircle.setAttribute('r', '18');
+    bgCircle.setAttribute('class', 'bg-circle');
+    
+    // Progress circle
+    const progressCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    progressCircle.setAttribute('cx', '20');
+    progressCircle.setAttribute('cy', '20');
+    progressCircle.setAttribute('r', '18');
+    progressCircle.setAttribute('class', 'progress-circle');
+    
+    svg.appendChild(bgCircle);
+    svg.appendChild(progressCircle);
+    
+    // Progress text
+    const progressText = document.createElement('div');
+    progressText.className = 'progress-text';
+    progressText.textContent = `${goal.score}%`;
+    
+    circularProgress.appendChild(svg);
+    circularProgress.appendChild(progressText);
+    goalScore.appendChild(circularProgress);
+    
+    // Goal info
+    const goalInfo = document.createElement('div');
+    goalInfo.className = 'goal-info';
+    
+    const goalName = document.createElement('div');
+    goalName.className = 'goal-name';
+    goalName.innerHTML = goal.name.replace(' ', '&nbsp;');
+    
+    goalInfo.appendChild(goalName);
+    
+    // Assembla il goal item
+    goalItemOverview.appendChild(goalScore);
+    goalItemOverview.appendChild(goalInfo);
+    
+    goalsContainer.appendChild(goalItemOverview);
+  });
+  
+  overviewPanel.appendChild(goalsContainer);
+  
+  // Inserisci l'overview panel all'inizio del container
+  goalAdvContainer.insertBefore(overviewPanel, goalAdvContainer.firstChild);
+}
 
 // ===================== Carousel ======================= //
 
