@@ -250,6 +250,14 @@ list_variables_goals = {
         "fuzzyRulesToCheck": "rule6",
         "variable_effect": "none"
       }] 
+    },
+    {  
+      "goal": "energy",
+      "description": "La luce è accesa quando l'illuminazione nella stanza è già buona, causando spreco di energia",
+      "when": [{
+        "fuzzyRulesToCheck": "rule7",
+        "variable_effect": "none"
+      }] 
     }
     
   ]

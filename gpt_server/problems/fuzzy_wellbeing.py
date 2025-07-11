@@ -174,16 +174,16 @@ rule7_13 = ctrl.Rule(illuminance['high'] & time_of_day['none'], wellbeing_proble
 rule7_14 = ctrl.Rule(illuminance['medium'] & time_of_day['none'], wellbeing_problem['no'])  
 rule7_15 = ctrl.Rule(illuminance['low'] & time_of_day['none'], wellbeing_problem['no']) 
 
-def getWellBeingFuzzy(rules, area, environment, environmentVariables):
+def getWellBeingFuzzy(rules, area, environment, environmentVariables, ha_client):
     #print("\n********* WELL BEING ************\n")
     # Funzione di supporto per ottenere i dati
 
     # Ottieni i dati
-    temperatureValue = getData(area, "temperature", environmentVariables) or 0
-    humidityValue = getData(area, "humidity", environmentVariables) or 0
-    aqiValue = getData(area, "aqi", environmentVariables) or 0
-    soundPressureValue = getData(area, "sound_pressure", environmentVariables) or 0
-    lightLevelValue = getData(area, "illuminance", environmentVariables) or 0
+    temperatureValue = getData(area, "temperature", environmentVariables, ha_client) or 0
+    humidityValue = getData(area, "humidity", environmentVariables, ha_client) or 0
+    aqiValue = getData(area, "aqi", environmentVariables, ha_client) or 0
+    soundPressureValue = getData(area, "sound_pressure", environmentVariables, ha_client) or 0
+    lightLevelValue = getData(area, "illuminance", environmentVariables, ha_client) or 0
 
     
     todayDate = date.today()

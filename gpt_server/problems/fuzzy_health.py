@@ -107,15 +107,15 @@ rule6_2 = ctrl.Rule(sound_pressure['medium'], health_problem['moderate'])
 rule6_3 = ctrl.Rule(sound_pressure['high'], health_problem['high']) 
 
 
-def getHealthFuzzy(rules, area, environment, environmentVariables):
+def getHealthFuzzy(rules, area, environment, environmentVariables, ha_client):
     #print("\n********* HEALTH ************\n")
     
 
     # Ottieni i dati
-    lightLevelValue = getData(area, "illuminance", environmentVariables) or 0
-    soundPressureValue = getData(area, "sound_pressure", environmentVariables) or 0
-    aqiValue = getData(area, "aqi", environmentVariables) or 0
-    co2Value = getData(area, "carbon_dioxide", environmentVariables) or 0
+    lightLevelValue = getData(area, "illuminance", environmentVariables, ha_client) or 0
+    soundPressureValue = getData(area, "sound_pressure", environmentVariables, ha_client) or 0
+    aqiValue = getData(area, "aqi", environmentVariables, ha_client) or 0
+    co2Value = getData(area, "carbon_dioxide", environmentVariables, ha_client) or 0
 
    
     time_zone = pytz.timezone('Europe/Rome')

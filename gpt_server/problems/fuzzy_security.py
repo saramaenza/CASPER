@@ -60,13 +60,13 @@ rule1_11 = ctrl.Rule(illuminance['none'] & person_home['home'], security_problem
 rule1_12 = ctrl.Rule(illuminance['none'] & person_home['not_home'], security_problem['no'])  
 
 
-def getSecurityFuzzy(rules, area, environment, environmentVariables):
+def getSecurityFuzzy(rules, area, environment, environmentVariables, ha_client):
     print("\n********* SECURITY ************\n")
     
 
     # Ottieni i dati
-    lightLevelValue = getData(area, "illuminance", environmentVariables) or 101
-    personHomeValue = getData(area, "person", environmentVariables) or 2
+    lightLevelValue = getData(area, "illuminance", environmentVariables, ha_client) or 101
+    personHomeValue = getData(area, "person", environmentVariables, ha_client) or 2
 
     personHomeValue = 1 if personHomeValue == "home" else 0
 

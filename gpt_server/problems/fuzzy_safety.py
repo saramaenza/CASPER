@@ -43,12 +43,12 @@ rule1_11 = ctrl.Rule(illuminance['none'] & presence['none'], safety_problem['no'
 rule1_12 = ctrl.Rule(illuminance['none'] & presence['true'], safety_problem['no'])  
 
 
-def getSafetyFuzzy(rules, area, environment, environmentVariables):
+def getSafetyFuzzy(rules, area, environment, environmentVariables, ha_client):
     #print("\n********* SAFETY ************\n")
     
     # Ottieni i dati
-    lightLevelValue = getData(area, "illuminance", environmentVariables) or 102
-    presenceState = getData(area, "motion", environmentVariables) or 2
+    lightLevelValue = getData(area, "illuminance", environmentVariables, ha_client) or 102
+    presenceState = getData(area, "motion", environmentVariables, ha_client) or 2
     presenceState = 1 if presenceState == "On" else 0
 
     data_env = {
