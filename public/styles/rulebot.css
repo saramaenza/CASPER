@@ -938,6 +938,8 @@ td {
   background-color: transparent;
   display: flex;
   text-wrap: nowrap;
+  display: flex;
+  align-items: center;
   border-radius: 16px;
 }
 

@@ -513,7 +513,7 @@ async function printUserRule(rules) {
             .replace(/^_|_$/g, '')
         );
         toggleSwitch.setAttribute('ruleid', element['id']);
-        toggleSwitch.setAttribute('title', 'Accendi/Spegni Automazione');
+        toggleSwitch.setAttribute('title', 'Abilita/Disabilita Automazione');
 
         const toggleSlider = document.createElement('div');
         toggleSlider.className = 'toggle-slider';
