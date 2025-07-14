@@ -47,6 +47,7 @@ rule1_10 = ctrl.Rule(illuminance['none'] & person_home['none'], security_problem
 rule1_11 = ctrl.Rule(illuminance['none'] & person_home['home'], security_problem['no'])  
 rule1_12 = ctrl.Rule(illuminance['none'] & person_home['not_home'], security_problem['no'])  
 
+#low illuminance can cause accidents
 rule2_1 = ctrl.Rule(illuminance['low'] & presence['true'], security_problem['high'])  
 rule2_2 = ctrl.Rule(illuminance['medium'] & presence['false'], security_problem['no'])  
 rule2_3 = ctrl.Rule(illuminance['high'] & presence['none'], security_problem['no'])  
@@ -62,8 +63,7 @@ rule2_12 = ctrl.Rule(illuminance['none'] & presence['true'], security_problem['n
 
 
 def getSecurityFuzzy(rules, area, environment, environmentVariables, ha_client):
-    print("\n********* SECURITY ************\n")
-    
+    #print("\n********* SECURITY ************\n")
 
     # Ottieni i dati
     lightLevelValue = getData(area, "illuminance", environmentVariables, ha_client) or 101

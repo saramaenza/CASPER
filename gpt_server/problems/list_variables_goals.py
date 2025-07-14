@@ -104,10 +104,10 @@ list_variables_goals = {
           }] 
         },
         {
-          "goal": "safety",
+          "goal": "security",
           "description": "L'illuminazione insufficiente può aumentare il rischio di cadute e incidenti, poiché ostacoli e pericoli non sono facilmente visibili",
           "when": [{
-            "fuzzyRulesToCheck": "rule1",
+            "fuzzyRulesToCheck": "rule2",
             "variable_effect": "decrease"
           }] 
         }
