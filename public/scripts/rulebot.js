@@ -1488,7 +1488,6 @@ queryText.addEventListener("keydown", (event) =>{
 
 
 function printUserGoalProblems(problemsGoalList) {
-  console.log("printUserGoalProblems", problemsGoalList);
   
   const goalAdvContainer = document.querySelector('#goal-adv-container');
   goalAdvContainer.innerHTML = ''; 
@@ -1510,7 +1509,6 @@ function printUserGoalProblems(problemsGoalList) {
     return;
   }
 
-  goalAdvContainer.innerHTML = '';
   document.querySelector('#n_goal_advisor').innerText = problemsGoalList.length;
 
   // Wrapper principale
@@ -1777,6 +1775,21 @@ function printGoalOverview(problemsGoalList) {
   goals.forEach(goal => {
     const goalItemOverview = document.createElement('div');
     goalItemOverview.className = 'goal-item-overview';
+    goalItemOverview.setAttribute('data-goal-name', goal.name);
+    goalItemOverview.style.cursor = 'pointer';
+    
+    // Aggiungi event listener per il click
+    goalItemOverview.addEventListener('click', function() {
+      filterProblemsByGoal(goal.name);
+      
+      // Rimuovi la classe active da tutti gli altri goal items
+      document.querySelectorAll('.goal-item-overview').forEach(item => {
+        item.classList.remove('active-goal');
+      });
+      
+      // Aggiungi la classe active al goal selezionato
+      this.classList.add('active-goal');
+    });
     
     // Goal score container
     const goalScore = document.createElement('div');
@@ -1835,10 +1848,176 @@ function printGoalOverview(problemsGoalList) {
   
   overviewPanel.appendChild(goalsContainer);
   
+  // Crea il pulsante "Mostra tutti" sin dall'inizio
+  const showAllButton = document.createElement('button');
+  showAllButton.className = 'show-all-goals-btn';
+  showAllButton.textContent = 'Mostra tutti';
+  
+  // Imposta lo stato iniziale (nascosto)
+  showAllButton.style.opacity = '0';
+  showAllButton.style.visibility = 'hidden';
+  showAllButton.style.transition = 'opacity 0.2s ease, visibility 0.2s ease';
+  
+  showAllButton.addEventListener('click', function() {
+      // Animazione di uscita
+      this.style.transition = 'opacity 0.2s ease, visibility 0.2s ease';
+      this.style.opacity = '0';
+      this.style.visibility = 'hidden';
+      
+      // Mostra tutte le card con animazione
+      setTimeout(() => {
+          filterProblemsByGoal(null);
+          
+          // Rimuovi la classe active da tutti i goal items con transizione
+          document.querySelectorAll('.goal-item-overview').forEach(item => {
+              item.style.transition = 'all 0.3s ease';
+              item.classList.remove('active-goal');
+          });
+      }, 100);
+  });
+  
   // Inserisci l'overview panel all'inizio del container
   goalAdvContainer.insertBefore(overviewPanel, goalAdvContainer.firstChild);
+  // Inserisci il pulsante dopo l'overview panel
+  goalAdvContainer.insertBefore(showAllButton, overviewPanel.nextSibling);
 }
 
+
+function filterProblemsByGoal(selectedGoalName) {
+  // Trova tutte le card dei problemi
+  const problemCards = document.querySelectorAll('.problem-goal-container');
+  
+  // Se nessun goal è selezionato, mostra tutte le card
+  if (!selectedGoalName) {
+    // Nascondi il pulsante
+    const showAllButton = document.querySelector('.show-all-goals-btn');
+    if (showAllButton) {
+      showAllButton.style.opacity = '0';
+      showAllButton.style.visibility = 'hidden';
+    }
+    
+    problemCards.forEach(card => {
+      card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+      card.style.opacity = '0';
+      card.style.transform = 'translateY(-20px)';
+    });
+    
+    setTimeout(() => {
+      let delay = 0;
+      problemCards.forEach(card => {
+        // Imposta lo stato iniziale per l'animazione di entrata
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        card.style.display = 'block';
+        
+        setTimeout(() => {
+          // Applica transizione fluida per il ritorno
+          card.style.transition = 'opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+          card.style.opacity = '1';
+          card.style.transform = 'translateY(0)';
+        }, delay);
+        
+        delay += 100; 
+      });
+    }, 300); 
+    
+    return;
+  }
+  
+  // Mappa i nomi dei goals ai valori dei goal-tag
+  const goalMapping = {
+    '🌱 Benessere': '🌱 Benessere',
+    '🔋 Energia': '🔋 Energia', 
+    '❤️ Salute': '❤️ Salute',
+    '🛡️ Sicurezza': '🛡️ Sicurezza'
+  };
+  
+  const targetGoalTag = goalMapping[selectedGoalName];
+  
+  problemCards.forEach(card => {
+    card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+    card.style.opacity = '0';
+    card.style.transform = 'translateY(-20px)';
+  });
+  
+  setTimeout(() => {
+    let delay = 0;
+    
+    problemCards.forEach(card => {
+      const goalTag = card.querySelector('.goal-tag');
+      
+      if (goalTag && goalTag.textContent.includes(targetGoalTag)) {
+        // Imposta lo stato iniziale per l'animazione di entrata
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        card.style.display = 'block';
+        
+        setTimeout(() => {
+          // Applica transizione fluida per il ritorno
+          card.style.transition = 'opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+          card.style.opacity = '1';
+          card.style.transform = 'translateY(0)';
+        }, delay);
+        
+        delay += 100; 
+      } else {
+        card.style.display = 'none';
+      }
+    });
+    
+    setTimeout(() => {
+      addShowAllButton();
+    }, delay + 200);
+    
+  }, 300); 
+}
+
+// Funzione per aggiungere un pulsante "Mostra tutto"
+function addShowAllButton() {
+  // Trova o crea il pulsante se non esiste
+  let showAllButton = document.querySelector('.show-all-goals-btn');
+  
+  if (!showAllButton) {
+    const goalAdvContainer = document.querySelector('#goal-adv-container');
+    const overviewPanel = goalAdvContainer.querySelector('.overview-panel');
+    
+    showAllButton = document.createElement('button');
+    showAllButton.className = 'show-all-goals-btn';
+    showAllButton.textContent = 'Mostra tutti';
+    
+    showAllButton.addEventListener('click', function() {
+        // Animazione di uscita
+        this.style.transition = 'opacity 0.2s ease, visibility 0.2s ease';
+        this.style.opacity = '0';
+        this.style.visibility = 'hidden';
+        
+        // Mostra tutte le card con animazione
+        setTimeout(() => {
+            filterProblemsByGoal(null);
+            
+            // Rimuovi la classe active da tutti i goal items con transizione
+            document.querySelectorAll('.goal-item-overview').forEach(item => {
+                item.style.transition = 'all 0.3s ease';
+                item.classList.remove('active-goal');
+            });
+        }, 100);
+    });
+    
+    // Inserisci il pulsante dopo l'overview panel
+    overviewPanel.after(showAllButton);
+  }
+  
+  // Imposta lo stato iniziale per l'animazione di entrata
+  showAllButton.style.opacity = '0';
+  showAllButton.style.visibility = 'hidden';
+  showAllButton.style.transition = 'opacity 0.2s ease, visibility 0.2s ease';
+  
+  // Attiva l'animazione di entrata dopo un breve ritardo
+  setTimeout(() => {
+    showAllButton.style.opacity = '1';
+    showAllButton.style.visibility = 'visible';
+  }, 50);
+}
 // ===================== Carousel ======================= //
 
 function printUserProblems(problemsList) {
