@@ -49,7 +49,7 @@ def getSafetyFuzzy(rules, area, environment, environmentVariables, ha_client):
     # Ottieni i dati
     lightLevelValue = getData(area, "illuminance", environmentVariables, ha_client) or 102
     presenceState = getData(area, "motion", environmentVariables, ha_client) or 2
-    presenceState = 1 if presenceState == "On" else 0
+    presenceState = 1 if presenceState == "on" else 0
 
     data_env = {
         "illuminance": int(lightLevelValue),

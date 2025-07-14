@@ -258,6 +258,14 @@ list_variables_goals = {
         "fuzzyRulesToCheck": "rule7",
         "variable_effect": "none"
       }] 
+    },
+    {  
+      "goal": "energy",
+      "description": "Presenza di più automazioni che attivano dispositivi per il riscaldamento nello stesso momento",
+      "when": [{
+        "fuzzyRulesToCheck": "rule8",
+        "variable_effect": "none"
+      }] 
     }
     
   ]

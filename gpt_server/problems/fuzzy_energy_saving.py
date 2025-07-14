@@ -10,6 +10,7 @@ fan_state = ctrl.Antecedent(np.arange(0, 3, 1), 'fan_state')
 window_open = ctrl.Antecedent(np.arange(0, 3, 1), 'window_open')
 light_state = ctrl.Antecedent(np.arange(0, 3, 1), 'light_state')
 heater_state = ctrl.Antecedent(np.arange(0, 3, 1), 'heater_state')
+stove_state = ctrl.Antecedent(np.arange(0, 3, 1), 'stove_state')
 presence = ctrl.Antecedent(np.arange(0, 3, 1), 'presence')
 person = ctrl.Antecedent(np.arange(0, 3, 1), 'person')
 aqi = ctrl.Antecedent(np.arange(0, 401, 1), 'aqi')
@@ -36,6 +37,10 @@ light_state['none'] = fuzz.trimf(light_state.universe, [2, 2, 2])
 heater_state['off'] = fuzz.trimf(heater_state.universe, [0, 0, 0])
 heater_state['on'] = fuzz.trimf(heater_state.universe, [1, 1, 1])
 heater_state['none'] = fuzz.trimf(heater_state.universe, [2, 2, 2])
+
+stove_state['off'] = fuzz.trimf(stove_state.universe, [0, 0, 0])
+stove_state['on'] = fuzz.trimf(stove_state.universe, [1, 1, 1])
+stove_state['none'] = fuzz.trimf(stove_state.universe, [2, 2, 2])
 
 presence['true'] = fuzz.trimf(presence.universe, [0, 0, 0])
 presence['false'] = fuzz.trimf(presence.universe, [1, 1, 1])
@@ -120,6 +125,17 @@ rule7_4 = ctrl.Rule(light_state['off'] & illuminance['high'], energy_saving_prob
 rule7_5 = ctrl.Rule(light_state['off'] & illuminance['medium'], energy_saving_problem['no'])
 rule7_6 = ctrl.Rule(light_state['off'] & illuminance['low'], energy_saving_problem['no'])
 
+# Regole per dispositivi di riscaldamento multipli
+rule8_1 = ctrl.Rule(heater_state['on'] & stove_state['on'], energy_saving_problem['high'])
+rule8_2 = ctrl.Rule(heater_state['on'] & stove_state['off'], energy_saving_problem['no'])
+rule8_3 = ctrl.Rule(heater_state['off'] & stove_state['on'], energy_saving_problem['no'])
+rule8_4 = ctrl.Rule(heater_state['off'] & stove_state['off'], energy_saving_problem['no'])
+rule8_5 = ctrl.Rule(heater_state['none'] & stove_state['on'], energy_saving_problem['no'])
+rule8_6 = ctrl.Rule(heater_state['none'] & stove_state['off'], energy_saving_problem['no'])
+rule8_7 = ctrl.Rule(heater_state['on'] & stove_state['none'], energy_saving_problem['no'])
+rule8_8 = ctrl.Rule(heater_state['off'] & stove_state['none'], energy_saving_problem['no'])
+rule8_9 = ctrl.Rule(heater_state['none'] & stove_state['none'], energy_saving_problem['no'])
+
 
 def getEnergySavingFuzzy(rules, area, environment, nameDevice, environmentVariables, ha_client):
     #print("\n********* ENERGY SAVING ************\n")
@@ -127,19 +143,23 @@ def getEnergySavingFuzzy(rules, area, environment, nameDevice, environmentVariab
     # Ottieni i dati
     energyValue = getData(area, "energy", environmentVariables, ha_client) or 0
     windowStateValue = getData(area, "window", environmentVariables, ha_client) or 2
-    windowStateValue = 1 if windowStateValue == "Open" else 0
+    windowStateValue = 1 if windowStateValue == "open" else 0
     fanStateValue = getData(area, "fan", environmentVariables, ha_client) or 2
-    fanStateValue = 1 if fanStateValue == "On" else 0
+    fanStateValue = 1 if fanStateValue == "on" else 0
     presenceState = getData(area, "motion", environmentVariables, ha_client) or 2
-    presenceState = 1 if presenceState == "On" else 0
+    presenceState = 1 if presenceState == "on" else 0
     lightState = getData(area, "light", environmentVariables, ha_client) or 2
-    lightState = 1 if lightState == "On" else 0
-    heaterState = getData(area, "heater", environmentVariables, ha_client) or 2
-    heaterState = 1 if heaterState == "On" else 0
+    lightState = 1 if lightState == "on" else 0
+    heaterNames = ["climate", "riscaldamento", "heater"]
+    heaterState = getData(area, heaterNames, environmentVariables, ha_client) or 2
+    heaterState = 1 if heaterState == "on" else 0
     personState = getData(area, "person", environmentVariables, ha_client) or 2
     personState = 0 if personState == "home" else 1
     aqiValue = getData(area, "aqi", environmentVariables, ha_client) or 0
     lightLevelValue = getData(area, "illuminance", environmentVariables, ha_client) or 0
+    stoveNames = ["stove", "fornello", "stufa", "heater", "stufetta"]
+    stoveState = getData(area, stoveNames, environmentVariables, ha_client) or 2
+    stoveState = 1 if stoveState == "on" else 0
 
     data_env = {
         "energy": energyValue,
@@ -151,6 +171,7 @@ def getEnergySavingFuzzy(rules, area, environment, nameDevice, environmentVariab
         "heater_state": heaterState,
         "aqi": aqiValue,
         "illuminance": float(lightLevelValue) if lightLevelValue not in [None, 'unavailable', 'unknown'] else 0,
+        "stove_state": stoveState
     }
     
     # Dizionario per mappare le regole ai loro dettagli
@@ -161,7 +182,8 @@ def getEnergySavingFuzzy(rules, area, environment, nameDevice, environmentVariab
         'rule4': {'rules': [rule4_1, rule4_2, rule4_3, rule4_4], 'inputs': ['person', 'light_state']},
         'rule5': {'rules': [rule5_1, rule5_2, rule5_3, rule5_4], 'inputs': ['person', 'heater_state']},
         'rule6': {'rules': [rule6_1, rule6_2, rule6_3, rule6_4, rule6_5, rule6_6, rule6_7, rule6_8, rule6_9, rule6_10], 'inputs': ['aqi', 'fan_state']},
-        'rule7': {'rules': [rule7_1, rule7_2, rule7_3, rule7_4, rule7_5, rule7_6], 'inputs': ['illuminance', 'light_state']}
+        'rule7': {'rules': [rule7_1, rule7_2, rule7_3, rule7_4, rule7_5, rule7_6], 'inputs': ['illuminance', 'light_state']},
+        'rule8': {'rules': [rule8_1, rule8_2, rule8_3, rule8_4, rule8_5, rule8_6, rule8_7, rule8_8, rule8_9], 'inputs': ['heater_state', 'stove_state']}
     }
 
     if rules not in rule_configs:

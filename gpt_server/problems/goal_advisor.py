@@ -301,8 +301,8 @@ if __name__ == "__main__":
     # Create HomeAssistant client
     ha_client = HomeAssistantClient(base_url, token)
     
-    automation_post = {'alias': 'Accendi la luce del bagno alle 9:00', 'description': 'Evento: alle 9:00. Azione: accendi Luce bagno.', 'trigger': [{'platform': 'time', 'at': '09:00:00'}], 'action': [{'service': 'light.turn_on', 'target': {'entity_id': 'light.shellycolorbulb_3494546e408a'}}], 'id': '1750933449750'}
-    user_id = "681dc95bd86883dcc0eeebad"
+    user_id = "6818c8ac24e5db8f9a0304e5"
+    automation_post = {'alias': 'Accendi la stufetta alle 21:00', 'description': 'Evento: alle 21:00 (orario) Azione: accendi la stufetta (switch.stufetta)', 'trigger': [{'platform': 'time', 'at': '21:00:00'}], 'action': [{'service': 'switch.turn_on', 'target': {'entity_id': 'switch.stufetta'}}], 'id': '2'}
     
     # Create ConflictDetector
     detector = detectGoalAdvisor(automation_post, "energy", user_id, ha_client)
