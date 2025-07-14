@@ -1,37 +1,25 @@
 import numpy as np
 import skfuzzy as fuzz
 from skfuzzy import control as ctrl
+import skfuzzy.control as ctrl
 from problems.fuzzy_utils import getData, rule_to_natural_language, evaluate_rules
 
 # Define fuzzy variables
-temperature = ctrl.Antecedent(np.arange(0, 41, 1), 'temperature')
-sound_pressure = ctrl.Antecedent(np.arange(0, 181, 1), 'sound_pressure')
-time_of_day = ctrl.Antecedent(np.arange(0, 25, 1), 'time_of_day')
 illuminance = ctrl.Antecedent(np.arange(0, 102, 1), 'illuminance')
+presence = ctrl.Antecedent(np.arange(0, 3, 1), 'presence')
 person_home = ctrl.Antecedent(np.arange(0, 3, 1), 'person_home')
 
 security_problem = ctrl.Consequent(np.arange(0, 101, 1), 'security_problem')
 
 # Define membership functions
-temperature['low'] = fuzz.trimf(temperature.universe, [0, 0, 20])
-temperature['medium'] = fuzz.trimf(temperature.universe, [10, 20, 30])
-temperature['high'] = fuzz.trimf(temperature.universe, [20, 40, 40])
-
-#rif: https://hoerluchs.com/en/hearing-protection/noise/ 
-sound_pressure['low'] = fuzz.trimf(sound_pressure.universe, [0, 0, 65])
-sound_pressure['medium'] = fuzz.trimf(sound_pressure.universe, [50, 75, 100])
-sound_pressure['high'] = fuzz.trimf(sound_pressure.universe, [85, 180, 180])
-
-time_of_day['morning'] = fuzz.trimf(time_of_day.universe, [6, 6, 12])
-time_of_day['afternoon'] = fuzz.trimf(time_of_day.universe, [12, 12, 18])
-time_of_day['evening'] = fuzz.trimf(time_of_day.universe, [18, 18, 24])
-time_of_day['night'] = fuzz.trimf(time_of_day.universe, [0, 0, 6])
-time_of_day['none'] = fuzz.trimf(time_of_day.universe, [25, 25, 25])
-
 illuminance['low'] = fuzz.trimf(illuminance.universe, [0, 0, 50])
 illuminance['medium'] = fuzz.trimf(illuminance.universe, [30, 50, 70])
 illuminance['high'] = fuzz.trimf(illuminance.universe, [50, 100, 100])
 illuminance['none'] = fuzz.trimf(illuminance.universe, [101, 101, 101])
+
+presence['true'] = fuzz.trimf(presence.universe, [0, 0, 0])
+presence['false'] = fuzz.trimf(presence.universe, [1, 1, 1])
+presence['none'] = fuzz.trimf(presence.universe, [2, 2, 2])
 
 person_home['home'] = fuzz.trimf(person_home.universe, [0, 0, 0])
 person_home['not_home'] = fuzz.trimf(person_home.universe, [1, 1, 1])
@@ -59,6 +47,19 @@ rule1_10 = ctrl.Rule(illuminance['none'] & person_home['none'], security_problem
 rule1_11 = ctrl.Rule(illuminance['none'] & person_home['home'], security_problem['no'])  
 rule1_12 = ctrl.Rule(illuminance['none'] & person_home['not_home'], security_problem['no'])  
 
+rule2_1 = ctrl.Rule(illuminance['low'] & presence['true'], security_problem['high'])  
+rule2_2 = ctrl.Rule(illuminance['medium'] & presence['false'], security_problem['no'])  
+rule2_3 = ctrl.Rule(illuminance['high'] & presence['none'], security_problem['no'])  
+rule2_4 = ctrl.Rule(illuminance['low'] & presence['false'], security_problem['no'])  
+rule2_5 = ctrl.Rule(illuminance['medium'] & presence['true'], security_problem['no'])  
+rule2_6 = ctrl.Rule(illuminance['high'] & presence['true'], security_problem['no'])  
+rule2_7 = ctrl.Rule(illuminance['high'] & presence['false'], security_problem['no'])  
+rule2_8 = ctrl.Rule(illuminance['low'] & presence['none'], security_problem['no'])  
+rule2_9 = ctrl.Rule(illuminance['medium'] & presence['none'], security_problem['no'])  
+rule2_10 = ctrl.Rule(illuminance['none'] & presence['false'], security_problem['no'])  
+rule2_11 = ctrl.Rule(illuminance['none'] & presence['none'], security_problem['no'])  
+rule2_12 = ctrl.Rule(illuminance['none'] & presence['true'], security_problem['no'])  
+
 
 def getSecurityFuzzy(rules, area, environment, environmentVariables, ha_client):
     print("\n********* SECURITY ************\n")
@@ -78,6 +79,7 @@ def getSecurityFuzzy(rules, area, environment, environmentVariables, ha_client):
     # Dizionario per mappare le regole ai loro dettagli
     rule_configs = {
         'rule1': {'rules': [rule1_1, rule1_2, rule1_3, rule1_4, rule1_5, rule1_6, rule1_7, rule1_8, rule1_9, rule1_10, rule1_11, rule1_12], 'inputs': ['illuminance', 'person_home']},
+        'rule2': {'rules': [rule2_1, rule2_2, rule2_3, rule2_4, rule2_5, rule2_6, rule2_7, rule2_8, rule2_9, rule2_10, rule2_11, rule2_12], 'inputs': ['illuminance', 'presence']},
     }
 
     if rules not in rule_configs:

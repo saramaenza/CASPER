@@ -18,7 +18,6 @@ from problems.fuzzy_wellbeing import getWellBeingFuzzy
 from problems.fuzzy_health import getHealthFuzzy
 from problems.fuzzy_energy_saving import getEnergySavingFuzzy
 from problems.fuzzy_security import getSecurityFuzzy
-from problems.fuzzy_safety import getSafetyFuzzy
 from problems.fuzzy_utils import getData
 import models
 import prompts
@@ -88,7 +87,6 @@ def getNegative(list_variables_goals, var_effect, variable, userGoal, area, name
         "well-being": getWellBeingFuzzy,
         "health": getHealthFuzzy,
         "security": getSecurityFuzzy,
-        "safety": getSafetyFuzzy,
         "energy": lambda fuzzy_rules, area, environment, environmentVariables, ha_client_instance: getEnergySavingFuzzy(fuzzy_rules, area, environment, nameDevice, environmentVariables, ha_client_instance)
     }
 
