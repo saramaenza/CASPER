@@ -282,6 +282,7 @@ def save_automation(user_id, automation_id, config):
             return "Error saving the automation to Home Assistant."
         collection = db["automations"]
         user_automations = collection.find_one({"user_id": user_id})
+        alias = config.get('alias', 'Unnamed Automation')
         
         if user_automations:
             # Trova l'indice dell'automazione esistente
@@ -306,6 +307,7 @@ def save_automation(user_id, automation_id, config):
             else:
                 # Aggiungi nuova automazione
                 user_automations['automation_data'].append(automation_data)
+                post_rule_state(user_id, f"automation.{format_entity_id(config['alias'])}", automation_id, alias)
             
             collection.update_one(
                 {"user_id": user_id},
@@ -324,10 +326,48 @@ def save_automation(user_id, automation_id, config):
                 "created": datetime.now(),
                 "last_update": datetime.now()
             })
+            post_rule_state(user_id, f"automation.{format_entity_id(config['alias'])}", automation_id, alias)
         return True
     except Exception as e:
         print("--> Save Single Automation Error <--")
         print(user_id, automation_id)
+        print(e)
+        print("----------------")
+        return e
+
+def post_rule_state(user_id, entity_id, automation_id, alias):
+    try:
+        collection_rule_state = db["rules_state"] 
+        user_rules = collection_rule_state.find_one({"user_id": user_id})
+        if user_rules:
+            automation_data = {
+                "id": automation_id,
+                "alias": alias,
+                "state": "unknown",  # Default state
+                "entity_id": entity_id,
+                "time": datetime.now().isoformat()
+            }
+            user_rules['automation_data'].append(automation_data)
+            collection_rule_state.update_one(
+                {"user_id": user_id},
+                {"$set": {"automation_data": user_rules['automation_data'], "last_update": datetime.now()}}
+            )
+        else:
+            collection_rule_state.insert_one({
+                "user_id": user_id,
+                "automation_data": [{
+                    "id": automation_id,
+                    "alias": alias,
+                    "state": "unknown",
+                    "entity_id": entity_id,
+                    "time": datetime.now().isoformat()
+                }],
+                "last_update": datetime.now()
+            })
+        return True
+    except Exception as e:
+        print("--> Post Rule State Error <--")
+        print(user_id, entity_id, automation_id)
         print(e)
         print("----------------")
         return e

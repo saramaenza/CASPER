@@ -170,9 +170,9 @@ class ChainsDetector:
                           direction: str = "",
                           state: str = None):
     
-        print(f"\n--- Checking direction: {direction} ---")
-        print(f"Source: {source_rule.get('alias', 'No alias')}")
-        print(f"Target: {target_rule.get('alias', 'No alias')}")
+        #print(f"\n--- Checking direction: {direction} ---")
+        #print(f"Source: {source_rule.get('alias', 'No alias')}")
+        #print(f"Target: {target_rule.get('alias', 'No alias')}")
         
         # Se non abbiamo i dettagli dell'azione (direzione 2), li calcoliamo
         if source_action_details is None:
@@ -194,7 +194,7 @@ class ChainsDetector:
                     'domain': domain_source
                 }
                 
-                print(f"Source action details: {source_action_details}")
+                #print(f"Source action details: {source_action_details}")
                 
                 # Controlla se questa azione può triggerare la regola target
                 chain_found = self._check_action_trigger_match(
@@ -219,7 +219,7 @@ class ChainsDetector:
         device_action_source = source_action_details['device_action']
         type_action_source = source_action_details['type_action']
         
-        print(f"Checking action: device={device_action_source}, type={type_action_source}")
+        #print(f"Checking action: device={device_action_source}, type={type_action_source}")
         
         # Ottieni i trigger della regola target
         target_triggers = target_rule.get("triggers", []) or target_rule.get("trigger", [])
@@ -227,14 +227,14 @@ class ChainsDetector:
             target_triggers = [target_triggers]
         
         if not target_triggers:
-            print("No triggers in target rule")
+            #print("No triggers in target rule")
             return False
         
         for trigger_item in target_triggers:
             if not isinstance(trigger_item, dict):
                 continue
             
-            print(f"Checking trigger: {trigger_item}")
+            #print(f"Checking trigger: {trigger_item}")
             
             # Estrai l'entità dal trigger
             trigger_entity_id = trigger_item.get('entity_id')
@@ -254,7 +254,7 @@ class ChainsDetector:
             
             type_trigger = self.get_event_type(trigger_item)
             
-            print(f"Trigger details: device={device_trigger}, type={type_trigger}")
+            #print(f"Trigger details: device={device_trigger}, type={type_trigger}")
             
             # Verifica match
             is_match = False
@@ -267,7 +267,7 @@ class ChainsDetector:
             # Normalizza i tipi per il confronto
             type_action_normalized = type_action_source.split('.')[-1] if '.' in type_action_source else type_action_source
             
-            print(f"Match result: device_match={is_match}, type_check={self.check_operator(type_action_normalized, type_trigger)}")
+            #print(f"Match result: device_match={is_match}, type_check={self.check_operator(type_action_normalized, type_trigger)}")
             
             if is_match and self.check_operator(type_action_normalized, type_trigger):
                 
@@ -331,9 +331,9 @@ class ChainsDetector:
                            rule1_name: str, id_automation1: str,
                            rule2_entity_id: str, state: str = None):
 
-        print(f"\n=== PROCESS_INDIRECT_CHAIN DEBUG ===")
-        print(f"Rule1: {rule1_name} (ID: {id_automation1})")
-        print(f"Rule2: {rule2.get('alias', 'No alias')} (ID: {rule2.get('id')})")
+        #print(f"\n=== PROCESS_INDIRECT_CHAIN DEBUG ===")
+        #print(f"Rule1: {rule1_name} (ID: {id_automation1})")
+        #print(f"Rule2: {rule2.get('alias', 'No alias')} (ID: {rule2.get('id')})")
         
         # DIREZIONE 1: Rule1 → variabile → Rule2 (comportamento originale)
         self._check_indirect_chain_direction(rule_chain, rule1, rule2, action1_details, rule1_name, id_automation1, "rule1_to_rule2", state)
@@ -368,7 +368,7 @@ class ChainsDetector:
                     'domain': domain_source
                 }
                 
-                print(f"Source action details: {source_action_details}")
+                #print(f"Source action details: {source_action_details}")
                 
                 # Controlla se questa azione può influenzare una variabile che triggera la regola target
                 chain_found = self._check_indirect_variable_match(
@@ -394,12 +394,12 @@ class ChainsDetector:
         domain_source = source_action_details['domain']
 
         if not domain_source:  # domain è essenziale per get_context_variables
-            print("No domain found for source action")
+            #print("No domain found for source action")
             return False
         
         # Ottieni le variabili di contesto influenzate dall'azione sorgente
         context_var_action = self.get_context_variables(domain_source, type_action_source)
-        print(f"Context variables from action: {context_var_action}")
+        #print(f"Context variables from action: {context_var_action}")
         
         # Ottieni i trigger della regola target
         target_triggers = target_rule.get("triggers", []) or target_rule.get("trigger", [])
@@ -407,13 +407,13 @@ class ChainsDetector:
             target_triggers = [target_triggers]
 
         if not target_triggers:
-            print("No triggers in target rule")
+            #print("No triggers in target rule")
             return False
 
         # Controlla ogni variabile influenzata dall'azione sorgente
         for var_type, variables in context_var_action.items():  # increase/decrease
             for variable in variables:  # e.g., "temperature", "humidity"
-                print(f"Checking variable: {variable} ({var_type})")
+                #print(f"Checking variable: {variable} ({var_type})")
                 
                 # Controlla ogni trigger della regola target
                 for trigger_item in target_triggers:
@@ -425,7 +425,7 @@ class ChainsDetector:
                         continue
 
                     _, device_class_trigger = self.process_trigger(entity_trigger)
-                    print(f"Target trigger entity: {entity_trigger}, device_class: {device_class_trigger}")
+                    #print(f"Target trigger entity: {entity_trigger}, device_class: {device_class_trigger}")
 
                     if not device_class_trigger:  # Se non c'è device_class, non può matchare la variabile
                         continue
@@ -490,14 +490,14 @@ class ChainsDetector:
         
         rule1_alias = rule1_config.get("alias")
         if not rule1_alias:
-            print("Rule 1 has no alias, skipping.")
+            #print("Rule 1 has no alias, skipping.")
             return [] # Or handle error appropriately
 
         entity_rule_name1 = "automation." + rule1_alias.replace(" ", "_")
         rule_name1 = rule1_alias
         id_automation1 = rule1_config.get("id")
         if id_automation1 is None:
-            print("Rule 1 has no ID, skipping.")
+            #print("Rule 1 has no ID, skipping.")
             return []
 
         actions1 = rule1_config.get("actions", []) or rule1_config.get("action", [])
@@ -572,7 +572,7 @@ if __name__ == "__main__":
         # Mock _db if running standalone and .. import fails
         class MockDb:
             def get_automations(self, user_id):
-                print(f"MockDb: Called get_automations for user {user_id}")
+                #print(f"MockDb: Called get_automations for user {user_id}")
                 return [
                     {"config": {
                         "id": "2",
@@ -600,7 +600,7 @@ if __name__ == "__main__":
                     }, "user_id": user_id}
                 ]
         _db_module = MockDb()
-        print("Used MockDb as relative import failed (likely running standalone).")
+        #print("Used MockDb as relative import failed (likely running standalone).")
 
 
     detector = ChainsDetector(ha_client=ha_client,
@@ -632,13 +632,13 @@ if __name__ == "__main__":
     }
     current_automation_description = "Evento: quando fuori casa piove (weather.forecast_casa). Azione: accendi Lampadina_Sara (light.lampadina_sara1)."
 
-    print("\\n--- Detecting Direct Chains ---")
+    #print("\\n--- Detecting Direct Chains ---")
     direct_chains = detector.detect_chains(
         automation_post_config=current_automation_config,
         chain_type="direct"
     )
 
-    print("\\n--- Detecting Indirect Chains ---")
+    #print("\\n--- Detecting Indirect Chains ---")
     indirect_chains = detector.detect_chains(
         automation_post_config=current_automation_config,
         chain_type="indirect"

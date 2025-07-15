@@ -149,6 +149,34 @@ async function postAutomationHA(baseUrl, token, automationId, configData) {
     }
 }
 
+async function getLogbook(baseUrl, token) {
+    const headers = {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+    }
+
+    try {
+        timestamp = new Date(Date.now() - 10 * 60 * 1000);  
+        timestamp = timestamp.toISOString();  // Converti in formato ISO 8601
+        console.log("Timestamp per il logbook:", timestamp);
+        
+        const response = await fetch(`${baseUrl}/api/logbook/${timestamp}`, {
+            headers: headers
+        });
+
+        if (!response.ok) {
+            console.error(`Errore nel recupero del logbook: ${response.status}`);
+            return null;
+        }
+
+        const logbook = await response.json();
+        return logbook;
+    } catch (error) {
+        console.error(`Errore durante il recupero del logbook:`, error);
+        return null;
+    }
+}
+
 async function getEntitiesStates(baseUrl, token, conf) {
     const headers = {
         "Authorization": `Bearer ${token}`,
@@ -249,4 +277,4 @@ async function deleteAutomation(baseUrl, token, automationId) {
     }
 }
 
-module.exports = { getEntities, getAutomationsHA, postAutomationHA, toggleAutomation, getEntitiesStates, deleteAutomation };
+module.exports = { getEntities, getAutomationsHA, postAutomationHA, getLogbook, toggleAutomation, getEntitiesStates, deleteAutomation };

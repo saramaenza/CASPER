@@ -11,6 +11,7 @@ import express, { response } from "express"
 import fetch from "node-fetch"
 import bodyParser from "body-parser"
 import { createSession, createChannel } from "better-sse";
+import { time } from 'console';
 const nodemailer = require('nodemailer');
 //LIBRARY PER MANDARE EVENTI AL CLIENT, USATO PRECEDENTEMENTE PER AGGIORNARE LA LISTA DI REGOLA QUANDO NE VENIVA SALVATA UNA NUOVA
 /* const SSE = require('express-sse');
@@ -24,10 +25,10 @@ const uuid = require('uuid');
 const bcrypt = require('bcryptjs')
 const cookieParser = require('cookie-parser')
 const jwt = require('jsonwebtoken')
-const {setServerConfig, createUser, getUser, verifyToken, isLogged, createGoogleUser, userInfo, verifyEmail, getProblems, getProblemsGoals,getAutomations, getConfiguration, saveConfiguration,  saveSelectedConfiguration, saveAutomations, saveAutomation, deleteRule, closeDatabaseConnection, ignoreProblem} = require('./db_methods.cjs');
+const {setServerConfig, createUser, getUser, verifyToken, isLogged, createGoogleUser, userInfo, verifyEmail, getProblems, getProblemsGoals,getAutomations, getConfiguration, saveConfiguration,  saveSelectedConfiguration, saveAutomations,saveRulesStates,saveAutomation, deleteRule, closeDatabaseConnection, ignoreProblem} = require('./db_methods.cjs');
 const JWT_SECRET = 'sdjkfh8923yhjdksbfma@#*(&@*!^#&@bhjb2qiuhesdbhjdsfg839ujkdhfjk'
 // =======================================
-const { getEntities, getAutomationsHA, postAutomationHA, getEntitiesStates, toggleAutomation, deleteAutomation} = require('./utils.cjs');
+const { getEntities, getAutomationsHA, postAutomationHA, getEntitiesStates, getLogbook, toggleAutomation, deleteAutomation} = require('./utils.cjs');
 const { selectConfig } = require('./config.cjs');
 const configs = await selectConfig();
 setServerConfig(configs); //imposta la configurazione del server in db_methods.cjs
@@ -345,14 +346,33 @@ app.use('/get_entities_states', verifyToken, async (req, res) =>{
   }
 })
 
+app.use('/load_logbook', verifyToken, async (req, res) =>{ 
+  try {
+    let url = req.body.url
+    let token = req.body.token
+    const logbook = await getLogbook(url, token);
+    res.json(logbook)
+  } catch (error) {
+    console.log('/load_logbook:')
+    console.log(error)
+  }
+})
+
 app.use('/load_automations', verifyToken, async (req, res) =>{
   try {
     let url = req.body.url
     let token = req.body.token
     const automations = await getAutomationsHA(url, token);
+    const cleanedAutomations = automations.map(automation => ({
+      id: automation.id,
+      alias: automation.config.alias,
+      state: false,
+      time: new Date().toISOString()
+    }));
     res.json(automations)
     if (automations) {
-      saveAutomations(req.body.userId, automations)
+      saveAutomations(req.body.userId, automations);
+      saveRulesStates(req.body.userId, cleanedAutomations);
     }
   } catch (error) {
     console.log('/load_automations:')
@@ -393,7 +413,6 @@ app.use('/save_automation', verifyToken, async (req, res) =>{
     const ha_response = await postAutomationHA(url, token, req.body.automationId, req.body.config);
     if (!ha_response) response += 'Salvataggio su HomeAssistant fallito.'
     else response += 'Salvataggio su HomeAssistant ok.'
-    
     //config = automation in JSOn
     res.json({status: response})
   } catch (error) {

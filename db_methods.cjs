@@ -313,6 +313,32 @@ const saveAutomations = async (userId, automationsData) => {
     }
 };
 
+const saveRulesStates= async (userId, automationsData) => {
+    //saves all automations to DB
+    
+    try {
+        const database = client.db(dbName);
+        const automations_state = database.collection('rules_state');
+        
+        // Aggiorna o inserisce le automazioni per l'utente specificato
+        await automations_state.updateOne(
+            { 'user_id': userId },
+            { 
+                $set: { 
+                    'user_id': userId,
+                    'automation_data': automationsData
+                }
+            },
+            { upsert: true }
+        );
+        return true;
+    } catch (err) {
+        console.log('error in saveRulesStates');
+        console.log(err);
+        return false;
+    }
+};
+
 const saveAutomation = async (userId, automationId, config) => {
     //saves a single automation to DB
     
@@ -362,6 +388,8 @@ const deleteRule = async (userId, ruleId, haDeleteFunc) => {
         const automations = database.collection('automations');
         const problems = database.collection('problems');
         const goals = database.collection('goals');
+        const rulesState = database.collection('rules_state');
+
         // elimina l'automazione dal database
         const userAutomations = await automations.findOne({ 'user_id': userId });
         
@@ -380,6 +408,25 @@ const deleteRule = async (userId, ruleId, haDeleteFunc) => {
             { 'user_id': userId },
             { $set: { 'automation_data': newAutomations } }
         );
+
+        // Elimina l'automazione dalla collezione rules_state
+        const userRulesState = await rulesState.findOne({ 'user_id': userId });
+
+        if (userRulesState && userRulesState.automation_data) {
+            const filteredRulesState = userRulesState.automation_data.filter(
+                rule => rule.id.toString() !== ruleId.toString()
+            );
+            
+            await rulesState.updateOne(
+                { 'user_id': userId },
+                { 
+                    $set: { 
+                        'automation_data': filteredRulesState,
+                        'last_update': new Date()
+                    }
+                }
+            );
+        }
 
         // Elimina i problemi che coinvolgono questa automazione
         const userProblems = await problems.findOne({ 'user_id': userId });
@@ -736,6 +783,7 @@ module.exports = {
     saveSelectedConfiguration,
     saveAutomations,
     saveAutomation,
+    saveRulesStates,
     getConfiguration,
     deleteRule,
     closeDatabaseConnection,
