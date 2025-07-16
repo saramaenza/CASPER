@@ -25,7 +25,7 @@ const uuid = require('uuid');
 const bcrypt = require('bcryptjs')
 const cookieParser = require('cookie-parser')
 const jwt = require('jsonwebtoken')
-const {setServerConfig, createUser, getUser, verifyToken, isLogged, createGoogleUser, userInfo, verifyEmail, getProblems, getProblemsGoals,getAutomations, getConfiguration, saveConfiguration,  saveSelectedConfiguration, saveAutomations,saveRulesStates,saveAutomation, deleteRule, closeDatabaseConnection, ignoreProblem} = require('./db_methods.cjs');
+const {setServerConfig, createUser, getUser, verifyToken, isLogged, createGoogleUser, userInfo, verifyEmail, getAutomationsStates, getProblems, getProblemsGoals,getAutomations, getConfiguration, saveConfiguration,  saveSelectedConfiguration, saveAutomations,saveRulesStates,saveAutomation, deleteRule, closeDatabaseConnection, ignoreProblem, updateAutomationState} = require('./db_methods.cjs');
 const JWT_SECRET = 'sdjkfh8923yhjdksbfma@#*(&@*!^#&@bhjb2qiuhesdbhjdsfg839ujkdhfjk'
 // =======================================
 const { getEntities, getAutomationsHA, postAutomationHA, getEntitiesStates, getLogbook, toggleAutomation, deleteAutomation} = require('./utils.cjs');
@@ -358,6 +358,43 @@ app.use('/load_logbook', verifyToken, async (req, res) =>{
   }
 })
 
+app.post('/update_automation_state', verifyToken, async (req, res) => {
+    try {
+        const response = await updateAutomationState(req.body.userId, req.body.entity_id, req.body.is_running, req.body.entity_id_device, req.body.state_device);
+        console.log("Response from updateAutomationState:", response);
+        res.json(response);
+    } catch (error) {
+        console.error('Errore aggiornamento stato automazione:', error);
+        res.status(500).json({ 
+            error: 'Errore interno del server',
+            details: error.message 
+        });
+    }
+});
+
+app.use('/load_automations_running', verifyToken, async (req, res) =>{
+  try {
+    let userId = req.body.user_id
+    const automations = await getAutomationsStates(userId);
+    const onlyRunning = automations.filter(automation => automation.is_running);
+    res.json(onlyRunning)
+  } catch (error) {
+    console.log('/load_automations_running:')
+    console.log(error)
+  }
+});
+
+app.use('/get_problems', verifyToken, async (req, res) => {
+  try {
+    let user_id = req.body.user_id;
+    const data = await getProblems(user_id);
+    res.json(data);
+  } catch (error) {
+    console.log('/get_problems error:');
+    console.log(error);
+  }
+}); 
+
 app.use('/load_automations', verifyToken, async (req, res) =>{
   try {
     let url = req.body.url
@@ -365,8 +402,8 @@ app.use('/load_automations', verifyToken, async (req, res) =>{
     const automations = await getAutomationsHA(url, token);
     const cleanedAutomations = automations.map(automation => ({
       id: automation.id,
-      alias: automation.config.alias,
-      state: false,
+      entity_id: automation.entity_id,
+      is_running: false,
       time: new Date().toISOString()
     }));
     res.json(automations)

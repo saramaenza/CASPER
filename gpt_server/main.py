@@ -20,6 +20,10 @@ import prompts
 import db_functions as _db
 from models import gpt4
 
+from detect_problem import detect_goal_advisor
+import threading
+import time
+
 data = get_server_choice()
 utils.set_base_url(data['base_url'], data['port'])
 _db.set_db(data['db_name'])
@@ -31,6 +35,35 @@ llm_tools = llm.bind_tools(tools)
 #Imposto il trimmer con "token_counter=len" per contare i mesaggi come se fossero token
 trimmer = trim_messages(strategy="last", max_tokens=10, token_counter = len, include_system=True, start_on="human")
 app = Flask(__name__)
+
+# Flag per controllare il thread in background
+stop_background_tasks = False
+
+def background_goal_advisor():
+    """
+    Funzione che esegue detectGoalAdvisor ogni 10 minuti per tutti gli utenti attivi
+    """
+    while not stop_background_tasks:
+        try:
+            #print(f"[{datetime.now()}] Running background goal advisor detection...")
+            
+            # Ottieni tutti gli utenti attivi 
+            users = _db.get_active_users()  
+
+            #users = [{'id': '6818c8ac24e5db8f9a0304e5'}]  # Esempio di utenti
+            for user in users:
+                user_id = user.get('id') or user.get('_id')
+                if user_id:
+                    detect_goal_advisor(user_id)
+                    print(f"Goal advisor detection completed for user: {user_id}")
+
+            #print(f"[{datetime.now()}] Background goal advisor detection completed")
+
+        except Exception as e:
+            print(f"Error in background goal advisor: {e}")
+        
+        # Aspetta 10 minuti (600 secondi)
+        time.sleep(600)
 
 class State(TypedDict):
     # Messages have the type "list". The `add_messages` function
@@ -114,8 +147,10 @@ def send_message():
 def health_check():
     return jsonify({'status': 'ok'}), 200
 
-
 if __name__ == '__main__':
+    # Avvia il thread in background
+    background_thread = threading.Thread(target=background_goal_advisor, daemon=True)
+    background_thread.start()
     app.run(debug=True, port=8080, use_reloader=False)
 
 

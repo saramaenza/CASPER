@@ -93,6 +93,7 @@ async function getAutomationsHA(baseUrl, token) {
             automations.map(async (automation) => {
                 const automationState = automation.state;
                 const automationId = automation.attributes.id;
+                const automationEntityId = automation.entity_id;
                 if (!automationId) return null;
 
                 const configResponse = await fetch(
@@ -109,7 +110,8 @@ async function getAutomationsHA(baseUrl, token) {
                 return {
                     id: automationId,
                     state: automationState,
-                    config: config
+                    config: config,
+                    entity_id: automationEntityId
                 };
             })
         );

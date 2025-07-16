@@ -171,6 +171,20 @@ const getProblems = async (userId) => {
     }
 };
 
+const getAutomationsStates = async (userId) => {
+    try {
+        const database = client.db(dbName);
+        const automations = database.collection('rules_state');
+        const userAutomations = await automations.findOne({ 'user_id': userId });
+        if (!userAutomations) return []; // Se non ci sono automazioni, restituisci un array vuoto
+        return userAutomations['automation_data'];
+    } catch (err) {
+        console.log('error in db_methods - getAutomationsStates');
+        console.log(err);
+        return err;
+    }
+};
+
 const getProblemsGoals = async (userId) => {
     try {
         const database = client.db(dbName);
@@ -569,6 +583,52 @@ const deleteRule = async (userId, ruleId, haDeleteFunc) => {
     }
 }
 
+async function updateAutomationState(userId, entity_id, is_running, entity_id_device, state_device) {
+    try {
+        const database = client.db(dbName);
+        const rulesState = database.collection('rules_state');
+
+        // Trova il documento dell'utente
+        const userRulesState = await rulesState.findOne({ 'user_id': userId });
+        
+        if (!userRulesState || !userRulesState.automation_data) {
+            return false;
+        }
+        
+        // Trova l'indice dell'automazione con l'entity_id specificato
+        const automationIndex = userRulesState.automation_data.findIndex(
+            automation => automation.entity_id === entity_id
+        );
+        
+        if (automationIndex === -1) {
+            return false;
+        }
+        
+        // Aggiorna l'automazione specifica usando l'approccio array completo
+        const updatedAutomationData = [...userRulesState.automation_data];
+        updatedAutomationData[automationIndex] = {
+            ...updatedAutomationData[automationIndex],
+            is_running: is_running,
+            entity_id_device: entity_id_device,
+            state_device: state_device,
+            time: new Date().toISOString()
+        };
+        
+        const updateResult = await rulesState.updateOne(
+            { 'user_id': userId },
+            { $set: { 'automation_data': updatedAutomationData } }
+        );
+
+        // Verifica l'aggiornamento
+        const verifyUpdate = await rulesState.findOne({ 'user_id': userId });        
+        return true;
+        
+    } catch (error) {
+        console.error('Errore in updateAutomationState:', error);
+        return false;
+    }
+}
+
 async function closeDatabaseConnection() {
     if (client && client.topology && client.topology.isConnected()) {
         await client.close();
@@ -778,6 +838,7 @@ module.exports = {
     verifyEmail,
     getProblems,
     getProblemsGoals,
+    getAutomationsStates,
     getAutomations,
     saveConfiguration,
     saveSelectedConfiguration,
@@ -786,6 +847,7 @@ module.exports = {
     saveRulesStates,
     getConfiguration,
     deleteRule,
+    updateAutomationState,
     closeDatabaseConnection,
     toggleAutomation,
     ignoreProblem,

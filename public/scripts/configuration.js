@@ -146,81 +146,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!response.ok) {
                 throw new Error('Errore nel caricamento dei dispositivi');
             }
-            const response_logbook = await fetch(`/load_logbook`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({'url': url, 'token': token }),
-            });
-            if (!response_logbook.ok) {
-                throw new Error('Errore nel caricamento del logbook');
-            }
 
             const devices = await response.json();
-            let logbook = await response_logbook.json();
-            // Filtra gli elementi del logbook che sono automazioni
-            /*const automationLogs = logbook.filter(entry => 
-                entry.entity_id && entry.entity_id.startsWith('automation.') && entry.message && entry.message.startsWith('triggered')
-            );*/
-            //console.log(logbook)
-            
-            logbook = [
-                {state: 'on', entity_id: 'binary_sensor.shellymotion2_2c1165cb13df_motion', name: 'Sensore movimento Motion', when: '2025-07-15T15:30:51.266495+00:00'},
-                {name: 'Accendi luce bagno', message: 'triggered by state of binary_sensor.shellymotion2_2c1165cb13df_motion', source: 'state of binary_sensor.shellymotion2_2c1165cb13df_motion', entity_id: 'automation.accendi_luce_bagno', context_id: '01K07BBJ83G29HVB8KF6HPPZC0'},
-                {state: 'on', entity_id: 'light.shellycolorbulb_3494546e408a', name: 'Luce bagno', when: '2025-07-15T15:30:51.301942+00:00', context_event_type: 'automation_triggered'},
-                {state: 'off', entity_id: 'binary_sensor.shellymotion2_2c1165cb13df_motion', name: 'Sensore movimento Motion', when: '2025-07-15T15:36:02.875112+00:00'},
-                {name: 'Spegni luce bagno', message: 'triggered by state of binary_sensor.shellymotion2_2c1165cb13df_motion', source: 'state of binary_sensor.shellymotion2_2c1165cb13df_motion', entity_id: 'automation.spegni_luce_bagno', context_id: '01K07BN2HW694AC30E7B4D3FHR'},
-                {state: 'off', entity_id: 'light.shellycolorbulb_3494546e408a', name: 'Luce bagno', when: '2025-07-15T15:36:02.906163+00:00', context_event_type: 'automation_triggered'}
-            ];/*
-            logbook = [
-                {name: 'Spegni luce bagno', message: 'triggered by state of binary_sensor.shellymotion2_2c1165cb13df_motion', source: 'state of binary_sensor.shellymotion2_2c1165cb13df_motion', entity_id: 'automation.spegni_luce_bagno', context_id: '01K07BN2HW694AC30E7B4D3FHR'},
-                {state: 'off', entity_id: 'light.shellycolorbulb_3494546e408a', name: 'Luce bagno', when: '2025-07-15T15:36:02.906163+00:00', context_event_type: 'automation_triggered'},
-                {name: 'Accendi luce bagno', message: 'triggered by state of binary_sensor.shellymotion2_2c1165cb13df_motion', source: 'state of binary_sensor.shellymotion2_2c1165cb13df_motion', entity_id: 'automation.accendi_luce_bagno', context_id: '01K07BBJ83G29HVB8KF6HPPZC0'},
-                {state: 'on', entity_id: 'light.shellycolorbulb_3494546e408a', name: 'Luce bagno', when: '2025-07-15T15:30:51.301942+00:00', context_event_type: 'automation_triggered'}
-               */
-            if (logbook !== null && logbook.length > 0) {
-                logbook.forEach((element, index) => {
-                    if (element.entity_id && element.entity_id.startsWith('automation.') && element.message && element.message.startsWith('triggered')) {
-                        console.log(`Automazione ${index}:`, element);
-                        let shouldAddToDb = true;
-                        if (index + 1 < logbook.length) {
-                            activatedDeviceName = logbook[index+1].entity_id;
-                            activatedDeviceState = logbook[index + 1].state;
-                            if(logbook[index+1].context_event_type == "automation_triggered"){
-                                console.log("Dispositivo: ", activatedDeviceName, "Stato: ", activatedDeviceState);
-                                if(index + 2 < logbook.length){
-                                    for (let j = index + 2; j < logbook.length; j++) {
-                                        if (logbook[j].entity_id === activatedDeviceName) {
-                                            newactivatedDeviceState = logbook[j].state;
-                                            console.log("Nuovo stato del dispositivo attivato:", newactivatedDeviceState);
-                                            if (newactivatedDeviceState !== activatedDeviceState) {
-                                                console.log("NON SI AGGIUNGE", element.entity_id)
-                                                shouldAddToDb = false;
-                                                break
-                                            }
-                                        
-                                        }
-                                    }
-                                    
-                                }
-                                if (shouldAddToDb) {
-                                    console.log("AGGIUNGERE AL DB", element.entity_id);
-                                }
-                            }
-                        }
-                    }
-                });
-            }
-            //TODO: a riga 208, imposta come attiva l'automazione.
-            //considera il caso in cui 2 automazioni attivano lo stesso dispositivo: si attiva la prima attivazione (la seconda non ha il dispositivo subito dopo perchè è già attivo) --> è giusto??
-            //nella collezione inserire anche l'entityid del dispositivo attivato e il suo stato (on/off) al momento dell'attivazione dell'automazione
-            // Salva tutti i devices nel localStorage
-            localStorage.setItem('all_devices', JSON.stringify(devices));
-            displayDevices(devices);
-            
 
-            /* ------------- Saves automations -------------*/
+             /* ------------- Saves automations -------------*/
             const response2 = await fetch(`/load_automations`, {
                 method: 'POST',
                 headers: {
@@ -232,8 +161,47 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!response2.ok) {
                 throw new Error('Errore nel caricamento delle automazioni');
             }
-            /* ------------- --------------- -------------*/
 
+            const response_logbook = await fetch(`/load_logbook`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({'url': url, 'token': token }),
+            });
+            if (!response_logbook.ok) {
+                throw new Error('Errore nel caricamento del logbook');
+            }
+
+            let logbook = await response_logbook.json();
+
+            /*
+            logbook = [
+                {state: 'on', entity_id: 'binary_sensor.shellymotion2_2c1165cb13df_motion', name: 'Sensore movimento Motion', when: '2025-07-15T15:30:51.266495+00:00'},
+                {name: 'Accendi luce bagno', message: 'triggered by state of binary_sensor.shellymotion2_2c1165cb13df_motion', source: 'state of binary_sensor.shellymotion2_2c1165cb13df_motion', entity_id: 'automation.accendi_luce_bagno', context_id: '01K07BBJ83G29HVB8KF6HPPZC0'},
+                {state: 'on', entity_id: 'light.shellycolorbulb_3494546e408a', name: 'Luce bagno', when: '2025-07-15T15:30:51.301942+00:00', context_event_type: 'automation_triggered'},
+                {state: 'off', entity_id: 'binary_sensor.shellymotion2_2c1165cb13df_motion', name: 'Sensore movimento Motion', when: '2025-07-15T15:36:02.875112+00:00'},
+                {name: 'Spegni luce bagno', message: 'triggered by state of binary_sensor.shellymotion2_2c1165cb13df_motion', source: 'state of binary_sensor.shellymotion2_2c1165cb13df_motion', entity_id: 'automation.spegni_luce_bagno', context_id: '01K07BN2HW694AC30E7B4D3FHR'},
+                {state: 'off', entity_id: 'light.shellycolorbulb_3494546e408a', name: 'Luce bagno', when: '2025-07-15T15:36:02.906163+00:00', context_event_type: 'automation_triggered'}
+            ];*/
+            logbook = [
+                {state: 'off', entity_id: 'light.lampadina', name: 'Lampadina', when: '2025-07-15T15:30:51.301942+00:00', context_event_type: 'automation_triggered'}
+            ];/*
+            logbook = [
+                {name: 'attiva lampadina ufficio', message: 'triggered by state of binary_sensor.shellymotion2_2c1165cb13df_motion', source: 'state of binary_sensor.shellymotion2_2c1165cb13df_motion', entity_id: 'automation.attiva_lampadina_ufficio', context_id: '01K07BBJ83G29HVB8KF6HPPZC0'},
+                {state: 'on', entity_id: 'light.lampadina', name: 'Lampadina', when: '2025-07-15T15:30:51.301942+00:00', context_event_type: 'automation_triggered'}
+            ];*/
+            console.log("logbook", logbook);
+            if (logbook !== null && logbook.length > 0) {
+                await checkNotRunningAutomations(logbook, userId);
+                await checkRunningAutomations(logbook, userId);
+            }
+            //TODO: 
+            //considera il caso in cui 2 automazioni attivano lo stesso dispositivo: si attiva la prima attivazione (la seconda non ha il dispositivo subito dopo perchè è già attivo) --> è giusto??
+            
+            // Salva tutti i devices nel localStorage
+            localStorage.setItem('all_devices', JSON.stringify(devices));
+            displayDevices(devices);
 
             // Ripristina le selezioni precedenti dopo il nuovo caricamento
             const selectedDevices = JSON.parse(localStorage.getItem('selected_devices') || '[]');
@@ -254,3 +222,103 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+
+async function checkNotRunningAutomations(logbook, userId) {
+    //recupera le automazioni in esecuzione dal db dalla collezione rules_state
+    const response_automations = await fetch(`/load_automations_running`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({'user_id': userId}),
+    });
+    if (!response_automations.ok) {
+        console.error('Errore nel recupero delle automazioni running');
+    } 
+    running_automations = await response_automations.json();
+    console.log("running automations", running_automations);
+    // Controlla se le automazioni in esecuzione sono ancora attive
+    running_automations.forEach(async (automation) => {
+        console.log("automazione in esecuzione", automation);
+        logbook.forEach(async (element, index) => {
+            if (element.entity_id === automation.entity_id_device) {
+                if(element.state != automation.state_device) {
+                    console.log(`Automazione ${element.entity_id} non è più in esecuzione`);
+                    const updateResponse = await fetch('/update_automation_state', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            userId: userId,
+                            entity_id: automation.entity_id,
+                            is_running: false
+                        })
+                    });
+                    
+                    if (!updateResponse.ok) {
+                        console.error('Errore nell\'aggiornamento dello stato automazione:', automation.entity_id);
+                    }
+                }
+            }
+        });
+    });
+}
+
+async function checkRunningAutomations(logbook, userId) {
+    // Controlla se le automazioni sono state attivate
+    logbook.forEach(async (element, index) => {
+        if (element.entity_id && element.entity_id.startsWith('automation.') && element.message && element.message.startsWith('triggered')) {
+            //console.log(`Automazione ${index}:`, element);
+            let shouldAddToDb = true;
+            if (index + 1 < logbook.length) {
+                activatedDeviceName = logbook[index+1].entity_id;
+                activatedDeviceState = logbook[index + 1].state;
+                if(logbook[index+1].context_event_type == "automation_triggered"){
+                    //console.log("Dispositivo: ", activatedDeviceName, "Stato: ", activatedDeviceState);
+                    if(index + 2 < logbook.length){
+                        for (let j = index + 2; j < logbook.length; j++) {
+                            if (logbook[j].entity_id === activatedDeviceName) {
+                                newactivatedDeviceState = logbook[j].state;
+                                //console.log("Nuovo stato del dispositivo attivato:", newactivatedDeviceState);
+                                if (newactivatedDeviceState !== activatedDeviceState) {
+                                    console.log("NON SI AGGIUNGE", element.entity_id)
+                                    shouldAddToDb = false;
+                                    break
+                                }
+                            
+                            }
+                        }
+                        
+                    }
+                    if (shouldAddToDb) {
+                        console.log("AGGIUNGERE AL DB", element.entity_id);
+                        // Aggiorna lo stato dell'automazione nel database
+                        try {
+                            const updateResponse = await fetch('/update_automation_state', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    userId: userId,
+                                    entity_id: element.entity_id,
+                                    is_running: true, 
+                                    entity_id_device: activatedDeviceName,
+                                    state_device: activatedDeviceState,
+                                })
+                            });
+                            
+                            if (!updateResponse.ok) {
+                                console.error('Errore nell\'aggiornamento dello stato automazione:', element.entity_id);
+                            }
+                        } catch (error) {
+                            console.error('Errore nella chiamata di aggiornamento:', error);
+                        }
+
+                    }
+                }
+            }
+        }
+    });
+}

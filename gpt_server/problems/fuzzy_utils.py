@@ -18,7 +18,7 @@ def getRealDataVariable(area, variable, environmentVariables, ha_client):
             auth_header = ha_client.headers.get('Authorization', '')
             token = auth_header.replace('Bearer ', '') if auth_header.startswith('Bearer ') else None
             state = get_entity_state_from_ha(entity_id, base_url, token)
-            print(f"State for {item.get('name', '')} in area {area}: {state}")
+            #print(f"State for {item.get('name', '')} in area {area}: {state}")
             if state is not None:
                 return state.lower()
 

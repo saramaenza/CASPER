@@ -76,6 +76,27 @@ def get_automations(user_id):
         print("----------------")
         return None
 
+def get_automations_states(user_id):
+    try:
+        collection = db["rules_state"]
+        automations = collection.find_one({"user_id": user_id})
+        
+        if automations and 'automation_data' in automations:
+            # Filtra solo le automazioni che hanno is_running = True
+            running_automations = [
+                automation for automation in automations['automation_data'] 
+                if 'is_running' in automation and automation['is_running'] is True
+            ]
+            return running_automations
+        else:
+            return []
+            
+    except Exception as e:
+        print("--> Get Automations States Error <--")
+        print(e)
+        print("----------------")
+        return []
+
 def get_automation(user_id, automation_id):
     try:
         collection = db["automations"]
@@ -405,33 +426,65 @@ def solve_problem(user_id, problem_id, automation, automation_natural_language):
 def post_goal(user_id, goal, goal_body):
     """
     Aggiunge un obiettivo alla lista degli obiettivi per l'utente specificato.
-    goal_body: array[dict -> {'id': str, 'type': str...}]
+    Se esiste già un elemento con lo stesso unique_id, incrementa il contatore invece di aggiungere un duplicato.
+    goal_body: array[dict -> {'id': str, 'type': str, 'unique_id': str, ...}]
     """
     try:
         collection = db["goals"]
         goals = collection.find_one({"user_id": user_id})
+        
         if goals is not None:
             if goal in goals:
                 max_id = max([int(g['id']) for g in goals[goal]], default=0)
             else:
                 max_id = 0
                 goals[goal] = []
-            for index in range(len(goal_body)):
-                goal_body[index]['id'] = str(max_id + index + 1)
-            goals[goal].extend(goal_body)
+            
+            # Processa ogni elemento in goal_body
+            for new_goal in goal_body:
+                unique_id = new_goal.get('unique_id')
+                existing_goal = None
+                
+                # Cerca se esiste già un elemento con lo stesso unique_id
+                if unique_id:
+                    for existing in goals[goal]:
+                        if existing.get('unique_id') == unique_id:
+                            existing_goal = existing
+                            break
+                
+                if existing_goal:
+                    # Incrementa il contatore se l'elemento esiste già
+                    existing_goal['count'] = existing_goal.get('count', 1) + 1
+                    existing_goal['last_detected'] = datetime.now()
+                    print(f"Goal with unique_id {unique_id} already exists. Counter incremented to {existing_goal['count']}")
+                else:
+                    # Aggiungi nuovo elemento se non esiste
+                    max_id += 1
+                    new_goal['id'] = str(max_id)
+                    new_goal['count'] = 1
+                    new_goal['first_detected'] = datetime.now()
+                    new_goal['last_detected'] = datetime.now()
+                    goals[goal].append(new_goal)
+            
             collection.update_one(
                 {"_id": goals["_id"]},
                 {"$set": {goal: goals[goal], "last_update": datetime.now()}}
             )
         else:
-            for index in range(len(goal_body)):
-                goal_body[index]['id'] = str(index + 1)
+            # Crea nuovo documento se non esiste
+            for index, new_goal in enumerate(goal_body):
+                new_goal['id'] = str(index + 1)
+                new_goal['count'] = 1
+                new_goal['first_detected'] = datetime.now()
+                new_goal['last_detected'] = datetime.now()
+            
             collection.insert_one({
                 "user_id": user_id,
                 goal: goal_body,
                 "created": datetime.now(),
                 "last_update": datetime.now()
             })
+        
         return goal or None
     except Exception as e:
         print("--> Post Goal Error <--")
@@ -439,3 +492,16 @@ def post_goal(user_id, goal, goal_body):
         print(e)
         print("----------------")
         return e
+
+def get_active_users():
+    """
+    Restituisce una lista di tutti gli user_id degli utenti nel database.
+    """
+    try:
+        collection = db["automations"]
+        # Trova tutti i documenti e ottieni solo i user_id distinti
+        users = collection.distinct("user_id")
+        return [{'id': user_id} for user_id in users]
+    except Exception as e:
+        print(f"Error getting active users: {e}")
+        return []

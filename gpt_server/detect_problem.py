@@ -1,12 +1,12 @@
 import os
 import time
 import db_functions as _db
-from problems.goal_advisor import detectGoalAdvisor
 from problems.revert_problem import detectRevertProblem
 from marshmallow import pprint
 import utils
 from problems.conflicts import ConflictDetector
 from problems.chains import ChainsDetector
+from problems.goal_advisor import detectGoalAdvisor
 from ha_client import HomeAssistantClient
 
 #url = os.environ["HASS_URL"]
@@ -34,13 +34,6 @@ def problem_detector(user_id, session_id, automation_id):
         indirect_chains = chain_detector.detect_chains(data, new_automation, "indirect")
         conflicts = conflict_detector.detect_conflicts(data, new_automation)
 
-        """"
-        goals =  ["security", "well-being", "energy", "health"]
-        for goal in goals:
-            goal_advisor = detectGoalAdvisor(new_automation, goal, user_id, ha_client)
-            if goal_advisor is not None and len(goal_advisor) > 0:
-                _db.post_goal(user_id, goal, goal_advisor)
-        """
         goals =  ["security", "energy"]
         for goal in goals:
             revert_problem = detectRevertProblem(new_automation, goal, user_id, ha_client)
@@ -63,3 +56,27 @@ def problem_detector(user_id, session_id, automation_id):
        
     except Exception as e:
         return f"Error: {e}"
+    
+def detect_goal_advisor(user_id):
+    """
+    Detects goal advisor based on the automation configuration and the specified goal.
+    """
+    try:
+        #user_id = '6818c8ac24e5db8f9a0304e5'
+        auth = _db.get_credentials(user_id)
+        ha_client = HomeAssistantClient(auth['url'], auth['key'])
+        
+        automations = _db.get_automations_states(user_id)
+        goals = ["security", "well-being", "energy", "health"]
+
+        for automation in automations:
+            automation_config = _db.get_automation(user_id, automation['id'])
+            for goal in goals:
+                goal_advisor = detectGoalAdvisor(automation_config, goal, user_id, ha_client)
+                if goal_advisor is not None and len(goal_advisor) > 0:
+                    #print(f"Goal advisor detected for user {user_id} with goal {goal}: {goal_advisor}")
+                    _db.post_goal(user_id, goal, goal_advisor)
+    
+    except Exception as e:
+        print(f"Error in detectGoalAdvisor: {e}")
+        return None
