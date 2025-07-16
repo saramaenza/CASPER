@@ -1486,6 +1486,19 @@ queryText.addEventListener("keydown", (event) =>{
 	}
 })
 
+function getSeverityClass(severityLevel) {
+  if(severityLevel !== null) {
+    switch(severityLevel.toLowerCase()) {
+        case 'critical': return 'severity-critical';
+        case 'high': return 'severity-high';
+        case 'medium': return 'severity-medium';
+        case 'low': return 'severity-low';
+    }
+  }
+  else {
+    return 'severity-medium';
+  }
+}
 
 function printUserGoalProblems(problemsGoalList) {
   
@@ -1583,9 +1596,29 @@ function printUserGoalProblems(problemsGoalList) {
 
     // Severity badge
     const severityBadge = document.createElement('span');
-    severityBadge.className = 'severity-badge severity-medium'; //TODO: Cambia in base alla severity
+    
+    let severityLevel = '' 
+    let severityLevelContent = '';
+    if (problem.negative_effects[0][1].includes('[high]')) {
+      severityLevel = 'high';
+      severityLevelContent = 'Alto';
+    }
+    else if (problem.negative_effects[0][1].includes('[moderate]')) {
+      severityLevel = 'medium';
+      severityLevelContent = 'Medio';
+    }
+    else if (problem.negative_effects[0][1].includes('[low]')) {
+      severityLevel = 'low';
+      severityLevelContent = 'Basso';
+    }
+    else {
+      severityLevel = 'medium'; // Default severity if not found
+      severityLevelContent = 'Medio';
+    }
+    severityBadge.className = `severity-badge ${getSeverityClass(severityLevel)}`;
     // Imposta il testo in base alla severity
-    severityBadge.textContent = 'Medio';
+    severityBadge.textContent = severityLevelContent;
+    severityBadge.title = `Livello di gravità: ${severityLevelContent}`;
 
     // Count badge (se esiste l'attributo count)
     if (problem.count && problem.count > 1) {

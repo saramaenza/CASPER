@@ -96,7 +96,7 @@ def find_revert_problem(eventType, nameDevice, device_id, automation_description
                     solution = solution_info
                 else:
                     solution = ""
-                result_effects.append((problem_description, problem_description, "", [], solution))
+                result_effects.append((problem_description, problem_description + "[low]", "", [], solution))
 
         if userGoal == "security":
             dangerous_device_keywords = ["forno", "stufetta", "heater", "oven", "stove", "radiator", "riscaldamento", "stufa", "fornello"]
@@ -159,7 +159,7 @@ def find_revert_problem(eventType, nameDevice, device_id, automation_description
                         print(f"DEBUG: Solution found: {solution}")
                     else:
                         solution = ""
-                    result_effects.append((problem_description, problem_description, "", [], solution))
+                    result_effects.append((problem_description, problem_description + "[high]", "", [], solution))
 
     return result_effects
 

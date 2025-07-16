@@ -1909,24 +1909,19 @@ td {
     font-weight: 600;
 }
 
-.severity-critical {
+.severity-high {
     background: #FF3B30;
     color: white;
 }
 
-.severity-high {
+.severity-medium {
     background: #FF9500;
     color: white;
 }
 
-.severity-medium {
+.severity-low {
     background: #FFCC00;
     color: #1d1d1f;
-}
-
-.severity-low {
-    background: #34C759;
-    color: white;
 }
 
 .goal-tag {
