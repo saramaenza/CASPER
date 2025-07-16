@@ -1587,6 +1587,15 @@ function printUserGoalProblems(problemsGoalList) {
     // Imposta il testo in base alla severity
     severityBadge.textContent = 'Medio';
 
+    // Count badge (se esiste l'attributo count)
+    if (problem.count && problem.count > 1) {
+      const countBadge = document.createElement('span');
+      countBadge.className = 'count-badge';
+      countBadge.textContent = `${problem.count}`;
+      countBadge.title = `Rilevato ${problem.count} volte`;
+      leftSection.appendChild(countBadge);
+    }
+
     leftSection.appendChild(goalTag);
     leftSection.appendChild(severityBadge);
 

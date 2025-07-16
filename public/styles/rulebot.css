@@ -1907,7 +1907,6 @@ td {
     border-radius: 8px;
     font-size: 13px;
     font-weight: 600;
-
 }
 
 .severity-critical {
@@ -1945,6 +1944,24 @@ td {
     50% { transform: scale(1.01); }
     100% { transform: scale(1); }
 }
+
+.count-badge {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 25px;
+  height: 25px;
+  background: #ff6b6b;
+  color: white;
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  margin-left: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-right: 7px;
+  margin-left: 10px;
+}
+
 
 .problem-goal-card {
     overflow: hidden;
