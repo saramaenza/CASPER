@@ -25,7 +25,7 @@ const uuid = require('uuid');
 const bcrypt = require('bcryptjs')
 const cookieParser = require('cookie-parser')
 const jwt = require('jsonwebtoken')
-const {setServerConfig, createUser, getUser, verifyToken, isLogged, createGoogleUser, userInfo, verifyEmail, getAutomationsStates, getProblems, getProblemsGoals,getAutomations, getConfiguration, saveConfiguration,  saveSelectedConfiguration, saveAutomations,saveRulesStates,saveAutomation, deleteRule, closeDatabaseConnection, ignoreProblem, updateAutomationState} = require('./db_methods.cjs');
+const {setServerConfig, createUser, getUser, verifyToken, isLogged, createGoogleUser, userInfo, verifyEmail, getAutomationsStates, getProblems, getUsersId, getProblemsGoals,getAutomations, getConfiguration, saveConfiguration,  saveSelectedConfiguration, saveAutomations,saveRulesStates,saveAutomation, deleteRule, closeDatabaseConnection, ignoreProblem, updateAutomationState} = require('./db_methods.cjs');
 const JWT_SECRET = 'sdjkfh8923yhjdksbfma@#*(&@*!^#&@bhjb2qiuhesdbhjdsfg839ujkdhfjk'
 // =======================================
 const { getEntities, getAutomationsHA, postAutomationHA, getEntitiesStates, getLogbook, toggleAutomation, deleteAutomation} = require('./utils.cjs');
@@ -70,7 +70,11 @@ else {
   server = app;
 }
 
-server.listen(port, () => console.log('Server running on port ' + port));
+server.listen(port, () => {
+  console.log('Server running on port ' + port);
+  // Avvia il controllo periodico delle automazioni ogni 10 minuti
+  startAutomationMonitoring();
+});
 
 //--- WEB PAGE + LOGIN + REGISTRAZIONE ---
 const userIdMap = new Map();
@@ -86,6 +90,139 @@ async function verifyWeb(token) {
   return payload;
 }
 
+// Funzione per avviare il monitoraggio delle automazioni
+function startAutomationMonitoring() {
+    const INTERVAL_MS = 60 * 10 * 1000; // 10 minuti in millisecondi
+    
+    //console.log('Avvio monitoraggio automazioni ogni 10 minuti...');
+    
+    setInterval(async () => {
+        try {
+            //console.log('Esecuzione controllo automazioni periodico...');
+            await checkAllUsersAutomations();
+            //await checkUserAutomations('6818c8ac24e5db8f9a0304e5'); // Per testare, controlla un utente specifico
+        } catch (error) {
+            console.error('Errore nel controllo periodico delle automazioni:', error);
+        }
+    }, INTERVAL_MS);
+}
+
+// Funzione per controllare le automazioni di tutti gli utenti
+async function checkAllUsersAutomations() {
+    try {
+        // Recupera tutti gli id di tutti gli utenti che hanno una configurazione salvata
+        const users = await getUsersId();
+        for (const user of users) {
+            console.log(`Controllo automazioni per l'utente: ${user.id}`);
+            await checkUserAutomations(user.id);
+        }
+    } catch (error) {
+        console.error('Errore nel controllo delle automazioni per tutti gli utenti:', error);
+    }
+}
+
+// Funzione per controllare le automazioni di un singolo utente
+async function checkUserAutomations(userId) {
+    try {
+        const conf = await getConfiguration(userId);
+        if (!conf || !conf.auth) {
+            console.log(`Configurazione non trovata per l'utente ${userId}`);
+            return;
+        }
+        
+        const { url, token } = conf.auth;
+        const logbook = await getLogbook(url, token);
+        
+        if (logbook && logbook.length > 0) {
+            await checkNotRunningAutomations(logbook, userId);
+            await checkRunningAutomations(logbook, userId);
+        }
+    } catch (error) {
+        console.error(`Errore nel controllo delle automazioni per l'utente ${userId}:`, error);
+    }
+}
+
+async function checkNotRunningAutomations(logbook, userId) {
+    try {
+        // Chiama direttamente la funzione del database invece di fare una fetch
+        const running_automations = await getAutomationsStates(userId);
+        const onlyRunning = running_automations.filter(automation => automation.is_running);
+        
+        // Controlla se le automazioni in esecuzione sono ancora attive
+        for (const automation of onlyRunning) {
+            for (const element of logbook) {
+                if (element.entity_id === automation.entity_id_device) {
+                    if (element.state != automation.state_device) {
+                        //console.log(`Automazione ${automation.entity_id} non è più in esecuzione`);
+                        
+                        // Chiama direttamente la funzione del database
+                        const updateResult = await updateAutomationState(userId, automation.entity_id, false);
+                        
+                        if (!updateResult) {
+                            console.error('Errore nell\'aggiornamento dello stato automazione:', automation.entity_id);
+                        }
+                    }
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Errore in checkNotRunningAutomations:', error);
+    }
+}
+
+async function checkRunningAutomations(logbook, userId) {
+    try {
+        // Controlla se le automazioni sono state attivate
+        for (let index = 0; index < logbook.length; index++) {
+            const element = logbook[index];
+            
+            if (element.entity_id && element.entity_id.startsWith('automation.') && 
+                element.message && element.message.startsWith('triggered')) {
+                
+                let shouldAddToDb = true;
+                
+                if (index + 1 < logbook.length) {
+                    const activatedDeviceName = logbook[index + 1].entity_id;
+                    const activatedDeviceState = logbook[index + 1].state;
+                    
+                    if (logbook[index + 1].context_event_type == "automation_triggered") {
+                        if (index + 2 < logbook.length) {
+                            for (let j = index + 2; j < logbook.length; j++) {
+                                if (logbook[j].entity_id === activatedDeviceName) {
+                                    const newactivatedDeviceState = logbook[j].state;
+                                    if (newactivatedDeviceState !== activatedDeviceState) {
+                                        console.log("NON SI AGGIUNGE", element.entity_id);
+                                        shouldAddToDb = false;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        
+                        if (shouldAddToDb) {
+                            console.log("AGGIUNGERE AL DB", element.entity_id);
+                            
+                            // Chiama direttamente la funzione del database
+                            const updateResult = await updateAutomationState(
+                                userId, 
+                                element.entity_id, 
+                                true, 
+                                activatedDeviceName, 
+                                activatedDeviceState
+                            );
+                            
+                            if (!updateResult) {
+                                console.error('Errore nell\'aggiornamento dello stato automazione:', element.entity_id);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Errore in checkRunningAutomations:', error);
+    }
+}
 
 app.get('/policy', (req, res) =>{
   res.sendFile(path.join( __dirname, 'htdocs', 'privacyPolicy.html' ));

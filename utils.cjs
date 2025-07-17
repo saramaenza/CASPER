@@ -160,7 +160,7 @@ async function getLogbook(baseUrl, token) {
     try {
         timestamp = new Date(Date.now() - 10 * 60 * 1000);  
         timestamp = timestamp.toISOString();  // Converti in formato ISO 8601
-        console.log("Timestamp per il logbook:", timestamp);
+        //console.log("Timestamp per il logbook:", timestamp);
         
         const response = await fetch(`${baseUrl}/api/logbook/${timestamp}`, {
             headers: headers

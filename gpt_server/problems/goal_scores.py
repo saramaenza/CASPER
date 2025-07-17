@@ -58,7 +58,7 @@ class EnvironmentQualityCalculator:
                 'security': goals_data.get('security', [])
             }
         except Exception as e:
-            print(f"Errore nel recupero dei problemi: {e}")
+            #print(f"Errore nel recupero dei problemi: {e}")
             return {'energy': [], 'well-being': [], 'health': [], 'security': []}
 
     def extract_fuzzy_rule_from_problem(self, problem: Dict, goal: str) -> Tuple[str, float]:

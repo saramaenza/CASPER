@@ -183,14 +183,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 {state: 'off', entity_id: 'binary_sensor.shellymotion2_2c1165cb13df_motion', name: 'Sensore movimento Motion', when: '2025-07-15T15:36:02.875112+00:00'},
                 {name: 'Spegni luce bagno', message: 'triggered by state of binary_sensor.shellymotion2_2c1165cb13df_motion', source: 'state of binary_sensor.shellymotion2_2c1165cb13df_motion', entity_id: 'automation.spegni_luce_bagno', context_id: '01K07BN2HW694AC30E7B4D3FHR'},
                 {state: 'off', entity_id: 'light.shellycolorbulb_3494546e408a', name: 'Luce bagno', when: '2025-07-15T15:36:02.906163+00:00', context_event_type: 'automation_triggered'}
-            ];*/
+            ];
             logbook = [
                 {state: 'off', entity_id: 'light.lampadina', name: 'Lampadina', when: '2025-07-15T15:30:51.301942+00:00', context_event_type: 'automation_triggered'}
-            ];/*
+            ];
             logbook = [
-                {name: 'attiva lampadina ufficio', message: 'triggered by state of binary_sensor.shellymotion2_2c1165cb13df_motion', source: 'state of binary_sensor.shellymotion2_2c1165cb13df_motion', entity_id: 'automation.attiva_lampadina_ufficio', context_id: '01K07BBJ83G29HVB8KF6HPPZC0'},
+                {name: 'attiva lampadina', message: 'triggered by state of binary_sensor.shellymotion2_2c1165cb13df_motion', source: 'state of binary_sensor.shellymotion2_2c1165cb13df_motion', entity_id: 'automation.attiva_lampadina', context_id: '01K07BBJ83G29HVB8KF6HPPZC0'},
                 {state: 'on', entity_id: 'light.lampadina', name: 'Lampadina', when: '2025-07-15T15:30:51.301942+00:00', context_event_type: 'automation_triggered'}
-            ];*/
+            ];*/ 
             console.log("logbook", logbook);
             if (logbook !== null && logbook.length > 0) {
                 await checkNotRunningAutomations(logbook, userId);
@@ -235,7 +235,7 @@ async function checkNotRunningAutomations(logbook, userId) {
     if (!response_automations.ok) {
         console.error('Errore nel recupero delle automazioni running');
     } 
-    running_automations = await response_automations.json();
+    const running_automations = await response_automations.json();
     console.log("running automations", running_automations);
     // Controlla se le automazioni in esecuzione sono ancora attive
     running_automations.forEach(async (automation) => {

@@ -112,7 +112,6 @@ const verifyEmail = async (email) => {
     }
 };
 
-
 /* const getUserInfo = (identificatore) =>{ //identificatore: id o email, info: informazione da recuperare;
     const len = db.len;
     const users = db.users;
@@ -156,6 +155,18 @@ const userInfo = async (req) =>{ //ritorna tutte le informazioni dell'utente
     }
 }
 
+const getUsersId = async () => {
+    try {
+        const database = client.db(dbName);
+        const collection = database.collection('automations');
+        // Trova tutti i documenti e ottieni solo i user_id distinti
+        const users = await collection.distinct("user_id");
+        return users.map(user_id => ({ id: user_id }));
+    } catch (error) {
+        console.error('Error getting active users:', error);
+        return [];
+    }
+};
 
 const getProblems = async (userId) => {
     try {
@@ -836,6 +847,7 @@ module.exports = {
     isLogged,
     userInfo,
     verifyEmail,
+    getUsersId,
     getProblems,
     getProblemsGoals,
     getAutomationsStates,
