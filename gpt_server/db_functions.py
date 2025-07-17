@@ -493,6 +493,23 @@ def post_goal(user_id, goal, goal_body):
         print("----------------")
         return e
 
+def get_problems_goals(user_id):
+    """
+    Recupera i dati dalla collezione goals per un utente specifico
+    """
+    try:
+        collection = db['goals']
+        
+        # Cerca il documento per l'utente
+        user_goals = collection.find_one({"user_id": user_id})
+        
+        return user_goals if user_goals else {}
+        
+    except Exception as e:
+        print(f"Errore nel recupero dei dati dalla collezione goals: {e}")
+        return {}
+        
+    
 def get_active_users():
     """
     Restituisce una lista di tutti gli user_id degli utenti nel database.

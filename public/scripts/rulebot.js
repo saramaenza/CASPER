@@ -1505,7 +1505,7 @@ function printUserGoalProblems(problemsGoalList) {
   const goalAdvContainer = document.querySelector('#goal-adv-container');
   goalAdvContainer.innerHTML = ''; 
 
-  printGoalOverview(problemsGoalList);
+  printGoalOverview();
   
   if (!problemsGoalList || problemsGoalList.length === 0) {
     const noProblemsDiv = document.createElement('div');
@@ -1593,6 +1593,7 @@ function printUserGoalProblems(problemsGoalList) {
       'well-being': '🌱 Benessere'
     };
     goalTag.textContent = goalIcons[problem.goal] || `🎯 ${problem.goal}`;
+    goalTag.title = `Automazione in conflitto con l'obiettivo ${goalTag.textContent}`;
 
     // Severity badge
     const severityBadge = document.createElement('span');
@@ -1779,7 +1780,29 @@ function printUserGoalProblems(problemsGoalList) {
   });
 }
 
-function printGoalOverview(problemsGoalList) {
+function getProgressClass(score) {
+  if (score >= 80) return 'progress-high';
+  if (score >= 60) return 'progress-medium';
+  if (score >= 40) return 'progress-medium-low';
+  return 'progress-low';
+}
+
+async function printGoalOverview() {
+  const response = await fetch(`/get_goals_scores?user_id=${userId}`, {
+      method: 'GET',
+      headers: { 
+        'Cache-Control': 'no-cache'
+      }
+  });
+  const data = await response.json(); 
+  let goal_scores = {};
+
+  if (data.quality_scores) {
+    goal_scores = data.quality_scores; 
+  }
+
+  console.log("Goal scores:", goal_scores);
+  
   const goalAdvContainer = document.querySelector('#goal-adv-container');
   
   // Crea l'overview panel
@@ -1789,27 +1812,27 @@ function printGoalOverview(problemsGoalList) {
   const goalsContainer = document.createElement('div');
   goalsContainer.className = 'goals-container';
   
-  // Definisci i goals con i loro dati  #TODO: i dati "score" dovrebbero essere generati in base ai problemi rilevati
+  // Definisci i goals con i loro dati  
   const goals = [
     {
       name: '🌱 Benessere',
-      score: 15,
-      progressClass: 'progress-low'
+      score: goal_scores['well-being'] || 100,
+      progressClass: getProgressClass(goal_scores['well-being'] || 100)
     },
     {
       name: '🔋 Energia',
-      score: 35,
-      progressClass: 'progress-medium-low'
+      score: goal_scores['energy'] || 100,
+      progressClass: getProgressClass(goal_scores['energy'] || 100)
     },
     {
       name: '❤️ Salute',
-      score: 65,
-      progressClass: 'progress-medium'
+      score: goal_scores['health'] || 100,
+      progressClass: getProgressClass(goal_scores['health'] || 100)
     },
     {
       name: '🛡️ Sicurezza',
-      score: 85,
-      progressClass: 'progress-high'
+      score: goal_scores['security'] || 100,
+      progressClass: getProgressClass(goal_scores['security'] || 100)
     }
   ];
   
@@ -1858,6 +1881,15 @@ function printGoalOverview(problemsGoalList) {
     progressCircle.setAttribute('cy', '20');
     progressCircle.setAttribute('r', '18');
     progressCircle.setAttribute('class', 'progress-circle');
+
+    // Calcola il riempimento del cerchio basato sul punteggio
+    const circumference = 2 * Math.PI * 18; // 2πr dove r=18
+    const strokeDashoffset = circumference - (goal.score / 100) * circumference;
+    progressCircle.setAttribute('stroke-dasharray', circumference);
+    progressCircle.setAttribute('stroke-dashoffset', 0);
+
+    progressCircle.style.setProperty('--progress-offset', strokeDashoffset);
+
     
     svg.appendChild(bgCircle);
     svg.appendChild(progressCircle);

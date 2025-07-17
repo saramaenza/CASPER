@@ -12,6 +12,7 @@ from langgraph.prebuilt import ToolNode, tools_condition
 from langgraph.checkpoint.memory import MemorySaver
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.messages import trim_messages
+from problems.goal_scores import get_quality_scores_only
 
 from config import get_server_choice
 import tools as _tools
@@ -146,6 +147,20 @@ def send_message():
 @app.route('/health', methods=['GET'])
 def health_check():
     return jsonify({'status': 'ok'}), 200
+
+@app.route('/get_quality_scores', methods=['POST'])
+def get_quality_scores():
+    data = request.json
+    user_id = data.get('user_id')
+
+    if not user_id:
+        return jsonify({'error': 'Missing user_id'}), 400
+
+    try:
+        scores = get_quality_scores_only(user_id)
+        return jsonify({'quality_scores': scores}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     # Avvia il thread in background

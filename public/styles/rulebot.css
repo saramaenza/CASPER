@@ -2152,7 +2152,7 @@ td {
     stroke-width: 3;
     stroke-linecap: round;
     stroke-dasharray: 113.1;
-    stroke-dashoffset: 113.1;
+    stroke-dashoffset: var(--progress-offset, 113.1);
     transition: stroke-dashoffset 2s ease-in-out, stroke 0.3s ease;
     animation: fillProgress 2s ease-in-out forwards;
 }
@@ -2162,32 +2162,28 @@ td {
         stroke-dashoffset: 113.1;
     }
     to {
-        stroke-dashoffset: var(--progress-offset);
+        stroke-dashoffset: var(--progress-offset, 113.1);
     }
 }
 
 /* Rosso per valori bassi (0-25%) */
 .progress-low .progress-circle {
     stroke: #ef4444;
-    --progress-offset: 96.4;
 }
 
 /* Arancione per valori medio-bassi (26-50%) */
 .progress-medium-low .progress-circle {
     stroke: #f97316;
-    --progress-offset: 73.5;
 }
 
 /* Giallo per valori medi (51-75%) */
 .progress-medium .progress-circle {
     stroke: #eab308;
-    --progress-offset: 39.6;
 }
 
 /* Verde per valori alti (76-100%) */
 .progress-high .progress-circle {
     stroke: #22c55e;
-    --progress-offset: 17;
 }
 
 .circular-progress .progress-text {
@@ -2195,7 +2191,7 @@ td {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 600;
     color: var(--text-primary);
 }

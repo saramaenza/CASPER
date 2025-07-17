@@ -317,6 +317,23 @@ app.get('/chatbot_status', async (req, res) => {
   }
 });
 
+app.use('/get_goals_scores', async (req, res) => {
+  try {
+    let user_id = req.query.user_id;
+    const response = await fetch(`${python_server}/get_quality_scores`, {
+      method: 'POST',
+      timeout: 3000,
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({user_id: user_id})
+    });
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    console.log('/get_goals_scores error:');
+    console.log(error);
+  }
+});
+
 app.use('/load_devices', verifyToken, async (req, res) =>{
   try {
     let url = req.body.url

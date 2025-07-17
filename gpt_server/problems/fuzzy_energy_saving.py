@@ -162,7 +162,7 @@ def getEnergySavingFuzzy(rules, area, environment, nameDevice, environmentVariab
     stoveState = 1 if stoveState == "on" else 0
 
     data_env = {
-        "energy": energyValue,
+        "energy": 1000,
         "window_open": windowStateValue,
         "fan_state": fanStateValue,
         "light_state": lightState,
@@ -209,7 +209,7 @@ def getEnergySavingFuzzy(rules, area, environment, nameDevice, environmentVariab
             rule_description = rule_to_natural_language(rule_activated)
             #print(rule_description)
             if "_problem[no]]" not in str(rule_activated.consequent):
-                activated_rules_consequent.append((rule_activated.consequent, round(scoreValue, 2), rule_description))
+                activated_rules_consequent.append((rule_activated.consequent, round(scoreValue, 2), rule_description, "rule" + str(rule_num)))
 
         if not activated_rules_consequent:
             #print("No problem detected for this rule set \n")
