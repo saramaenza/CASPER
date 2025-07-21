@@ -1693,6 +1693,7 @@ td {
   font-weight: 600;
   background: var(--text-primary);;
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   margin: 0;
   padding: 0;
