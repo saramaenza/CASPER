@@ -1563,7 +1563,7 @@ function showGoalExplanation(goal) {
   // Definisci le spiegazioni per ogni goal
   const explanations = {
     '🌱 Benessere': {
-      title: 'Punteggio Benessere',
+      title: 'Punteggio Benessere 🌱',
       description: `Il tuo punteggio di benessere è del ${goal.score}%. Questo indica quanto le tue automazioni contribuiscono positivamente al tuo comfort quotidiano e alla qualità della vita in casa.`,
       details: [
         '• 80-100%: Eccellente - Le tue automazioni supportano perfettamente il tuo benessere',
@@ -1573,7 +1573,7 @@ function showGoalExplanation(goal) {
       ]
     },
     '🔋 Energia': {
-      title: 'Punteggio Energia',
+      title: 'Punteggio Energia 🔋',
       description: `Il tuo punteggio energetico è del ${goal.score}%. Questo riflette quanto le tue automazioni ottimizzano il consumo energetico della tua casa.`,
       details: [
         '• 80-100%: Eccellente - Ottimo risparmio energetico',
@@ -1583,7 +1583,7 @@ function showGoalExplanation(goal) {
       ]
     },
     '❤️ Salute': {
-      title: 'Punteggio Salute',
+      title: 'Punteggio Salute ❤️',
       description: `Il tuo punteggio di salute è del ${goal.score}%. Questo indica quanto le tue automazioni proteggono e promuovono la tua salute e quella della tua famiglia.`,
       details: [
         '• 80-100%: Eccellente - Le automazioni supportano attivamente la salute',
@@ -1593,7 +1593,7 @@ function showGoalExplanation(goal) {
       ]
     },
     '🛡️ Sicurezza': {
-      title: 'Punteggio Sicurezza',
+      title: 'Punteggio Sicurezza 🛡️',
       description: `Il tuo punteggio di sicurezza è del ${goal.score}%. Questo misura quanto le tue automazioni proteggono efficacemente la tua casa e la tua famiglia da rischi e pericoli.`,
       details: [
         '• 80-100%: Eccellente - Sicurezza ottimale garantita',
