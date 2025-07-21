@@ -811,6 +811,48 @@ const updateAllProblemsState = async (userId) => {
     }
 };
 
+const saveUserPreferences = async (userId, ranking) => {
+    try {
+        const database = client.db(dbName);
+        const preferences = database.collection('user_preferences');
+        
+        await preferences.updateOne(
+            { 'user_id': userId },
+            { 
+                $set: { 
+                    'user_id': userId,
+                    'ranking': ranking,
+                    'last_update': new Date()
+                }
+            },
+            { upsert: true }
+        );
+        return true;
+    } catch (err) {
+        console.log('error in saveUserPreferences');
+        console.log(err);
+        return false;
+    }
+};
+
+const getUserPreferences = async (userId) => {
+    try {
+        const database = client.db(dbName);
+        const preferences = database.collection('user_preferences');
+        const userPreferences = await preferences.findOne({ 'user_id': userId });
+        
+        if (!userPreferences) {
+            return { ranking: null }; // Ritorna null se non ci sono preferenze salvate
+        }
+        
+        return { ranking: userPreferences.ranking };
+    } catch (err) {
+        console.log('error in getUserPreferences');
+        console.log(err);
+        return { ranking: null };
+    }
+};
+
 // const getHAAutomation = async (userId, automationId) => {
 //     
 //     try {
@@ -864,6 +906,8 @@ module.exports = {
     toggleAutomation,
     ignoreProblem,
     changeStateProblem,
-    updateAllProblemsState
+    updateAllProblemsState,
+    saveUserPreferences,
+    getUserPreferences
 };
 

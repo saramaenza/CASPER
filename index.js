@@ -25,7 +25,7 @@ const uuid = require('uuid');
 const bcrypt = require('bcryptjs')
 const cookieParser = require('cookie-parser')
 const jwt = require('jsonwebtoken')
-const {setServerConfig, createUser, getUser, verifyToken, isLogged, createGoogleUser, userInfo, verifyEmail, getAutomationsStates, getProblems, getUsersId, getProblemsGoals,getAutomations, getConfiguration, saveConfiguration,  saveSelectedConfiguration, saveAutomations,saveRulesStates,saveAutomation, deleteRule, closeDatabaseConnection, ignoreProblem, updateAutomationState} = require('./db_methods.cjs');
+const {setServerConfig, createUser, getUser, verifyToken, isLogged, createGoogleUser, userInfo, verifyEmail, getAutomationsStates, getProblems, getUsersId, getProblemsGoals,getAutomations, getConfiguration, saveConfiguration,  saveSelectedConfiguration, saveAutomations,saveRulesStates,saveAutomation, deleteRule, closeDatabaseConnection, ignoreProblem, updateAutomationState, saveUserPreferences, getUserPreferences} = require('./db_methods.cjs');
 const JWT_SECRET = 'sdjkfh8923yhjdksbfma@#*(&@*!^#&@bhjb2qiuhesdbhjdsfg839ujkdhfjk'
 // =======================================
 const { getEntities, getAutomationsHA, postAutomationHA, getEntitiesStates, getLogbook, toggleAutomation, deleteAutomation} = require('./utils.cjs');
@@ -612,6 +612,35 @@ app.use('/save_automation', verifyToken, async (req, res) =>{
     return res.json(error)
   }
 })
+
+// Salva le preferenze utente
+app.post('/save_user_preferences', verifyToken, async (req, res) => {
+    try {
+        const { user_id, ranking } = req.body;
+        const result = await saveUserPreferences(user_id, ranking);
+        
+        if (result) {
+            res.json({ status: 'success' });
+        } else {
+            res.json({ status: 'error', error: 'Failed to save preferences' });
+        }
+    } catch (error) {
+        console.log('/save_user_preferences error:', error);
+        res.json({ status: 'error', error: 'Internal server error' });
+    }
+});
+
+// Recupera le preferenze utente
+app.get('/get_user_preferences', verifyToken, async (req, res) => {
+    try {
+        const user_id = req.query.user_id;
+        const preferences = await getUserPreferences(user_id);
+        res.json(preferences);
+    } catch (error) {
+        console.log('/get_user_preferences error:', error);
+        res.json({ ranking: null });
+    }
+});
 
 app.get('/get_config', verifyToken, async (req, res) =>{
   try {

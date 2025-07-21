@@ -253,7 +253,7 @@ window.addEventListener('load', async ()=>{
   carouselObject = new Carousel(problemsList)
   printUserGoalProblems(problemGoalList);
   //open_delete_rule();
-  printUserPreferences();
+  await printUserPreferences();
   if (lang == 'en'){
     getBotResponse('hello my dear');
     generateTypingMsg('bot');
@@ -935,8 +935,33 @@ async function printUserDevices(devicesList) {
     }
 }
 
+// Funzione per salvare le preferenze utente
+async function saveUserPreferences(ranking) {
+    try {
+        const response = await fetch('/save_user_preferences', {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                user_id: userId,
+                ranking: ranking
+            })
+        });
+        
+        const data = await response.json();
+        if (data.status === 'success') {
+            console.log('Preferenze salvate con successo');
+        } else {
+            console.error('Errore nel salvataggio delle preferenze:', data.error);
+        }
+    } catch (error) {
+        console.error('Errore nella richiesta di salvataggio:', error);
+    }
+}
 
-function printUserPreferences() {
+async function printUserPreferences() {
     // Pulisce il container
     preferencesContainer.innerHTML = '';
 
@@ -968,13 +993,45 @@ function printUserPreferences() {
     rankingList.className = 'ranking-list';
     rankingList.id = 'rankingList';
 
-    // Dati degli obiettivi
-    const goals = [
+    // Dati degli obiettivi di default
+    const defaultGoals = [
         { id: 'sicurezza', name: 'Sicurezza', icon: '🛡️' },
         { id: 'salute', name: 'Salute', icon: '❤️' },
-        { id: 'risparmio', name: 'Risparmio Energetico', icon: '🔋' },
+        { id: 'energia', name: 'Energia', icon: '🔋' },
         { id: 'benessere', name: 'Benessere', icon: '🌱' }
     ];
+
+    // Carica la classifica salvata dall'utente
+    let userRanking;
+    try {
+        const response = await fetch(`/get_user_preferences?user_id=${userId}`, {
+            method: 'GET',
+            headers: { 'Cache-Control': 'no-cache' }
+        });
+        const data = await response.json();
+        userRanking = data.ranking || null;
+    } catch (error) {
+        console.log('Errore nel caricamento delle preferenze:', error);
+        userRanking = null;
+    }
+
+    // Organizza gli obiettivi secondo la classifica salvata o usa quella di default
+    let goals;
+    if (userRanking && Array.isArray(userRanking)) {
+        // Riordina secondo la classifica salvata
+        goals = userRanking.map(savedGoal => {
+            return defaultGoals.find(goal => goal.id === savedGoal.id) || savedGoal;
+        });
+        // Aggiungi eventuali obiettivi mancanti
+        defaultGoals.forEach(defaultGoal => {
+            if (!goals.find(goal => goal.id === defaultGoal.id)) {
+                goals.push(defaultGoal);
+            }
+        });
+    } else {
+        // Usa la classifica di default
+        goals = [...defaultGoals];
+    }
 
     // Crea gli elementi della lista
     goals.forEach((goal, index) => {
@@ -1105,9 +1162,6 @@ function initializeDragAndDropForPreferences() {
             
             // Aggiungi effetto visivo
             draggedElement.classList.add('pulse');
-            setTimeout(() => {
-                draggedElement.classList.remove('pulse');
-            }, 600);
             
             // Salva la nuova classifica
             saveRanking();
@@ -1125,16 +1179,21 @@ function initializeDragAndDropForPreferences() {
         });
     }
 
+    
     function saveRanking() {
         const items = rankingList.querySelectorAll('.goal-item');
         const ranking = Array.from(items).map((item, index) => ({
-            goal: item.dataset.goal,
+            id: item.dataset.goal,
             position: index + 1,
-            name: item.querySelector('.goal-name').textContent
+            name: item.querySelector('.goal-name').textContent,
+            icon: item.querySelector('.goal-icon').textContent
         }));
         
-        // Salva in memoria (puoi estendere per salvare in localStorage se necessario)
+        // Salva in memoria per uso immediato
         console.log('Nuova classifica:', ranking);
+        
+        // Salva sul server
+        saveUserPreferences(ranking);
     }
 
     // Inizializza la classifica
