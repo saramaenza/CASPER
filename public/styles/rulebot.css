@@ -1951,16 +1951,6 @@ td {
     cursor: grabbing;
 }
 
-.goal-item.dragging {
-    opacity: 0.5;
-    transform: rotate(2deg);
-}
-
-.goal-item.drag-over {
-    border-color: #3b82f6;
-    background: #eff6ff;
-}
-
 .rank-number {
     background: var(--bg-primary);
     color: var(--text-primary);
