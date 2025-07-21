@@ -1500,6 +1500,140 @@ function getSeverityClass(severityLevel) {
   }
 }
 
+function showGoalExplanation(goal) {
+  // Definisci le spiegazioni per ogni goal
+  const explanations = {
+    '🌱 Benessere': {
+      title: 'Punteggio Benessere',
+      description: `Il tuo punteggio di benessere è del ${goal.score}%. Questo indica quanto le tue automazioni contribuiscono positivamente al tuo comfort quotidiano e alla qualità della vita in casa.`,
+      details: [
+        '• 80-100%: Eccellente - Le tue automazioni supportano perfettamente il tuo benessere',
+        '• 60-79%: Buono - Buon equilibrio tra automazione e comfort',
+        '• 40-59%: Discreto - Ci sono margini di miglioramento per il benessere',
+        '• 0-39%: Da migliorare - Le automazioni interferiscono significativamente con il comfort'
+      ]
+    },
+    '🔋 Energia': {
+      title: 'Punteggio Energia',
+      description: `Il tuo punteggio energetico è del ${goal.score}%. Questo riflette quanto le tue automazioni ottimizzano il consumo energetico della tua casa.`,
+      details: [
+        '• 80-100%: Eccellente - Ottimo risparmio energetico',
+        '• 60-79%: Buono - Buona efficienza energetica',
+        '• 40-59%: Discreto - Alcune inefficienze energetiche da correggere',
+        '• 0-39%: Da migliorare - Le automazioni causano sprechi energetici significativi'
+      ]
+    },
+    '❤️ Salute': {
+      title: 'Punteggio Salute',
+      description: `Il tuo punteggio di salute è del ${goal.score}%. Questo indica quanto le tue automazioni proteggono e promuovono la tua salute e quella della tua famiglia.`,
+      details: [
+        '• 80-100%: Eccellente - Le automazioni supportano attivamente la salute',
+        '• 60-79%: Buono - Buon supporto per la salute',
+        '• 40-59%: Discreto - Alcuni aspetti della salute potrebbero essere migliorati',
+        '• 0-39%: Da migliorare - Le automazioni potrebbero compromettere la salute'
+      ]
+    },
+    '🛡️ Sicurezza': {
+      title: 'Punteggio Sicurezza',
+      description: `Il tuo punteggio di sicurezza è del ${goal.score}%. Questo misura quanto le tue automazioni proteggono efficacemente la tua casa e la tua famiglia da rischi e pericoli.`,
+      details: [
+        '• 80-100%: Eccellente - Sicurezza ottimale garantita',
+        '• 60-79%: Buono - Buon livello di protezione',
+        '• 40-59%: Discreto - Alcune vulnerabilità di sicurezza da risolvere',
+        '• 0-39%: Da migliorare - Le automazioni creano rischi significativi per la sicurezza'
+      ]
+    }
+  };
+
+  const explanation = explanations[goal.name];
+  if (!explanation) return;
+
+  // Crea il dialog personalizzato per la spiegazione
+  const explanationDialog = document.createElement('div');
+  explanationDialog.className = 'goal-explanation-dialog';
+
+  const dialogContent = document.createElement('div');
+  dialogContent.className = 'goal-explanation-dialog-content';
+
+  // Header con titolo e pulsante chiudi
+  const header = document.createElement('div');
+  header.className = 'goal-explanation-header';
+
+  const title = document.createElement('h3');
+  title.className = 'goal-explanation-title';
+  title.textContent = explanation.title;
+
+  const closeButton = document.createElement('button');
+  closeButton.className = 'goal-explanation-close-btn';
+  closeButton.innerHTML = '✕';
+  closeButton.addEventListener('click', closeDialog);
+
+  header.appendChild(title);
+  header.appendChild(closeButton);
+
+  // Descrizione principale
+  const description = document.createElement('p');
+  description.className = 'goal-explanation-description';
+  description.textContent = explanation.description;
+
+  // Lista dei dettagli
+  const detailsList = document.createElement('div');
+  detailsList.className = 'goal-explanation-details';
+
+  const detailsTitle = document.createElement('h4');
+  detailsTitle.className = 'goal-explanation-details-title';
+  detailsTitle.textContent = 'Scala di valutazione:';
+
+  detailsList.appendChild(detailsTitle);
+
+  explanation.details.forEach(detail => {
+    const detailItem = document.createElement('div');
+    detailItem.className = 'goal-explanation-detail-item';
+    detailItem.innerHTML = detail;
+    detailsList.appendChild(detailItem);
+  });
+
+  // Suggerimento
+  const suggestion = document.createElement('p');
+  suggestion.className = 'goal-explanation-suggestion';
+  suggestion.innerHTML = '<strong>💡 Suggerimento:</strong> Per migliorare questo punteggio, chiedi a Casper consigli specifici sul tuo obiettivo!';
+
+  // Assembla il dialog
+  dialogContent.appendChild(header);
+  dialogContent.appendChild(description);
+  dialogContent.appendChild(detailsList);
+  dialogContent.appendChild(suggestion);
+  explanationDialog.appendChild(dialogContent);
+
+  // Funzione per chiudere il dialog
+  function closeDialog() {
+    explanationDialog.classList.remove('show');
+    setTimeout(() => {
+      document.body.removeChild(explanationDialog);
+    }, 300);
+  }
+
+  // Event listeners
+  explanationDialog.addEventListener('click', (e) => {
+    if (e.target === explanationDialog) closeDialog();
+  });
+
+  document.addEventListener('keydown', function escapeHandler(e) {
+    if (e.key === 'Escape') {
+      closeDialog();
+      document.removeEventListener('keydown', escapeHandler);
+    }
+  });
+
+  // Aggiungi al DOM e anima
+  document.body.appendChild(explanationDialog);
+  
+  // Trigger animazione
+  requestAnimationFrame(() => {
+    explanationDialog.classList.add('show');
+  });
+}
+
 function printUserGoalProblems(problemsGoalList) {
   
   const goalAdvContainer = document.querySelector('#goal-adv-container');
@@ -1844,7 +1978,12 @@ async function printGoalOverview() {
     goalItemOverview.style.cursor = 'pointer';
     
     // Aggiungi event listener per il click
-    goalItemOverview.addEventListener('click', function() {
+    goalItemOverview.addEventListener('click', function(e) {
+      // Previeni il filtro se si clicca sull'icona info
+      if (e.target.classList.contains('goal-info-icon') || e.target.closest('.goal-info-button')) {
+        return;
+      }
+
       filterProblemsByGoal(goal.name);
       
       // Rimuovi la classe active da tutti gli altri goal items
@@ -1906,12 +2045,43 @@ async function printGoalOverview() {
     // Goal info
     const goalInfo = document.createElement('div');
     goalInfo.className = 'goal-info';
+
+    // Container per nome e icona info
+    const goalNameContainer = document.createElement('div');
+    goalNameContainer.className = 'goal-name-container';
     
     const goalName = document.createElement('div');
     goalName.className = 'goal-name';
     goalName.innerHTML = goal.name.replace(' ', '&nbsp;');
+
+    // Pulsante info
+    const infoButton = document.createElement('button');
+    infoButton.className = 'goal-info-button';
+    infoButton.title = 'Scopri cosa significa questo punteggio';
+
+    const infoIcon = document.createElement('span');
+    infoIcon.className = 'goal-info-icon';
+    infoIcon.textContent = 'ℹ️';
+
+    infoButton.appendChild(infoIcon);
+
+    // Event listener per il pulsante info
+    infoButton.addEventListener('click', function(e) {
+      e.stopPropagation(); // Previeni il triggering del filtro
+      showGoalExplanation(goal);
+    });
+    
+    // Hover effect per il pulsante info
+    infoButton.addEventListener('mouseenter', () => {
+      infoButton.style.opacity = '1';
+    });
+    infoButton.addEventListener('mouseleave', () => {
+      infoButton.style.opacity = '0.7';
+    });
     
     goalInfo.appendChild(goalName);
+    goalNameContainer.appendChild(infoButton);
+    goalInfo.appendChild(goalNameContainer);
     
     // Assembla il goal item
     goalItemOverview.appendChild(goalScore);
