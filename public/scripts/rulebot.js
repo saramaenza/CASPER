@@ -1693,27 +1693,245 @@ function showGoalExplanation(goal) {
   });
 }
 
+async function loadAndShowSuggestions(container) {
+    try {
+        // Mostra loader
+        container.innerHTML = '<div class="suggestions-loader"><div class="loader mini-loader"></div><span>Caricamento suggerimenti...</span></div>';
+        
+        // Carica le preferenze dell'utente
+        const response = await fetch(`/get_user_preferences?user_id=${userId}`, {
+            method: 'GET',
+            headers: { 'Cache-Control': 'no-cache' }
+        });
+        const data = await response.json();
+        const userRanking = data.ranking || null;
+        
+        // Genera suggerimenti basati sulla classifica personale
+        const suggestions = generateDetailedSuggestions(userRanking);
+        
+        // Rimuovi loader e mostra suggerimenti
+        container.innerHTML = '';
+        displaySuggestionsCascade(container, suggestions);
+        
+    } catch (error) {
+        console.error('Errore nel caricamento dei suggerimenti:', error);
+        container.innerHTML = '<div class="suggestions-error">Errore nel caricamento dei suggerimenti. Riprova più tardi.</div>';
+    }
+}
+
+function generateDetailedSuggestions(userRanking) {
+    const detailedSuggestions = {
+        'sicurezza': {
+            icon: '🛡️',
+            title: 'Sicurezza',
+            suggestions: [
+                'Descrizione della nuova automazione'
+            ]
+        },
+        'salute': {
+            icon: '❤️',
+            title: 'Salute',
+            suggestions: [
+                'Descrizione della nuova automazione'
+            ]
+        },
+        'energia': {
+            icon: '🔋',
+            title: 'Energia',
+            suggestions: [
+                'Descrizione della nuova automazione'
+            ]
+        },
+        'benessere': {
+            icon: '🌱',
+            title: 'Benessere',
+            suggestions: [
+                'Descrizione della nuova automazione'
+            ]
+        }
+    };
+    
+    if (!userRanking || userRanking.length === 0) {
+        return Object.values(detailedSuggestions);
+    }
+    
+    // Ordina i suggerimenti in base alla classifica dell'utente
+    return userRanking
+        .map(goal => detailedSuggestions[goal.id])
+        .filter(Boolean)
+        .concat(
+            Object.values(detailedSuggestions).filter(
+                sugg => !userRanking.some(goal => detailedSuggestions[goal.id] === sugg)
+            )
+        );
+}
+
+function displaySuggestionsCascade(container, suggestions) {
+    let cardIndex = 0;
+    
+    suggestions.forEach((suggestionCategory, categoryIndex) => {
+        suggestionCategory.suggestions.forEach((singleSuggestion, suggestionIndex) => {
+            setTimeout(() => {
+                // Container per ogni suggerimento singolo
+                const suggestionContainer = document.createElement('div');
+                suggestionContainer.className = 'suggestion-container';
+                
+                // Card principale per il singolo suggerimento
+                const suggestionCard = document.createElement('div');
+                suggestionCard.className = 'automation-card problem-goal-card';
+                suggestionCard.style.animationDelay = `${cardIndex * 0.1}s`;
+                
+                // Header della card
+                const cardHeader = document.createElement('div');
+                cardHeader.className = 'card-header';
+                
+                // Parte destra con icona e info suggerimento
+                const rightSection = document.createElement('div');
+                rightSection.style.display = 'flex';
+                rightSection.style.alignItems = 'center';
+                rightSection.style.float = 'right';
+                
+                // Icona suggerimento
+                const suggestionIcon = document.createElement('div');
+                suggestionIcon.className = `automation-icon suggestion-icon-bg`;
+                suggestionIcon.textContent = suggestionCategory.icon;
+                
+                // Container per titolo
+                const titleContainer = document.createElement('div');
+                
+                const suggestionTitle = document.createElement('div');
+                suggestionTitle.className = 'automation-title';
+                suggestionTitle.textContent = `Titolo automazione`;
+                
+                titleContainer.appendChild(suggestionTitle);
+                
+                rightSection.appendChild(suggestionIcon);
+                rightSection.appendChild(titleContainer);
+                
+                // Parte sinistra con goal tag
+                const leftSection = document.createElement('div');
+                leftSection.style.float = 'left';
+                
+                // Goal tag
+                const goalTag = document.createElement('span');
+                goalTag.className = 'goal-tag';
+                goalTag.textContent = `${suggestionCategory.icon} ${suggestionCategory.title}`;
+                goalTag.title = `Suggerimento per migliorare ${suggestionCategory.title}`;
+                
+                leftSection.appendChild(goalTag);
+                
+                // Assembla header
+                cardHeader.appendChild(rightSection);
+                cardHeader.appendChild(leftSection);
+                
+                // Descrizione del singolo suggerimento
+                const suggestionDescription = document.createElement('div');
+                suggestionDescription.className = 'automation-description';
+                suggestionDescription.textContent = singleSuggestion;
+                
+                // Pulsante di espansione
+                const expandButton = document.createElement('div');
+                expandButton.className = 'expand-button';
+                
+                const expandIcon = document.createElement('i');
+                expandIcon.className = 'expand-icon';
+                expandButton.appendChild(expandIcon);
+                
+                // Assembla la card
+                suggestionCard.appendChild(cardHeader);
+                suggestionCard.appendChild(suggestionDescription);
+                suggestionCard.appendChild(expandButton);
+                
+                // Rendi la card cliccabile
+                suggestionCard.style.cursor = 'pointer';
+                suggestionCard.addEventListener('click', function() {
+                    toggleCardExpansion(this);
+                });
+                
+                // Container per il contenuto espanso
+                const explanationContainer = document.createElement('div');
+                explanationContainer.className = 'problem-goal-explanation-container';
+                
+                const explanation = document.createElement('div');
+                explanation.className = 'problem-goal-explanation';
+                
+                // Sezione espansa
+                const expandedSection = document.createElement('div');
+                expandedSection.className = 'expanded-section';
+                expandedSection.textContent = 'Spiegazione della automazione e del perchè è utile per il tuo obiettivo.';
+                
+                // Sezione azioni con pulsanti
+                const expandedActions = document.createElement('div');
+                expandedActions.className = 'expanded-actions action-buttons';
+                
+                // Pulsante Ignora
+                const ignoreBtn = document.createElement('button');
+                ignoreBtn.className = 'btn btn-ignore';
+                ignoreBtn.textContent = 'Ignora';
+                
+                // Pulsante Risolvi
+                const resolveBtn = document.createElement('button');
+                resolveBtn.className = 'btn btn-resolve';
+                resolveBtn.textContent = 'Attiva';
+                
+                expandedActions.appendChild(ignoreBtn);
+                expandedActions.appendChild(resolveBtn);
+                
+                // Aggiungi prima la sezione espansa, poi le azioni
+                explanation.appendChild(expandedSection);
+                explanation.appendChild(expandedActions);
+                
+                explanationContainer.appendChild(explanation);
+                
+                // Assembla tutto
+                suggestionContainer.appendChild(suggestionCard);
+                suggestionContainer.appendChild(explanationContainer);
+                container.appendChild(suggestionContainer);
+                
+                // Anima l'apparizione della card
+                setTimeout(() => {
+                    suggestionCard.classList.add('visible');
+                }, 50);
+                
+            }, cardIndex * 150); // Ritardo per effetto cascata
+            
+            cardIndex++;
+        });
+    });
+}
+
 function printUserGoalProblems(problemsGoalList) {
   
   const goalAdvContainer = document.querySelector('#goal-adv-container');
   goalAdvContainer.innerHTML = ''; 
-
-  printGoalOverview();
   
   if (!problemsGoalList || problemsGoalList.length === 0) {
     const noProblemsDiv = document.createElement('div');
     noProblemsDiv.className = 'no-problems-message';
     noProblemsDiv.innerHTML = `
-      <div class="no-problems-message">
        Le tue automazioni sono allineate con i tuoi obiettivi 😊
        <br>
-        Se hai bisogno di aiuto, chiedi a Casper!
-      </div>
+       <br>
+       Vuoi migliorarli ulteriormente?
+       <br>
+       Ecco alcuni suggerimenti basati sulla tua classifica personale:
     `;
+    
+    // Container per i suggerimenti 
+    const suggestionsContainer = document.createElement('div');
+    suggestionsContainer.className = 'suggestions-container show';
+    
+    // Carica e mostra i suggerimenti automaticamente
+    loadAndShowSuggestions(suggestionsContainer);
+  
     goalAdvContainer.appendChild(noProblemsDiv);
+    goalAdvContainer.appendChild(suggestionsContainer);
     document.querySelector('#n_goal_advisor').innerText = 0;
+
     return;
   }
+
+  printGoalOverview();
 
   document.querySelector('#n_goal_advisor').innerText = problemsGoalList.length;
 
@@ -1818,8 +2036,32 @@ function printUserGoalProblems(problemsGoalList) {
     if (problem.count && problem.count > 1) {
       const countBadge = document.createElement('span');
       countBadge.className = 'count-badge';
-      countBadge.textContent = `${problem.count}`;
-      countBadge.title = `Rilevato ${problem.count} volte`;
+      // Calcola la durata del problema con validazione
+      const durationProblem = Math.max((problem.count || 0) * 10, 0);
+      
+      // Formatta la durata in ore e minuti
+      let durationText, durationTitle;
+      if (durationProblem === 0) {
+        durationText = 'N/A';
+        durationTitle = 'Durata non disponibile';
+      } else if (durationProblem >= 60) {
+        const hours = Math.floor(durationProblem / 60);
+        const minutes = durationProblem % 60;
+        
+        if (minutes === 0) {
+          durationText = hours === 1 ? '1 ora' : `${hours} ore`;
+          durationTitle = hours === 1 ? 'Rilevato per 1 ora' : `Rilevato per ${hours} ore`;
+        } else {
+          durationText = hours === 1 ? `1 ora ${minutes} min` : `${hours} ore ${minutes} min`;
+          durationTitle = hours === 1 ? `Rilevato per 1 ora e ${minutes} minuti` : `Rilevato per ${hours} ore e ${minutes} minuti`;
+        }
+      } else {
+        durationText = `${durationProblem} min`;
+        durationTitle = `Rilevato per ${durationProblem} minuti`;
+      }
+
+      countBadge.textContent = durationText;
+      countBadge.title = durationTitle;
       leftSection.appendChild(countBadge);
     }
 
