@@ -1320,6 +1320,11 @@ td {
   font-weight: 600;
   color: var(--text-primary);
   margin-bottom: 3px;
+  white-space: normal;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    max-width: 350px; /* puoi regolare la larghezza */
+    display: block;
 }
 
 .automation-id {

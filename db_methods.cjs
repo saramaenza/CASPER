@@ -853,6 +853,25 @@ const getUserPreferences = async (userId) => {
     }
 };
 
+
+const getImprovementSolutions = async (userId) => {
+    try {
+        const database = client.db(dbName);
+        const improvements = database.collection('improvement_solutions');
+        const userImprovements = await improvements.findOne({ 'user_id': userId });
+
+        if (!userImprovements) {
+            return []; // Ritorna un array vuoto se non ci sono miglioramenti salvati
+        }
+
+        return userImprovements['solutions'];
+    } catch (err) {
+        console.log('error in db_methonds getImprovementSolutions');
+        console.log(err);
+        return [];
+    }
+};
+
 // const getHAAutomation = async (userId, automationId) => {
 //     
 //     try {
@@ -908,6 +927,7 @@ module.exports = {
     changeStateProblem,
     updateAllProblemsState,
     saveUserPreferences,
-    getUserPreferences
+    getUserPreferences,
+    getImprovementSolutions
 };
 

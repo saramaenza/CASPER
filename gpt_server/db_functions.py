@@ -75,6 +75,30 @@ def get_automations(user_id):
         print(e)
         print("----------------")
         return None
+    
+def insert_improvement_solution(user_id, solutions):
+    """Inserisce le soluzioni generate nella collezione improvement_solutions."""
+    try:
+        collection = db["improvement_solutions"]
+        collection.insert_one({
+            "user_id": user_id,
+            "solutions": solutions
+        })
+    except Exception as e:
+        print("--> Insert Improvement Solution Error <--")
+        print(e)
+        print("----------------")
+
+def get_ranking_goals(user_id):
+    try:
+        collection = db["user_preferences"]
+        ranking_goals = collection.find_one({"user_id": user_id})
+        return ranking_goals['ranking'] if ranking_goals else []
+    except Exception as e:
+        print("--> Get Ranking Goals Error <--")
+        print(e)
+        print("----------------")
+        return None
 
 def get_automations_states(user_id):
     try:

@@ -25,7 +25,7 @@ const uuid = require('uuid');
 const bcrypt = require('bcryptjs')
 const cookieParser = require('cookie-parser')
 const jwt = require('jsonwebtoken')
-const {setServerConfig, createUser, getUser, verifyToken, isLogged, createGoogleUser, userInfo, verifyEmail, getAutomationsStates, getProblems, getUsersId, getProblemsGoals,getAutomations, getConfiguration, saveConfiguration,  saveSelectedConfiguration, saveAutomations,saveRulesStates,saveAutomation, deleteRule, closeDatabaseConnection, ignoreProblem, updateAutomationState, saveUserPreferences, getUserPreferences} = require('./db_methods.cjs');
+const {setServerConfig, createUser, getUser, verifyToken, isLogged, createGoogleUser, userInfo, verifyEmail, getAutomationsStates, getProblems, getUsersId, getProblemsGoals,getAutomations, getConfiguration, saveConfiguration,  saveSelectedConfiguration, saveAutomations,saveRulesStates,saveAutomation, deleteRule, closeDatabaseConnection, ignoreProblem, updateAutomationState, saveUserPreferences, getUserPreferences, getImprovementSolutions} = require('./db_methods.cjs');
 const JWT_SECRET = 'sdjkfh8923yhjdksbfma@#*(&@*!^#&@bhjb2qiuhesdbhjdsfg839ujkdhfjk'
 // =======================================
 const { getEntities, getAutomationsHA, postAutomationHA, getEntitiesStates, getLogbook, toggleAutomation, deleteAutomation} = require('./utils.cjs');
@@ -638,6 +638,18 @@ app.get('/get_user_preferences', verifyToken, async (req, res) => {
         res.json(preferences);
     } catch (error) {
         console.log('/get_user_preferences error:', error);
+        res.json({ ranking: null });
+    }
+});
+
+// Recupera i miglioramenti suggeriti per l'utente basati sulle preferenze
+app.get('/get_improvement_solutions', verifyToken, async (req, res) => {
+    try {
+        const user_id = req.query.user_id;
+        const solutions = await getImprovementSolutions(user_id);
+        res.json(solutions);
+    } catch (error) {
+        console.log('/get_improvement_solutions error:', error);
         res.json({ ranking: null });
     }
 });

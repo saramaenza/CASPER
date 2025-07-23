@@ -642,9 +642,19 @@ async function printUserRule(rules) {
 
 function getAutomationIconInfo(automation) {
     const regex = /^event(?:s|o|i)?:\s*(?<event>.*?)(?:\s*(?:condition(?:s)?|condizion(?:e|i)):\s*(?<condition>.*?))?\s*(?:action(?:s)?|azion(?:i|e)):\s*(?<action>.*)$/i;
-    const rule_match = automation.description.match(regex);
+    let rule_match = null;
+    if(automation.description !== undefined) {
+      rule_match = automation.description.match(regex);
+    } else {
+      rule_match = automation.toLowerCase().match(regex);
+    }
     let groups = {};
-    let text = automation.description.toLowerCase();
+    let text = "";
+    if(automation.description !== undefined) {
+      text = automation.description.toLowerCase();
+    } else {
+      text = automation.toLowerCase(); 
+    }
     if (rule_match) {
       groups = rule_match.groups;
       text = (groups.action).toLowerCase();
@@ -1698,203 +1708,177 @@ async function loadAndShowSuggestions(container) {
         // Mostra loader
         container.innerHTML = '<div class="suggestions-loader"><div class="loader mini-loader"></div><span>Caricamento suggerimenti...</span></div>';
         
-        // Carica le preferenze dell'utente
-        const response = await fetch(`/get_user_preferences?user_id=${userId}`, {
+        // Recupera le soluzioni dal backend
+        const response = await fetch(`/get_improvement_solutions?user_id=${userId}`, {
             method: 'GET',
             headers: { 'Cache-Control': 'no-cache' }
         });
         const data = await response.json();
-        const userRanking = data.ranking || null;
-        
-        // Genera suggerimenti basati sulla classifica personale
-        const suggestions = generateDetailedSuggestions(userRanking);
-        
+        const solutions = data.recommendations || {};
+
+        // Raggruppa le soluzioni per goal
+        const grouped = {};
+        Object.keys(solutions).forEach(goalKey => {
+            const automations = solutions[goalKey];
+            if (!grouped[goalKey]) {
+                grouped[goalKey] = {
+                    icon: getGoalIcon(goalKey),
+                    title: goalKey.charAt(0).toUpperCase() + goalKey.slice(1),
+                    suggestions: []
+                };
+            }
+            automations.forEach(s => {
+                grouped[goalKey].suggestions.push({
+                    structured: s.structured,
+                    natural_language: s.natural_language,
+                    title: s.title || '',
+                    description: s.description || '',
+                    goal: s.goal || goalKey
+                });
+            });
+        });
+
+        // Ordina secondo la classifica utente (opzionale)
+        const userRankingResponse = await fetch(`/get_user_preferences?user_id=${userId}`, {
+            method: 'GET',
+            headers: { 'Cache-Control': 'no-cache' }
+        });
+        const userRankingData = await userRankingResponse.json();
+        const userRanking = userRankingData.ranking || [];
+
+        let suggestions = [];
+        if (userRanking.length > 0) {
+            userRanking.forEach(goal => {
+                if (grouped[goal.name]) suggestions.push(grouped[goal.name]);
+            });
+            // Aggiungi eventuali goal non presenti nella classifica
+            Object.values(grouped).forEach(g => {
+                if (!suggestions.includes(g)) suggestions.push(g);
+            });
+        } else {
+            suggestions = Object.values(grouped);
+        }
+
         // Rimuovi loader e mostra suggerimenti
         container.innerHTML = '';
         displaySuggestionsCascade(container, suggestions);
-        
+
     } catch (error) {
         console.error('Errore nel caricamento dei suggerimenti:', error);
         container.innerHTML = '<div class="suggestions-error">Errore nel caricamento dei suggerimenti. Riprova più tardi.</div>';
     }
 }
 
-function generateDetailedSuggestions(userRanking) {
-    const detailedSuggestions = {
-        'sicurezza': {
-            icon: '🛡️',
-            title: 'Sicurezza',
-            suggestions: [
-                'Descrizione della nuova automazione'
-            ]
-        },
-        'salute': {
-            icon: '❤️',
-            title: 'Salute',
-            suggestions: [
-                'Descrizione della nuova automazione'
-            ]
-        },
-        'energia': {
-            icon: '🔋',
-            title: 'Energia',
-            suggestions: [
-                'Descrizione della nuova automazione'
-            ]
-        },
-        'benessere': {
-            icon: '🌱',
-            title: 'Benessere',
-            suggestions: [
-                'Descrizione della nuova automazione'
-            ]
-        }
-    };
-    
-    if (!userRanking || userRanking.length === 0) {
-        return Object.values(detailedSuggestions);
+// Helper per icona goal
+function getGoalIcon(goal) {
+    switch (goal.toLowerCase()) {
+        case 'sicurezza': return '🛡️';
+        case 'salute': return '❤️';
+        case 'energia': return '🔋';
+        case 'benessere': return '🌱';
+        default: return '🎯';
     }
-    
-    // Ordina i suggerimenti in base alla classifica dell'utente
-    return userRanking
-        .map(goal => detailedSuggestions[goal.id])
-        .filter(Boolean)
-        .concat(
-            Object.values(detailedSuggestions).filter(
-                sugg => !userRanking.some(goal => detailedSuggestions[goal.id] === sugg)
-            )
-        );
 }
 
 function displaySuggestionsCascade(container, suggestions) {
     let cardIndex = 0;
-    
     suggestions.forEach((suggestionCategory, categoryIndex) => {
         suggestionCategory.suggestions.forEach((singleSuggestion, suggestionIndex) => {
             setTimeout(() => {
-                // Container per ogni suggerimento singolo
                 const suggestionContainer = document.createElement('div');
                 suggestionContainer.className = 'suggestion-container';
-                
-                // Card principale per il singolo suggerimento
+
                 const suggestionCard = document.createElement('div');
                 suggestionCard.className = 'automation-card problem-goal-card';
                 suggestionCard.style.animationDelay = `${cardIndex * 0.1}s`;
-                
-                // Header della card
+
                 const cardHeader = document.createElement('div');
                 cardHeader.className = 'card-header';
-                
-                // Parte destra con icona e info suggerimento
+
                 const rightSection = document.createElement('div');
                 rightSection.style.display = 'flex';
                 rightSection.style.alignItems = 'center';
                 rightSection.style.float = 'right';
-                
-                // Icona suggerimento
+
                 const suggestionIcon = document.createElement('div');
-                suggestionIcon.className = `automation-icon suggestion-icon-bg`;
-                suggestionIcon.textContent = suggestionCategory.icon;
-                
-                // Container per titolo
+                const iconInfo = getAutomationIconInfo(singleSuggestion.structured);
+                suggestionIcon.className = `automation-icon suggestion-icon-bg ${iconInfo.className}`;
+                suggestionIcon.textContent = iconInfo.icon;
+
                 const titleContainer = document.createElement('div');
-                
                 const suggestionTitle = document.createElement('div');
                 suggestionTitle.className = 'automation-title';
-                suggestionTitle.textContent = `Titolo automazione`;
-                
+                suggestionTitle.textContent = singleSuggestion.title;
                 titleContainer.appendChild(suggestionTitle);
-                
                 rightSection.appendChild(suggestionIcon);
                 rightSection.appendChild(titleContainer);
-                
-                // Parte sinistra con goal tag
+
                 const leftSection = document.createElement('div');
                 leftSection.style.float = 'left';
-                
-                // Goal tag
                 const goalTag = document.createElement('span');
                 goalTag.className = 'goal-tag';
-                goalTag.textContent = `${suggestionCategory.icon} ${suggestionCategory.title}`;
-                goalTag.title = `Suggerimento per migliorare ${suggestionCategory.title}`;
-                
+                let goalIcon = getGoalIcon(singleSuggestion.goal);
+                goalTag.textContent = `${goalIcon} ${singleSuggestion.goal}`;
+                goalTag.title = `Suggerimento per migliorare ${singleSuggestion.goal}`;
                 leftSection.appendChild(goalTag);
-                
-                // Assembla header
+
                 cardHeader.appendChild(rightSection);
                 cardHeader.appendChild(leftSection);
-                
-                // Descrizione del singolo suggerimento
+
+                // Usa structured per la descrizione
                 const suggestionDescription = document.createElement('div');
                 suggestionDescription.className = 'automation-description';
-                suggestionDescription.textContent = singleSuggestion;
-                
-                // Pulsante di espansione
+                suggestionDescription.textContent = singleSuggestion.natural_language || '';
+
                 const expandButton = document.createElement('div');
                 expandButton.className = 'expand-button';
-                
                 const expandIcon = document.createElement('i');
                 expandIcon.className = 'expand-icon';
                 expandButton.appendChild(expandIcon);
-                
-                // Assembla la card
+
                 suggestionCard.appendChild(cardHeader);
                 suggestionCard.appendChild(suggestionDescription);
                 suggestionCard.appendChild(expandButton);
-                
-                // Rendi la card cliccabile
+
                 suggestionCard.style.cursor = 'pointer';
                 suggestionCard.addEventListener('click', function() {
                     toggleCardExpansion(this);
                 });
-                
-                // Container per il contenuto espanso
+
                 const explanationContainer = document.createElement('div');
                 explanationContainer.className = 'problem-goal-explanation-container';
-                
                 const explanation = document.createElement('div');
                 explanation.className = 'problem-goal-explanation';
-                
-                // Sezione espansa
+
+                // Usa natural_language per la sezione espansa
                 const expandedSection = document.createElement('div');
                 expandedSection.className = 'expanded-section';
-                expandedSection.textContent = 'Spiegazione della automazione e del perchè è utile per il tuo obiettivo.';
-                
-                // Sezione azioni con pulsanti
+                expandedSection.textContent = singleSuggestion.description || '';
+
                 const expandedActions = document.createElement('div');
                 expandedActions.className = 'expanded-actions action-buttons';
-                
-                // Pulsante Ignora
                 const ignoreBtn = document.createElement('button');
                 ignoreBtn.className = 'btn btn-ignore';
                 ignoreBtn.textContent = 'Ignora';
-                
-                // Pulsante Risolvi
                 const resolveBtn = document.createElement('button');
                 resolveBtn.className = 'btn btn-resolve';
                 resolveBtn.textContent = 'Attiva';
-                
                 expandedActions.appendChild(ignoreBtn);
                 expandedActions.appendChild(resolveBtn);
-                
-                // Aggiungi prima la sezione espansa, poi le azioni
+
                 explanation.appendChild(expandedSection);
                 explanation.appendChild(expandedActions);
-                
                 explanationContainer.appendChild(explanation);
-                
-                // Assembla tutto
+
                 suggestionContainer.appendChild(suggestionCard);
                 suggestionContainer.appendChild(explanationContainer);
                 container.appendChild(suggestionContainer);
-                
-                // Anima l'apparizione della card
+
                 setTimeout(() => {
                     suggestionCard.classList.add('visible');
                 }, 50);
-                
-            }, cardIndex * 150); // Ritardo per effetto cascata
-            
+
+            }, cardIndex * 150);
             cardIndex++;
         });
     });
