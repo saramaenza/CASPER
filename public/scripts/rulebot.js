@@ -945,6 +945,28 @@ async function printUserDevices(devicesList) {
     }
 }
 
+function showOverlayMessage(message, isSuccess = true) {
+    // Rimuovi eventuali overlay precedenti
+    let oldOverlay = document.getElementById('overlay-message');
+    if (oldOverlay) oldOverlay.remove();
+    overlay.classList.add(isSuccess ? 'success' : 'error');
+
+    overlay.textContent = message;
+
+    document.body.appendChild(overlay);
+
+    // Fade in
+    setTimeout(() => {
+        overlay.style.opacity = '1';
+    }, 50);
+
+    // Fade out dopo 2.5 secondi
+    setTimeout(() => {
+        overlay.style.opacity = '0';
+        setTimeout(() => overlay.remove(), 400);
+    }, 2500);
+}
+
 // Funzione per salvare le preferenze utente
 async function saveUserPreferences(ranking) {
     try {
@@ -963,10 +985,13 @@ async function saveUserPreferences(ranking) {
         const data = await response.json();
         if (data.status === 'success') {
             console.log('Preferenze salvate con successo');
+            showOverlayMessage('Preferenze salvate con successo!', true);
         } else {
+            showOverlayMessage('Errore nel salvataggio delle preferenze.', false);
             console.error('Errore nel salvataggio delle preferenze:', data.error);
         }
     } catch (error) {
+        showOverlayMessage('Errore nel salvataggio delle preferenze.', false);
         console.error('Errore nella richiesta di salvataggio:', error);
     }
 }
@@ -1083,26 +1108,48 @@ async function printUserPreferences() {
         rankingList.appendChild(goalItem);
     });
 
+    // Pulsante Salva
+    const saveButton = document.createElement('button');
+    saveButton.className = 'btn btn-save';
+    saveButton.textContent = 'Salva';
+
+    // Div azioni centrato
+    const expandedActions = document.createElement('div');
+    expandedActions.className = 'expanded-actions action-buttons';
+    expandedActions.appendChild(saveButton);
+
     // Assembla tutto
     container_preferences.appendChild(container);
     container.appendChild(header);
     container.appendChild(rankingList);
+    container.appendChild(expandedActions); // inserisci qui il pulsante centrato
     preferencesContainer.appendChild(container_preferences);
 
     // Aggiunge la funzionalità di drag and drop
-    initializeDragAndDropForPreferences();
+    initializeDragAndDropForPreferences(false); // <--- passa false per non salvare automaticamente
+
+    // Funzione per salvare la classifica quando si clicca su "Salva"
+    saveButton.addEventListener('click', () => {
+        const items = rankingList.querySelectorAll('.goal-item');
+        const ranking = Array.from(items).map((item, index) => ({
+            id: item.dataset.goal,
+            position: index + 1,
+            name: item.querySelector('.goal-name').textContent,
+            icon: item.querySelector('.goal-icon').textContent
+        }));
+        saveUserPreferences(ranking);
+    });
 }
 
-// Funzione specifica per inizializzare il drag and drop delle preferenze
-function initializeDragAndDropForPreferences() {
+// Inizializza il drag and drop per la classifica degli obiettivi
+function initializeDragAndDropForPreferences(autoSave = true) {
     const rankingList = document.getElementById('rankingList');
-    if (!rankingList) return; // Sicurezza: esce se l'elemento non esiste
+    if (!rankingList) return;
     
     let draggedElement = null;
     let draggedIndex = null;
     const goalItems = rankingList.querySelectorAll('.goal-item');
 
-    // Aggiungi event listeners a tutti gli elementi
     goalItems.forEach((item, index) => {
         item.addEventListener('dragstart', handleDragStart);
         item.addEventListener('dragend', handleDragEnd);
@@ -1116,29 +1163,22 @@ function initializeDragAndDropForPreferences() {
         draggedElement = this;
         draggedIndex = Array.from(rankingList.children).indexOf(this);
         this.classList.add('dragging');
-        
         e.dataTransfer.effectAllowed = 'move';
         e.dataTransfer.setData('text/html', this.outerHTML);
     }
 
     function handleDragEnd(e) {
         this.classList.remove('dragging');
-        
-        // Rimuovi le classi di drag-over da tutti gli elementi
         const currentGoalItems = rankingList.querySelectorAll('.goal-item');
         currentGoalItems.forEach(item => {
             item.classList.remove('drag-over');
         });
-        
         draggedElement = null;
         draggedIndex = null;
     }
 
     function handleDragOver(e) {
-        if (e.preventDefault) {
-            e.preventDefault();
-        }
-        
+        if (e.preventDefault) e.preventDefault();
         e.dataTransfer.dropEffect = 'move';
         return false;
     }
@@ -1154,29 +1194,18 @@ function initializeDragAndDropForPreferences() {
     }
 
     function handleDrop(e) {
-        if (e.stopPropagation) {
-            e.stopPropagation();
-        }
-
+        if (e.stopPropagation) e.stopPropagation();
         if (draggedElement !== this) {
             const currentIndex = Array.from(rankingList.children).indexOf(this);
-            
             if (draggedIndex < currentIndex) {
                 rankingList.insertBefore(draggedElement, this.nextSibling);
             } else {
                 rankingList.insertBefore(draggedElement, this);
             }
-            
-            // Aggiorna i numeri di ranking
             updateRankingNumbers();
-            
-            // Aggiungi effetto visivo
             draggedElement.classList.add('pulse');
-            
-            // Salva la nuova classifica
-            saveRanking();
+            if (autoSave) saveRanking();
         }
-
         this.classList.remove('drag-over');
         return false;
     }
@@ -1189,7 +1218,6 @@ function initializeDragAndDropForPreferences() {
         });
     }
 
-    
     function saveRanking() {
         const items = rankingList.querySelectorAll('.goal-item');
         const ranking = Array.from(items).map((item, index) => ({
@@ -1198,15 +1226,9 @@ function initializeDragAndDropForPreferences() {
             name: item.querySelector('.goal-name').textContent,
             icon: item.querySelector('.goal-icon').textContent
         }));
-        
-        // Salva in memoria per uso immediato
-        console.log('Nuova classifica:', ranking);
-        
-        // Salva sul server
         saveUserPreferences(ranking);
     }
 
-    // Inizializza la classifica
     updateRankingNumbers();
 }
 
@@ -1898,7 +1920,7 @@ function printUserGoalProblems(problemsGoalList) {
        <br>
        Vuoi migliorarli ulteriormente?
        <br>
-       Ecco alcuni suggerimenti basati sulla tua classifica personale:
+       Ecco alcuni suggerimenti basati sulle tue preferenze:
     `;
     
     // Container per i suggerimenti 

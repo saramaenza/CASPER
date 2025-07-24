@@ -167,7 +167,7 @@ Home Devices: {home_devices}
 """
 
 improvements_goal_based = """
-Your are a recommender system for home automation. You will receive the user's personalized ranking of goals (higher up, more important). Your task is to propose **new automations** that are **in line with the user's priorities**.
+Your are a recommender system for home automation. You will receive the user's personalized ranking of goals (higher up, more important). Your task is to propose **new automations** that are **in line with the user's priorities** and not redundant and not in conflict with the other user automations.
 
 For the goal in first place in the ranking, it is necessary to suggest 3 alternative automations. For the goal in second place, it is necessary to suggest 2 alternative automations. For the goals in third and fourth place, it is necessary to suggest 1 alternative automation.
 

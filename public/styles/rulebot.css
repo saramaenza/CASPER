@@ -840,7 +840,7 @@ td {
     justify-content: center;
 }
 
-.action-buttons .btn, .show-all-goals-btn {
+.action-buttons .btn, .show-all-goals-btn, .btn-save {
     padding: 10px 20px;
     border-radius: 8px;
     border: none;
@@ -876,7 +876,7 @@ td {
     transform: scale(1.05);
 }
 
-.btn-resolve:hover {
+.btn-resolve:hover, .btn-save:hover {
     background: var(--selector-hover);
     color: var(--text-primary);
     opacity: 1;
@@ -1214,6 +1214,33 @@ td {
   overflow: hidden;
   margin-bottom: 15px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* Overlay message per conferma/errore salvataggio */
+#overlay-message {
+  position: fixed;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 9999;
+  padding: 16px 32px;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 1.1em;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+  min-width: 220px;
+  text-align: center;
+}
+
+#overlay-message.success {
+  background: #4caf50;
+}
+
+#overlay-message.error {
+  background: #f44336;
 }
 
 .automation-card::before {
