@@ -79,7 +79,19 @@ def get_automations(user_id):
 def insert_improvement_solution(user_id, solutions):
     """Inserisce le soluzioni generate nella collezione improvement_solutions."""
     try:
+
+        # Aggiungi ignore e solved a ogni raccomandazione di ogni goal
+        if 'recommendations' in solutions and isinstance(solutions['recommendations'], dict):
+            for goal_recs in solutions['recommendations'].values():
+                if isinstance(goal_recs, list):
+                    for rec in goal_recs:
+                        rec['ignore'] = False
+                        rec['solved'] = False
+                        rec['unique_id'] = str(ObjectId())  
+
         collection = db["improvement_solutions"]
+        # Rimuovi tutte le soluzioni precedenti per questo utente
+        collection.delete_many({"user_id": user_id})
         collection.insert_one({
             "user_id": user_id,
             "solutions": solutions
@@ -488,6 +500,8 @@ def post_goal(user_id, goal, goal_body):
                     new_goal['count'] = 1
                     new_goal['first_detected'] = datetime.now()
                     new_goal['last_detected'] = datetime.now()
+                    new_goal['ignore'] = False
+                    new_goal['solved'] = False
                     goals[goal].append(new_goal)
             
             collection.update_one(
@@ -501,6 +515,8 @@ def post_goal(user_id, goal, goal_body):
                 new_goal['count'] = 1
                 new_goal['first_detected'] = datetime.now()
                 new_goal['last_detected'] = datetime.now()
+                new_goal['ignore'] = False
+                new_goal['solved'] = False
             
             collection.insert_one({
                 "user_id": user_id,

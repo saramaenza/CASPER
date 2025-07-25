@@ -13,6 +13,7 @@ from langgraph.checkpoint.memory import MemorySaver
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.messages import trim_messages
 from problems.goal_scores import get_quality_scores_only
+from problems.improvements_goals import get_goal_improvements
 
 from config import get_server_choice
 import tools as _tools
@@ -159,6 +160,18 @@ def get_quality_scores():
     try:
         scores = get_quality_scores_only(user_id)
         return jsonify({'quality_scores': scores}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    
+@app.route('/get_goal_improvements', methods=['POST'])
+def get_goal_improvements_route():
+    data = request.json
+    user_id = data.get('user_id')
+    if not user_id:
+        return jsonify({'error': 'Missing user_id'}), 400
+    try:
+        solutions = get_goal_improvements(user_id)
+        return jsonify(solutions), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 

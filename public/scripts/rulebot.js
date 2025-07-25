@@ -19,7 +19,9 @@ const getProblemGoalList = `${base_link}/get_problems_goal`; // chiamata GET per
 const ping = `${base_link}/post_chat_state`; // chiamata POST per mantere la sessione attiva
 const toggleAutomation = `${base_link}/toggle_automation`; // chiamata per accendere/spegnere un'automazione
 const ignoreProblem = `${base_link}/ignore_problem`; // chiamata per ignorare un problema
+const ignoreSuggestions = `${base_link}/ignore_suggestions`; // chiamata per ignorare le raccomandazioni
 const resetConversationUrl = `${base_link}/reset_conv`; // chiamata per resettare la conversazione
+const getGoalImprovements = `${base_link}/get_goal_improvements`; // chiamata per ottenere i miglioramenti degli obiettivi
 
 const carousel = document.querySelector(".carousel");
 const toggleSwitch = document.getElementById('toggleSwitch');
@@ -949,6 +951,13 @@ function showOverlayMessage(message, isSuccess = true) {
     // Rimuovi eventuali overlay precedenti
     let oldOverlay = document.getElementById('overlay-message');
     if (oldOverlay) oldOverlay.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'overlay-message';
+    overlay.className = 'overlay-message ' + (isSuccess ? 'success' : 'error');
+    overlay.textContent = message;
+    overlay.style.opacity = '0';
+
     overlay.classList.add(isSuccess ? 'success' : 'error');
 
     overlay.textContent = message;
@@ -1129,15 +1138,45 @@ async function printUserPreferences() {
     initializeDragAndDropForPreferences(false); // <--- passa false per non salvare automaticamente
 
     // Funzione per salvare la classifica quando si clicca su "Salva"
-    saveButton.addEventListener('click', () => {
-        const items = rankingList.querySelectorAll('.goal-item');
-        const ranking = Array.from(items).map((item, index) => ({
-            id: item.dataset.goal,
-            position: index + 1,
-            name: item.querySelector('.goal-name').textContent,
-            icon: item.querySelector('.goal-icon').textContent
-        }));
-        saveUserPreferences(ranking);
+    saveButton.addEventListener('click', async () => {
+      const items = rankingList.querySelectorAll('.goal-item');
+      const ranking = Array.from(items).map((item, index) => ({
+          id: item.dataset.goal,
+          position: index + 1,
+          name: item.querySelector('.goal-name').textContent,
+          icon: item.querySelector('.goal-icon').textContent
+      }));
+      await saveUserPreferences(ranking);
+
+      // Mostra loader nella suggestions-container
+      let suggestionsContainer = document.querySelector('.suggestions-container');
+      if (suggestionsContainer) {
+          suggestionsContainer.innerHTML = `
+              <div class="suggestions-loader">
+                  <div class="loader"></div>
+                  <span>Generazione dei suggerimenti in corso...</span>
+              </div>
+          `;
+      }
+      fetch('/get_goal_improvements', {
+          method: 'POST',
+          headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ user_id: userId })
+      })
+      .then(response => response.json())
+      .then(data => {
+          console.log('Goal improvements:', data);
+          if (suggestionsContainer) loadAndShowSuggestions(suggestionsContainer);
+      })
+      .catch(error => {
+          console.log(error);
+          if (suggestionsContainer) {
+              suggestionsContainer.innerHTML = '<div class="suggestions-error">Errore nella generazione dei suggerimenti.</div>';
+          }
+      });
     });
 }
 
@@ -1755,7 +1794,8 @@ async function loadAndShowSuggestions(container) {
                     natural_language: s.natural_language,
                     title: s.title || '',
                     description: s.description || '',
-                    goal: s.goal || goalKey
+                    goal: s.goal || goalKey,
+                    id: s.unique_id || s.id
                 });
             });
         });
@@ -1882,6 +1922,23 @@ function displaySuggestionsCascade(container, suggestions) {
                 const ignoreBtn = document.createElement('button');
                 ignoreBtn.className = 'btn btn-ignore';
                 ignoreBtn.textContent = 'Ignora';
+                ignoreBtn.id = singleSuggestion.id;
+                ignoreBtn.setAttribute("problemid", singleSuggestion.id);
+
+                ignoreBtn.addEventListener("click", (e) => {
+                  generateDialog("confirm", "Conferma ignora", "Sei sicuro di voler ignorare questo problema?", () => {
+                    postData(
+                      {suggestionId: e.target.getAttribute("problemid")},
+                      ignoreSuggestions)
+                    .then((response) => {
+                      console.log("Problem ignored:", response);
+                    }).catch((error) => {
+                      generateDialog("info", "Errore", "Si è verificato un errore e non posso eliminare il problema",() => {});
+                      console.error("Error ignoring problem:", error);
+                    });
+                  });
+                });
+
                 const resolveBtn = document.createElement('button');
                 resolveBtn.className = 'btn btn-resolve';
                 resolveBtn.textContent = 'Attiva';
@@ -2157,14 +2214,6 @@ function printUserGoalProblems(problemsGoalList) {
           resolutionOptions = recommendations[firstAutomationId].alternatives.map(alt => alt.natural_language);
         }
       }
-    }
-    
-    // Se non ci sono opzioni reali, usa quelle di fallback
-    if (resolutionOptions.length === 0) {
-      resolutionOptions = [
-        'Spegni automaticamente il dispositivo dopo un determinato periodo di tempo.',
-        'Aggiungi una condizione per verificare se il dispositivo è già acceso prima di accenderlo.'
-      ];
     }
     
     resolutionOptions.forEach((option, optionIndex) => {

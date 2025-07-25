@@ -11,7 +11,6 @@ import express, { response } from "express"
 import fetch from "node-fetch"
 import bodyParser from "body-parser"
 import { createSession, createChannel } from "better-sse";
-import { time } from 'console';
 const nodemailer = require('nodemailer');
 //LIBRARY PER MANDARE EVENTI AL CLIENT, USATO PRECEDENTEMENTE PER AGGIORNARE LA LISTA DI REGOLA QUANDO NE VENIVA SALVATA UNA NUOVA
 /* const SSE = require('express-sse');
@@ -25,7 +24,7 @@ const uuid = require('uuid');
 const bcrypt = require('bcryptjs')
 const cookieParser = require('cookie-parser')
 const jwt = require('jsonwebtoken')
-const {setServerConfig, createUser, getUser, verifyToken, isLogged, createGoogleUser, userInfo, verifyEmail, getAutomationsStates, getProblems, getUsersId, getProblemsGoals,getAutomations, getConfiguration, saveConfiguration,  saveSelectedConfiguration, saveAutomations,saveRulesStates,saveAutomation, deleteRule, closeDatabaseConnection, ignoreProblem, updateAutomationState, saveUserPreferences, getUserPreferences, getImprovementSolutions} = require('./db_methods.cjs');
+const {setServerConfig, createUser, getUser, verifyToken, isLogged, createGoogleUser, userInfo, verifyEmail, getAutomationsStates, getProblems, getUsersId, getProblemsGoals,getAutomations, getConfiguration, saveConfiguration,  saveSelectedConfiguration, saveAutomations,saveRulesStates,saveAutomation, deleteRule, closeDatabaseConnection, ignoreProblem, ignoreSuggestions, updateAutomationState, saveUserPreferences, getUserPreferences, getImprovementSolutions} = require('./db_methods.cjs');
 const JWT_SECRET = 'sdjkfh8923yhjdksbfma@#*(&@*!^#&@bhjb2qiuhesdbhjdsfg839ujkdhfjk'
 // =======================================
 const { getEntities, getAutomationsHA, postAutomationHA, getEntitiesStates, getLogbook, toggleAutomation, deleteAutomation} = require('./utils.cjs');
@@ -675,14 +674,20 @@ app.use('/get_rule_list', verifyToken, async (req, res) =>{
   }
 })
 
-app.use('/get_problems', verifyToken, async (req, res) => {
+app.use('/get_goal_improvements', verifyToken, async (req, res) => {
   try {
-    let user_id = req.body.user_id;
-    const data = await getProblems(user_id);
+    const { user_id } = req.body;
+    // Chiama il server Python per generare i miglioramenti
+    const response = await fetch(`${python_server}/get_goal_improvements`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id })
+    });
+    const data = await response.json();
     res.json(data);
   } catch (error) {
-    console.log('/get_problems error:');
-    console.log(error);
+    console.log('/get_goal_improvements error:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 }); 
 
@@ -749,6 +754,22 @@ app.post('/ignore_problem', verifyToken, async (req, res) =>{
   }
 });
 
+app.post('/ignore_suggestions', verifyToken, async (req, res) => {
+  try {
+    const suggestionId = req.body.data.suggestionId;
+    const userId = req.body.id;
+    const response = await ignoreSuggestions(userId, suggestionId);
+    if (response) {
+      return res.json({status: 'ok'});
+    } else {
+      return res.json({status: 'error', message: 'Failed to ignore suggestion.'});
+    }
+  } catch (error) {
+    console.log('/ignore_suggestions error:')
+    console.log(error)
+    return res.json({status: 'error', message: 'An error occurred while ignoring the suggestion.'});
+  }
+});
 
  app.get('/sse', async (req, res) =>{
   try {

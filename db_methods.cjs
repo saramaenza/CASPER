@@ -708,6 +708,44 @@ const ignoreProblem = async (userId, problemId) => {
     }
 };
 
+const ignoreSuggestions = async (userId, suggestionId) => {
+    try {
+        const database = client.db(dbName);
+        const suggestions = database.collection('improvement_solutions');
+        const userSuggestions = await suggestions.findOne({ 'user_id': userId });
+
+        if (!userSuggestions || !userSuggestions.solutions || !userSuggestions.solutions.recommendations) return false;
+
+        let updated = false;
+
+        // Scorri tutti i goal e tutte le raccomandazioni
+        for (const goalKey of Object.keys(userSuggestions.solutions.recommendations)) {
+            const recs = userSuggestions.solutions.recommendations[goalKey];
+            if (Array.isArray(recs)) {
+                for (const rec of recs) {
+                    if (rec.unique_id === suggestionId) {
+                        rec.ignore = true;
+                        updated = true;
+                    }
+                }
+            }
+        }
+
+        if (!updated) return false;
+
+        // Aggiorna il documento nel database
+        await suggestions.updateOne(
+            { 'user_id': userId },
+            { $set: { 'solutions': userSuggestions.solutions } }
+        );
+
+        return true;
+    } catch (err) {
+        console.log('Errore in ignoreSuggestions:', err);
+        return false;
+    }
+};
+
 const changeStateProblem = async (userId, problemId, newState = null) => {
     try {
         const database = client.db(dbName);
@@ -924,6 +962,7 @@ module.exports = {
     closeDatabaseConnection,
     toggleAutomation,
     ignoreProblem,
+    ignoreSuggestions,
     changeStateProblem,
     updateAllProblemsState,
     saveUserPreferences,
