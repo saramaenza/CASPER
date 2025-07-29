@@ -162,6 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error('Errore nel caricamento delle automazioni');
             }
 
+            /* ------------- Saves logbook -------------*/
             const response_logbook = await fetch(`/load_logbook`, {
                 method: 'POST',
                 headers: {
@@ -191,7 +192,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 {name: 'attiva lampadina', message: 'triggered by state of binary_sensor.shellymotion2_2c1165cb13df_motion', source: 'state of binary_sensor.shellymotion2_2c1165cb13df_motion', entity_id: 'automation.attiva_lampadina', context_id: '01K07BBJ83G29HVB8KF6HPPZC0'},
                 {state: 'on', entity_id: 'light.lampadina', name: 'Lampadina', when: '2025-07-15T15:30:51.301942+00:00', context_event_type: 'automation_triggered'}
             ];*/ 
-            console.log("logbook", logbook);
+            //console.log("logbook", logbook);
             if (logbook !== null && logbook.length > 0) {
                 await checkNotRunningAutomations(logbook, userId);
                 await checkRunningAutomations(logbook, userId);
@@ -199,6 +200,46 @@ document.addEventListener('DOMContentLoaded', () => {
             //TODO: 
             //considera il caso in cui 2 automazioni attivano lo stesso dispositivo: si attiva la prima attivazione (la seconda non ha il dispositivo subito dopo perchè è già attivo) --> è giusto??
             
+            /* ------------- Saves default goal ranking -------------*/
+            // controlla se esistono già le preferenze per l'utente
+            const checkPreferences = await fetch(`/get_user_preferences?user_id=${userId}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const preferencesExist = await checkPreferences.json();
+            if (preferencesExist.ranking == undefined) {
+                
+                const defaultRanking = [
+                    {id: 'sicurezza', position: 1, name: 'Sicurezza', icon: '🛡️'},
+                    {id: 'salute', position: 2, name: 'Salute', icon: '❤️'},
+                    {id: 'energia', position: 3, name: 'Energia', icon: '🔋'},
+                    {id: 'benessere', position: 4, name: 'Benessere', icon: '🌱'}
+                ];
+                const response_preferences = await fetch(`/save_user_preferences`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({'user_id': userId, 'ranking': defaultRanking }),
+                });
+            
+                if (!response_preferences.ok) {
+                    throw new Error('Errore nel salvataggio delle preferenze di default');
+                } 
+
+                await fetch('/get_goal_improvements', {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ user_id: userId })
+                });
+            }
+
             // Salva tutti i devices nel localStorage
             localStorage.setItem('all_devices', JSON.stringify(devices));
             displayDevices(devices);
@@ -219,6 +260,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } finally {
             loadButton.disabled = false;
             loadButton.querySelector('.spinner').classList.add('hidden');
+            
         }
     });
 });

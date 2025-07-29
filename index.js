@@ -486,18 +486,22 @@ app.use('/load_devices', verifyToken, async (req, res) =>{
   }
 })
 
-app.use('/get_entities_states', verifyToken, async (req, res) =>{
+app.use('/get_entities_states', verifyToken, async (req, res) => {
   try {
-    let conf = await getConfiguration(req.query.id)
-    let url = conf.auth.url
-    let token = conf.auth.token
+    let conf = await getConfiguration(req.query.id);
+    if (!conf || !conf.auth) {
+      return res.status(400).json({ error: 'Configuration or authentication not found for this user.' });
+    }
+    let url = conf.auth.url;
+    let token = conf.auth.token;
     const entitiesStates = await getEntitiesStates(url, token, conf);
-    res.json(entitiesStates)
+    res.json(entitiesStates);
   } catch (error) {
-    console.log('/load_entities_states:')
-    console.log(error)
+    console.log('/get_entities_states:');
+    console.log(error);
+    res.status(500).json({ error: 'Internal server error.' });
   }
-})
+});
 
 app.use('/load_logbook', verifyToken, async (req, res) =>{ 
   try {

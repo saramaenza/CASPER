@@ -330,9 +330,14 @@ async function deleteAutomation(rule_id) {
   
   //effettua GET generici dal server
   async function getData(url) {
-    const response = await fetch(url);
-    const data = await response.json();
-    return data;
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.log(error);
+      return [];
+    }
   }
   
   function getRulesParam() {
@@ -790,11 +795,15 @@ function getAutomationIconInfo(automation) {
 }
 
 async function printUserDevices(devicesList) {
+    if (devicesList == false){
+      devicesList = {'selected': []};
+    }
     document.querySelector('#n_devices').innerText = devicesList['selected'].length;
     const devices = devicesList['selected'];
     const devicesContainer = document.querySelector('#devices-list-container');
     
-    if (devicesList != true && devices != undefined) {
+    //if (devicesList != true && devices != undefined) {
+    if (devicesList['selected'].length > 0) {
         const devicesListWrapper = document.createElement('div');
         devicesListWrapper.className = 'devices-list-wrapper';
         
@@ -940,8 +949,8 @@ async function printUserDevices(devicesList) {
     } else {
         devicesContainer.innerHTML = `
             <div class="no-problems-message">
-              Non hai ancora collegato dispositivi smart alla tua casa. <br> 
-              Connetti il tuo primo dispositivo per iniziare! 😊
+              Non hai ancora collegato oggetti smart alla tua casa. <br> 
+              Connetti il tuo primo oggetto per iniziare! 😊
             </div>
         `; 
     }
