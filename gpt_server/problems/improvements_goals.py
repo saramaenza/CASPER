@@ -17,7 +17,8 @@ def call_find_solution_llm(user_id: str):
     formatted_prompt = prompts.improvements_goal_based.format(
         home_devices=_db.get_devices(user_id),
         ranking_goals=_db.get_ranking_goals(user_id),
-        automations= _db.get_automations(user_id)  
+        automations= _db.get_automations(user_id),
+        ignored_automations=_db.get_ignored_suggestions(user_id)
     )
 
     messages = [

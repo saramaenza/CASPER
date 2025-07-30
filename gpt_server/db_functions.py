@@ -75,6 +75,17 @@ def get_automations(user_id):
         print(e)
         print("----------------")
         return None
+
+def get_ignored_suggestions(user_id):
+    try:
+        collection = db["ignored_suggestions"]
+        ignored = collection.find_one({"user_id": user_id})
+        return ignored['ignored'] if ignored else []
+    except Exception as e:
+        print("--> Get Ignored Suggestions Error <--")
+        print(e)
+        print("----------------")
+        return None
     
 def insert_improvement_solution(user_id, solutions):
     """Inserisce le soluzioni generate nella collezione improvement_solutions."""

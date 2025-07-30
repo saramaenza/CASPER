@@ -726,6 +726,8 @@ const ignoreSuggestions = async (userId, suggestionId) => {
                     if (rec.unique_id === suggestionId) {
                         rec.ignore = true;
                         updated = true;
+                        // Salva la suggestion ignorata nella nuova collezione
+                        await saveIgnoredSuggestion(userId, goalKey, rec);
                     }
                 }
             }
@@ -742,6 +744,47 @@ const ignoreSuggestions = async (userId, suggestionId) => {
         return true;
     } catch (err) {
         console.log('Errore in ignoreSuggestions:', err);
+        return false;
+    }
+};
+
+const saveIgnoredSuggestion = async (userId, goal, suggestion) => {
+    try {
+        const database = client.db(dbName);
+        const ignored = database.collection('ignored_suggestions');
+        // Cerca se già esiste
+        const userDoc = await ignored.findOne({ user_id: userId });
+        let ignoredArr = [];
+        if (userDoc && userDoc.ignored && userDoc.ignored[goal]) {
+            ignoredArr = userDoc.ignored[goal];
+            // Evita duplicati
+            if (ignoredArr.some(s => s.suggestion.unique_id === suggestion.unique_id)) {
+                return true;
+            }
+        }
+
+        // Se ci sono già 3 suggerimenti, rimuovi il più vecchio
+        if (ignoredArr.length >= 3) {
+            // Ordina per data crescente e rimuovi il primo (il più vecchio)
+            ignoredArr.sort((a, b) => new Date(a.ignored_at) - new Date(b.ignored_at));
+            ignoredArr.shift();
+        }
+
+        // Aggiungi il nuovo suggerimento
+        ignoredArr.push({
+            suggestion: suggestion,
+            ignored_at: new Date()
+        });
+
+        // Aggiorna il documento
+        await ignored.updateOne(
+            { user_id: userId },
+            { $set: { [`ignored.${goal}`]: ignoredArr } },
+            { upsert: true }
+        );
+        return true;
+    } catch (err) {
+        console.log('Errore in saveIgnoredSuggestion:', err);
         return false;
     }
 };
@@ -963,6 +1006,7 @@ module.exports = {
     toggleAutomation,
     ignoreProblem,
     ignoreSuggestions,
+    saveIgnoredSuggestion,
     changeStateProblem,
     updateAllProblemsState,
     saveUserPreferences,

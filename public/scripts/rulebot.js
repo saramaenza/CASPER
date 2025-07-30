@@ -1786,6 +1786,11 @@ async function loadAndShowSuggestions(container) {
         const data = await response.json();
         const solutions = data.recommendations || {};
 
+        // Filtra i suggerimenti: solo quelli con ignore === false
+        Object.keys(solutions).forEach(goalKey => {
+            solutions[goalKey] = solutions[goalKey].filter(s => s.ignore === false);
+        });
+
         // Raggruppa le soluzioni per goal
         const grouped = {};
         Object.keys(solutions).forEach(goalKey => {
@@ -1934,17 +1939,28 @@ function displaySuggestionsCascade(container, suggestions) {
                 ignoreBtn.id = singleSuggestion.id;
                 ignoreBtn.setAttribute("problemid", singleSuggestion.id);
 
-                ignoreBtn.addEventListener("click", (e) => {
-                  generateDialog("confirm", "Conferma ignora", "Sei sicuro di voler ignorare questo problema?", () => {
-                    postData(
-                      {suggestionId: e.target.getAttribute("problemid")},
-                      ignoreSuggestions)
-                    .then((response) => {
-                      console.log("Problem ignored:", response);
-                    }).catch((error) => {
-                      generateDialog("info", "Errore", "Si è verificato un errore e non posso eliminare il problema",() => {});
+                ignoreBtn.addEventListener("click", async (e) => {
+                  generateDialog("confirm", "Conferma ignora", "Sei sicuro di voler ignorare questo problema?", async () => {
+                    try {
+                      await postData(
+                        { suggestionId: e.target.getAttribute("problemid") },
+                        ignoreSuggestions
+                      );
+                      // Transizione fade-out
+                      const suggestionsContainer = document.querySelector('.suggestions-container');
+                      if (suggestionsContainer) {
+                        suggestionsContainer.classList.remove('fade-in');
+                        suggestionsContainer.classList.add('fade-out');
+                        setTimeout(async () => {
+                          await loadAndShowSuggestions(suggestionsContainer);
+                          suggestionsContainer.classList.remove('fade-out');
+                          suggestionsContainer.classList.add('fade-in');
+                        }, 300); // deve corrispondere al tempo della transition CSS
+                      }
+                    } catch (error) {
+                      generateDialog("info", "Errore", "Si è verificato un errore e non posso eliminare il problema", () => {});
                       console.error("Error ignoring problem:", error);
-                    });
+                    }
                   });
                 });
 

@@ -2527,6 +2527,15 @@ td {
   margin-top: 8px;
 }
 
+.suggestions-container.fade-out {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.suggestions-container.fade-in {
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
 .suggestion-detailed-description {
     color: var(--text-primary);
     font-size: 14px;
