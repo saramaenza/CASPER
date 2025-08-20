@@ -919,34 +919,43 @@ async function printUserDevices(devicesList) {
 
                 // Search functionality
                 if (searchBar) {
-                    searchBar.addEventListener('input', function() {
-                        const searchTerm = this.value.toLowerCase();
-                        const rooms = devicesListWrapper.querySelectorAll('.room-card');
-                        
-                        rooms.forEach(room => {
-                            const roomName = room.querySelector('.room-name')?.textContent.toLowerCase() || "";
-                            const devices = room.querySelectorAll('.device-element');
-                            let hasVisibleDevices = false;
-                            
-                            devices.forEach(device => {
-                                const deviceName = device.querySelector('.device-text')?.textContent.toLowerCase() || "";
-                                if (deviceName.includes(searchTerm) || roomName.includes(searchTerm)) {
-                                    device.style.display = 'flex';
-                                    hasVisibleDevices = true;
-                                } else {
-                                    device.style.display = 'none';
-                                }
-                            });
-                            
-                            if (hasVisibleDevices || roomName.includes(searchTerm)) {
-                                room.style.display = 'block';
-                                room.style.animation = 'fadeIn 0.3s ease';
-                            } else {
-                                room.style.display = 'none';
-                            }
-                        });
-                    });
-                }
+                  searchBar.addEventListener('input', function() {
+                      const searchTerm = this.value.toLowerCase();
+                      const rooms = devicesListWrapper.querySelectorAll('.room-card');
+                      
+                      rooms.forEach(room => {
+                          const roomName = room.querySelector('.room-name')?.textContent.toLowerCase() || "";
+                          const devices = room.querySelectorAll('.device-element');
+                          let hasVisibleDevices = false;
+                          
+                          devices.forEach(device => {
+                              const deviceName = device.querySelector('.device-text')?.textContent.toLowerCase() || "";
+                              if (deviceName.includes(searchTerm) || roomName.includes(searchTerm)) {
+                                  device.style.display = 'flex';
+                                  hasVisibleDevices = true;
+                              } else {
+                                  device.style.display = 'none';
+                              }
+                          });
+                          
+                          if (hasVisibleDevices || roomName.includes(searchTerm)) {
+                              room.style.display = 'block';
+                              room.style.animation = 'fadeIn 0.3s ease';
+                              
+                              // Ricalcola l'altezza del contenitore dei dispositivi se è aperto
+                              const devicesList_container = room.querySelector('.devicesList_container');
+                              if (devicesList_container && devicesList_container.classList.contains('open')) {
+                                  // Forza il ricalcolo dell'altezza
+                                  devicesList_container.style.maxHeight = 'none';
+                                  const newHeight = devicesList_container.scrollHeight;
+                                  devicesList_container.style.maxHeight = newHeight + 'px';
+                              }
+                          } else {
+                              room.style.display = 'none';
+                          }
+                      });
+                  });
+              }
 
                 dinamicallyPopulateEntityValue(devices);
                 resolve();
