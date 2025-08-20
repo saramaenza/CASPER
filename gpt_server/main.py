@@ -13,7 +13,7 @@ from langgraph.checkpoint.memory import MemorySaver
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.messages import trim_messages
 from problems.goal_scores import get_quality_scores_only
-from problems.improvements_goals import get_goal_improvements
+from problems.improvements_goals import get_goal_improvements, replace_ignored_suggestion_with_new
 
 from config import get_server_choice
 import tools as _tools
@@ -172,6 +172,24 @@ def get_goal_improvements_route():
     try:
         solutions = get_goal_improvements(user_id)
         return jsonify(solutions), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    
+@app.route('/generate_replacement_suggestion', methods=['POST'])
+def generate_replacement_suggestion():
+    data = request.json
+    user_id = data.get('user_id')
+    goal = data.get('goal')
+    
+    if not user_id or not goal:
+        return jsonify({'error': 'Missing user_id or goal'}), 400
+    
+    try:
+        new_suggestion = replace_ignored_suggestion_with_new(user_id, goal)
+        if new_suggestion:
+            return jsonify({'success': True, 'suggestion': new_suggestion}), 200
+        else:
+            return jsonify({'success': False, 'error': 'Failed to generate suggestion'}), 500
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 

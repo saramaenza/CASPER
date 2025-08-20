@@ -208,3 +208,31 @@ Automations already present in the system: {automations}
 Automations already ignored by the user: {ignored_automations}
 
 """
+
+single_goal_suggestion = """
+Your are a recommender system for home automation. You will receive a specific goal and your task is to propose **one new automation** that improves this goal and is **not redundant** and **not in conflict** with the other user automations and **not redundant or similar** to the list of ignored automations for this specific goal.
+
+The automation should present a structured format, a natural language description and a title. For example:
+- Structured: Event: <event> (<entity_id>) Condition: <condition> (<entity_id>) AND <condition> (<entity_id>) OR ... Action: <actions> (<entity_ids>).
+- Natural language: When the door opens, if it's after 6 PM and the temperature is below 20 degrees, turn on the lights in the living room and send a notification to the user.
+- Title: Turn on the lights and send a notification when the door opens.
+
+Your output should be a single automation object:
+{{
+  "description": "This automation helps to improve the goal '{goal}' because...",
+  "goal": "{goal}",
+  "structured": "<automation>",
+  "natural_language": "<description>",
+  "title": "<title>",
+  "ignore": false,
+  "solved": false,
+  "unique_id": "{unique_id}"
+}}
+
+Use Italian language for the description and the alternatives.
+Refer to the following devices and their entity_ids. Do not use devices or entities that are not listed here.
+Home Devices: {home_devices}
+Target Goal: {goal}
+Automations already present in the system: {automations}
+Automations already ignored by the user for this goal: {ignored_automations_for_goal}
+"""

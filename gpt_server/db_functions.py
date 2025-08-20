@@ -80,12 +80,39 @@ def get_ignored_suggestions(user_id):
     try:
         collection = db["ignored_suggestions"]
         ignored = collection.find_one({"user_id": user_id})
-        return ignored['ignored'] if ignored else []
+        return ignored['ignored'] if ignored else {}
     except Exception as e:
         print("--> Get Ignored Suggestions Error <--")
         print(e)
         print("----------------")
         return None
+    
+def add_single_suggestion_to_solutions(user_id, goal, suggestion):
+    """Add a single suggestion to the improvement_solutions collection"""
+    try:
+        collection = db["improvement_solutions"]
+        user_solutions = collection.find_one({"user_id": user_id})
+        
+        if user_solutions and 'solutions' in user_solutions and 'recommendations' in user_solutions['solutions']:
+            # Add the suggestion to the appropriate goal
+            goal_key = goal.lower()
+            if goal_key not in user_solutions['solutions']['recommendations']:
+                user_solutions['solutions']['recommendations'][goal_key] = []
+            
+            user_solutions['solutions']['recommendations'][goal_key].append(suggestion)
+            
+            # Update the document
+            collection.update_one(
+                {"user_id": user_id},
+                {"$set": {"solutions": user_solutions['solutions']}}
+            )
+            return True
+        return False
+    except Exception as e:
+        print("--> Add Single Suggestion Error <--")
+        print(e)
+        print("----------------")
+        return False
     
 def insert_improvement_solution(user_id, solutions):
     """Inserisce le soluzioni generate nella collezione improvement_solutions."""

@@ -648,6 +648,13 @@ async function printUserRule(rules) {
 }
 
 function getAutomationIconInfo(automation) {
+  // Controllo di sicurezza per automation non definito o vuoto
+    if (!automation) {
+        return {
+            icon: "⚡",
+            className: "kitchen-icon"
+        };
+    }
     const regex = /^event(?:s|o|i)?:\s*(?<event>.*?)(?:\s*(?:condition(?:s)?|condizion(?:e|i)):\s*(?<condition>.*?))?\s*(?:action(?:s)?|azion(?:i|e)):\s*(?<action>.*)$/i;
     let rule_match = null;
     if(automation.description !== undefined) {
@@ -1775,8 +1782,10 @@ function showGoalExplanation(goal) {
 
 async function loadAndShowSuggestions(container) {
     try {
-        // Mostra loader
-        container.innerHTML = '<div class="suggestions-loader"><div class="loader mini-loader"></div><span>Caricamento suggerimenti...</span></div>';
+        const existingLoader = container.querySelector('.suggestions-loader');
+        if (!existingLoader) {
+            container.innerHTML = '<div class="suggestions-loader"><div class="loader mini-loader"></div><span>Caricamento suggerimenti...</span></div>';
+        }
         
         // Recupera le soluzioni dal backend
         const response = await fetch(`/get_improvement_solutions?user_id=${userId}`, {
@@ -1877,7 +1886,7 @@ function displaySuggestionsCascade(container, suggestions) {
                 rightSection.style.float = 'right';
 
                 const suggestionIcon = document.createElement('div');
-                const iconInfo = getAutomationIconInfo(singleSuggestion.structured);
+                const iconInfo = getAutomationIconInfo(singleSuggestion.structured || {});
                 suggestionIcon.className = `automation-icon suggestion-icon-bg ${iconInfo.className}`;
                 suggestionIcon.textContent = iconInfo.icon;
 
@@ -1901,7 +1910,6 @@ function displaySuggestionsCascade(container, suggestions) {
                 cardHeader.appendChild(rightSection);
                 cardHeader.appendChild(leftSection);
 
-                // Usa structured per la descrizione
                 const suggestionDescription = document.createElement('div');
                 suggestionDescription.className = 'automation-description';
                 suggestionDescription.textContent = singleSuggestion.natural_language || '';
@@ -1926,7 +1934,6 @@ function displaySuggestionsCascade(container, suggestions) {
                 const explanation = document.createElement('div');
                 explanation.className = 'problem-goal-explanation';
 
-                // Usa natural_language per la sezione espansa
                 const expandedSection = document.createElement('div');
                 expandedSection.className = 'expanded-section';
                 expandedSection.textContent = singleSuggestion.description || '';
@@ -1942,28 +1949,48 @@ function displaySuggestionsCascade(container, suggestions) {
                 ignoreBtn.addEventListener("click", async (e) => {
                   generateDialog("confirm", "Conferma ignora", "Sei sicuro di voler ignorare questo problema?", async () => {
                     try {
-                      await postData(
-                        { suggestionId: e.target.getAttribute("problemid") },
-                        ignoreSuggestions
-                      );
-                      // Transizione fade-out
+                      // Disabilita il pulsante
+                      const button = e.target;
+                      button.disabled = true;
+
                       const suggestionsContainer = document.querySelector('.suggestions-container');
                       if (suggestionsContainer) {
                         suggestionsContainer.classList.remove('fade-in');
                         suggestionsContainer.classList.add('fade-out');
+                        
                         setTimeout(async () => {
-                          await loadAndShowSuggestions(suggestionsContainer);
                           suggestionsContainer.classList.remove('fade-out');
+                          suggestionsContainer.innerHTML = `
+                            <div class="suggestions-loader">
+                              <div class="loader"></div>
+                              <span>Rigenerazione suggerimenti in corso...</span>
+                            </div>
+                          `;
+
+                          await postData(
+                            { suggestionId: e.target.getAttribute("problemid"), userId: userId },
+                            ignoreSuggestions
+                          );
+                          
+                          await new Promise(resolve => setTimeout(resolve, 2000));
+                          
+                          // Ricarica i suggerimenti
+                          await loadAndShowSuggestions(suggestionsContainer);
+                          
                           suggestionsContainer.classList.add('fade-in');
-                        }, 300); // deve corrispondere al tempo della transition CSS
+                        }, 300);
                       }
                     } catch (error) {
+                      // Ripristina il pulsante in caso di errore
+                      const button = e.target;
+                      button.disabled = false;
+                      button.textContent = originalText;
+
                       generateDialog("info", "Errore", "Si è verificato un errore e non posso eliminare il problema", () => {});
                       console.error("Error ignoring problem:", error);
                     }
                   });
                 });
-
                 const resolveBtn = document.createElement('button');
                 resolveBtn.className = 'btn btn-resolve';
                 resolveBtn.textContent = 'Attiva';
@@ -2005,7 +2032,6 @@ function printUserGoalProblems(problemsGoalList) {
        Ecco alcuni suggerimenti basati sulle tue preferenze:
     `;
     
-    // Container per i suggerimenti 
     const suggestionsContainer = document.createElement('div');
     suggestionsContainer.className = 'suggestions-container show';
     

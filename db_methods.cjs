@@ -8,6 +8,7 @@ const { MongoClient, ObjectId } = require("mongodb");
 const uri =
   "mongodb://127.0.0.1:27017";
 let dbName = "";
+
 const setServerConfig = (server) => {
     dbName = server.db_name;
 }
@@ -717,18 +718,24 @@ const ignoreSuggestions = async (userId, suggestionId) => {
         if (!userSuggestions || !userSuggestions.solutions || !userSuggestions.solutions.recommendations) return false;
 
         let updated = false;
+        let goalOfIgnoredSuggestion = null;
+        let ignoredSuggestion = null;
 
-        // Scorri tutti i goal e tutte le raccomandazioni
-        for (const goalKey of Object.keys(userSuggestions.solutions.recommendations)) {
+        // Trova e rimuovi il suggerimento dalla collezione
+        for (let goalKey of Object.keys(userSuggestions.solutions.recommendations)) {
             const recs = userSuggestions.solutions.recommendations[goalKey];
             if (Array.isArray(recs)) {
-                for (const rec of recs) {
-                    if (rec.unique_id === suggestionId) {
-                        rec.ignore = true;
-                        updated = true;
-                        // Salva la suggestion ignorata nella nuova collezione
-                        await saveIgnoredSuggestion(userId, goalKey, rec);
-                    }
+                const suggestionIndex = recs.findIndex(rec => rec.unique_id === suggestionId);
+                if (suggestionIndex !== -1) {
+                    ignoredSuggestion = recs[suggestionIndex];
+                    goalOfIgnoredSuggestion = goalKey;
+                    // Rimuovi il suggerimento dall'array
+                    recs.splice(suggestionIndex, 1);
+                    updated = true;
+                    goalKey = goalKey.toLowerCase();
+                    // Salva il suggerimento ignorato nella collezione ignored_suggestions
+                    await saveIgnoredSuggestion(userId, goalKey, ignoredSuggestion);
+                    break;
                 }
             }
         }
@@ -740,6 +747,38 @@ const ignoreSuggestions = async (userId, suggestionId) => {
             { 'user_id': userId },
             { $set: { 'solutions': userSuggestions.solutions } }
         );
+
+        // Genera un nuovo suggerimento per lo stesso goal
+        if (goalOfIgnoredSuggestion) {
+            try {
+
+                const pythonServerUrl = 'http://localhost:8080';
+                //console.log(`Tentativo di chiamata a: ${pythonServerUrl}/generate_replacement_suggestion`);
+                        
+                const response = await fetch(`${pythonServerUrl}/generate_replacement_suggestion`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        user_id: userId,
+                        goal: goalOfIgnoredSuggestion
+                    })
+                });
+
+                console.log(`Response status: ${response.status}`);
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    console.log('Nuovo suggerimento generato con successo');
+                } else {
+                    const errorText = await response.text();
+                    console.log(`Errore nella generazione del nuovo suggerimento. Status: ${response.status}, Message: ${errorText}`);
+                }
+            } catch (error) {
+                console.log('Errore nella chiamata per generare nuovo suggerimento:', error.message);
+            }
+        }
 
         return true;
     } catch (err) {

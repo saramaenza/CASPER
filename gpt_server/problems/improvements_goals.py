@@ -6,6 +6,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 from langchain_core.messages import HumanMessage, SystemMessage
 import prompts
 import models
+from bson.objectid import ObjectId
 import responses
 
 llm = models.gpt4
@@ -41,6 +42,40 @@ def get_goal_improvements(user_id: str):
         save_solutions_to_db(user_id, solutions)
         return solutions
     return []
+
+def generate_single_suggestion(user_id: str, goal: str):
+    """Generate a single suggestion for a specific goal"""
+    ignored_automations_for_goal = _db.get_ignored_suggestions(user_id).get(goal.lower(), [])
+    
+    formatted_prompt = prompts.single_goal_suggestion.format(
+        home_devices=_db.get_devices(user_id),
+        goal=goal,
+        automations=_db.get_automations(user_id),
+        ignored_automations_for_goal=ignored_automations_for_goal,
+        unique_id=str(ObjectId())
+    )
+
+    messages = [
+        SystemMessage(formatted_prompt),
+        HumanMessage(f"Generate a single automation suggestion to improve the '{goal}' goal. Make sure it's different from existing and ignored automations."),
+    ]
+    
+    response = llm.invoke(messages)
+    
+    # Parse the response as JSON
+    import json
+    try:
+        suggestion_data = json.loads(response.content)
+        return suggestion_data
+    except json.JSONDecodeError:
+        return None
+
+def replace_ignored_suggestion_with_new(user_id: str, goal: str):
+    """Replace an ignored suggestion with a new one"""
+    new_suggestion = generate_single_suggestion(user_id, goal)
+    if new_suggestion:
+        _db.add_single_suggestion_to_solutions(user_id, goal, new_suggestion)
+    return new_suggestion
 
 if __name__ == "__main__":
     import os
