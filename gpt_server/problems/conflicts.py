@@ -257,9 +257,6 @@ class ConflictDetector:
 
     def check_condition(self, condition1, condition2):
         """Check if conditions are conflicting"""
-        print("Condition 1:", condition1)
-        print("Condition 2:", condition2)
-        print()
         if not condition1 and not condition2:
             self.condition_tag = "no_conditions"
             return True
