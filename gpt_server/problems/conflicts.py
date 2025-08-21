@@ -1,3 +1,7 @@
+import sys # Added for testing
+import os # Added for testing
+# Add parent directory (gpt_server) to sys.path for standalone testing
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import re
 import db_functions as _db
 import responses
@@ -65,7 +69,8 @@ class ConflictDetector:
 
     def append_conflict(self, rule_name1, rule_name2, automation1_description, automation2_description, type_of_conflict, id_automation1, id_automation2, id_device, state):  
         """Append a conflict to the array"""
-        solution_info = self.call_find_solution_llm(id_automation1, id_automation2, rule_name1, rule_name2, automation1_description, automation2_description) 
+        #solution_info = self.call_find_solution_llm(id_automation1, id_automation2, rule_name1, rule_name2, automation1_description, automation2_description) 
+        solution_info = ""
         id_conflict = str(id_automation1)+"_"+str(id_automation2)+"_"+str(id_device)
         # Check if the conflict is already present before appending
         if not self.is_conflict_present(self.conflicts_array, id_conflict):
@@ -252,6 +257,9 @@ class ConflictDetector:
 
     def check_condition(self, condition1, condition2):
         """Check if conditions are conflicting"""
+        print("Condition 1:", condition1)
+        print("Condition 2:", condition2)
+        print()
         if not condition1 and not condition2:
             self.condition_tag = "no_conditions"
             return True
@@ -280,6 +288,22 @@ class ConflictDetector:
     def get_condition_info(self, condition, type_condition):
         """Extract condition information"""
         if "condition" in condition:
+            if "state" in condition["condition"]:
+                entity_id = condition.get('entity_id')
+                if entity_id:
+                    device_name = self.ha_client.get_device_name_by_user(entity_id)
+                    if device_name is None or device_name == "None":
+                        device_name = self.ha_client.get_friendly_name(entity_id)
+                        if device_name is None or device_name == "None":
+                            device_name = entity_id
+                else:
+                    device_name = None
+                state_value = condition.get('state')
+                condition = {
+                    "condition": type_condition,
+                    "device": device_name if device_name is not None else entity_id,
+                    "type": state_value,
+                }
             if "device" in condition["condition"]:
                 device = condition['device_id']
                 device = self.ha_client.get_device_name_by_user(device)
@@ -355,8 +379,22 @@ class ConflictDetector:
                         self.trigger_tag = "same_event"
                     else:
                         self.trigger_tag = "different_event"
-                    type_of_conflict = "certain" if same_trigger and self.check_condition(rule1_condition, rule2_condition) else "possible"
-                    
+                    # Check if conditions allow for conflicts
+                    conditions_compatible = self.check_condition(rule1_condition, rule2_condition)
+
+                   # Determine conflict type
+                    if conditions_compatible:
+                        if same_trigger:
+                            type_of_conflict = "certain"
+                        else:
+                            type_of_conflict = "possible"
+                        
+                        # Conflict on actions and solution retrieval
+                        for action2 in actions2:
+                            self.process_action_conflict(action1, action2, rule_name1, rule_name2, type_of_conflict, id_automation1, id_automation2, automation1_description, automation2_description, state)
+                    else:
+                        # If conditions are not compatible, skip further checks
+                        continue
                     # Conflict on actions and solution retrieval
                     for action2 in actions2:
                         self.process_action_conflict(action1, action2, rule_name1, rule_name2, type_of_conflict, id_automation1, id_automation2, automation1_description, automation2_description, state)
@@ -370,9 +408,6 @@ class ConflictDetector:
 
 
 if __name__ == "__main__":
-    import os
-    from ha_client import HomeAssistantClient
-    
     # url HA ufficio
     base_url = "http://luna.isti.cnr.it:8123"
     
