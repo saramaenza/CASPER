@@ -540,8 +540,8 @@ body{
 }
 
 @keyframes flow-vertical {
-    0%, 100% { opacity: 0.5; transform: rotate(90deg) translateX(0); }
-    50% { opacity: 1; transform: rotate(90deg) translateX(5px); }
+    0%, 100% {transform: rotate(90deg) translateX(0); }
+    50% { transform: rotate(90deg) translateX(5px); }
 }
 
 .room-card {
