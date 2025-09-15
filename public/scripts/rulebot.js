@@ -2837,10 +2837,27 @@ function createChainCard(isActive, headerText, chainInfo) {
     firstIcon.className = `card-icon ${firstIconInfo.className}`;
     firstIcon.textContent = firstIconInfo.icon;
 
+    const automationText = rule1_match.groups.action?.toLowerCase() || "";
+    if (automationText.includes("accendi") || automationText.includes("turn on") || automationText.includes("accendere") || automationText.includes("turning on") || automationText.includes("attiva") || automationText.includes("attivare") || automationText.includes("enable") || automationText.includes("acceso")) {
+        firstIcon.classList.add("icon-on");
+    } else if (automationText.includes("spegni") || automationText.includes("turn off") || automationText.includes("spegnere") || automationText.includes("turning off") || automationText.includes("disattiva") || automationText.includes("disattivare") || automationText.includes("disable") || automationText.includes("spento")) {
+        firstIcon.classList.add("icon-off");
+        firstIcon.classList.add("fade-animate");
+    }
+
     // Title and subtitle for first automation
     const firstTitle = document.createElement("div");
     firstTitle.className = "card-chain-title";
-    firstTitle.textContent = `${rule1_match.groups.event}${rule1_match.groups.condition ? `, ${rule1_match.groups.condition}` : ''}, ${rule1_match.groups.action}`;
+    firstTitle.textContent = (
+      `${rule1_match.groups.event}${rule1_match.groups.condition ? `, ${rule1_match.groups.condition}` : ''}, ${rule1_match.groups.action}`
+    ).replace(/\([^)]*\)/g, "")           
+    .replace(/(\.)(?!$)/g, "")          
+    .replace(/\.{2,}$/, ".")            
+    .replace(/([^\.])\.$/, "$1.")
+    .replace(/\s+,/g, ",") 
+    .replace(/\s+\.$/, ".")
+    .toLowerCase()
+    .replace(/^([a-zà-ù])/i, (m) => m.toUpperCase());
 
     const firstSubtitle = document.createElement("div");
     firstSubtitle.className = "card-chain-subtitle";
@@ -2875,10 +2892,27 @@ function createChainCard(isActive, headerText, chainInfo) {
     secondIcon.className = `card-icon ${secondIconInfo.className}`;
     secondIcon.textContent = secondIconInfo.icon;
 
+    const automation2Text = rule2_match.groups.action?.toLowerCase() || "";
+    if (automation2Text.includes("accendi") || automation2Text.includes("turn on") || automation2Text.includes("accendere") || automation2Text.includes("turning on") || automation2Text.includes("attiva") || automation2Text.includes("attivare") || automation2Text.includes("enable") || automation2Text.includes("acceso")) {
+        secondIcon.classList.add("icon-on");
+    } else if (automation2Text.includes("spegni") || automation2Text.includes("turn off") || automation2Text.includes("spegnere") || automation2Text.includes("turning off") || automation2Text.includes("disattiva") || automation2Text.includes("disattivare") || automation2Text.includes("disable") || automation2Text.includes("spento")) {
+        secondIcon.classList.add("icon-off");
+        secondIcon.classList.add("fade-animate");
+    }
+
     // Title and subtitle for second automation
     const secondTitle = document.createElement("div");
     secondTitle.className = "card-chain-title";
-    secondTitle.textContent = `${rule2_match.groups.event}${rule2_match.groups.condition ? `, ${rule2_match.groups.condition}` : ''}, ${rule2_match.groups.action}`;
+    secondTitle.textContent = (
+      `${rule2_match.groups.event}${rule2_match.groups.condition ? `, ${rule2_match.groups.condition}` : ''}, ${rule2_match.groups.action}`
+    ).replace(/\([^)]*\)/g, "")           
+    .replace(/(\.)(?!$)/g, "")          
+    .replace(/\.{2,}$/, ".")            
+    .replace(/([^\.])\.$/, "$1.")
+    .replace(/\s+,/g, ",") 
+    .replace(/\s+\.$/, ".")
+    .toLowerCase()
+    .replace(/^([a-zà-ù])/i, (m) => m.toUpperCase());
 
     const secondSubtitle = document.createElement("div");
     secondSubtitle.className = "card-chain-subtitle";
@@ -3196,7 +3230,15 @@ function createConflictCard(isActive, headerText, conflictInfo) {
         diagramTitle.className = "diagram-title";
         let eventText = "";
         if (rule1_match.groups && rule1_match.groups.event) {
-            eventText = rule1_match.groups.event.trim().replace(/\.$/, '');
+          eventText = (
+            rule1_match.groups.event
+              .trim()
+              .replace(/\([^)]*\)/g, "")
+              .replace(/\./g, "")
+              .replace(/^([a-zà-ù])/i, (m) => m.toUpperCase())
+          ) + ",";
+
+          eventText = eventText.replace(/\s+,/g, ",");
         }
         diagramTitle.textContent = eventText ? eventText : "Evento in comune:";
         conflictDiagram.appendChild(diagramTitle);
@@ -3218,12 +3260,12 @@ function createConflictCard(isActive, headerText, conflictInfo) {
                 if(i === 0) {
                     const conditionBox1 = document.createElement("div");
                     conditionBox1.className = "condition-box";
-                    conditionBox1.textContent = rule1.condition || "Nessuna Condizione";
+                    conditionBox1.textContent = rule1.condition.toLowerCase() || "/";
                     td.appendChild(conditionBox1);
                 } else if(i === 2) {
                     const conditionBox2 = document.createElement("div");
                     conditionBox2.className = "condition-box";
-                    conditionBox2.textContent = rule2.condition || "Nessuna Condizione";
+                    conditionBox2.textContent = rule2.condition.toLowerCase() || "/";
                     td.appendChild(conditionBox2);
                 }
                 row_condition.appendChild(td);
@@ -3238,9 +3280,23 @@ function createConflictCard(isActive, headerText, conflictInfo) {
         for(let i = 0; i < 3; i++) {
             const td = document.createElement("td");
             if(i === 0) {
-                td.innerHTML = `<div class="box-event">${rule1.event}</div>`;
+                td.innerHTML = `<div class="box-event">${
+                rule1.event
+                  .replace(/\([^)]*\)/g, "")
+                  .replace(/\./g, "")
+                  .toLowerCase()
+                  .replace(/^([a-zà-ù])/i, (m) => m.toUpperCase())
+                  .trim()
+              },</div>`;
             } else if(i === 2) {
-                td.innerHTML = `<div class="box-event">${rule2.event}</div>`;
+                td.innerHTML = `<div class="box-event">${
+                  rule2.event
+                    .replace(/\([^)]*\)/g, "")
+                    .replace(/\./g, "")
+                    .toLowerCase()
+                    .replace(/^([a-zà-ù])/i, (m) => m.toUpperCase())
+                    .trim()
+                },</div>`;
             }
             row_events.appendChild(td);
         }
@@ -3256,12 +3312,25 @@ function createConflictCard(isActive, headerText, conflictInfo) {
                 if(i === 0) {
                     const conditionBox1 = document.createElement("div");
                     conditionBox1.className = "condition-box";
-                    conditionBox1.innerHTML = `${rule1.condition}` || "";
+                    console.log(rule1.condition);
+                    if (rule1.condition === undefined) {
+                      conditionBox1.innerHTML = "/";
+                    }
+                    else {
+                      conditionBox1.innerHTML = `se ${rule1.condition.toLowerCase()},` || "/";
+                    }
+
                     td.appendChild(conditionBox1);
                 } else if(i === 2) {
                     const conditionBox2 = document.createElement("div");
                     conditionBox2.className = "condition-box";
-                    conditionBox2.innerHTML = `${rule2.condition}` || "";
+                    console.log(rule2.condition);
+                    if (rule2.condition === undefined) {
+                      conditionBox2.innerHTML = "/";
+                    }
+                    else {
+                      conditionBox2.innerHTML = `se ${rule2.condition.toLowerCase()},` || "/";
+                    }
                     td.appendChild(conditionBox2);
                 }
                 row_condition.appendChild(td);
@@ -3277,21 +3346,75 @@ function createConflictCard(isActive, headerText, conflictInfo) {
     for(let i = 0; i < 3; i++) {
         const td = document.createElement("td");
         if(i === 0) {
-            const actionBox1 = document.createElement("div");
-            actionBox1.className = "action-box";
-            actionBox1.innerHTML = rule1_match.groups.action?.trim().replace(/\.$/, '') || "";
-            td.appendChild(actionBox1);
+          const actionBox1 = document.createElement("div");
+          actionBox1.className = "action-box";
+          // Recupera l'icona per la prima azione
+          const iconInfo1 = getAutomationIconInfo({ description: rule1_match.groups.action });
+          const iconElem1 = document.createElement("div");
+          iconElem1.className = `card-icon ${iconInfo1.className}`;
+
+          // Distinzione accensione/spegnimento con classe e animazione
+          const actionText = rule1_match.groups.action?.toLowerCase() || "";
+          if (actionText.includes("accendi") || actionText.includes("turn on") || actionText.includes("accendere") || actionText.includes("turning on") || actionText.includes("attiva") || actionText.includes("attivare") || actionText.includes("enable") || actionText.includes("acceso")) {
+              iconElem1.classList.add("icon-on");
+              iconElem1.classList.add("glow-animate");
+          } else if (actionText.includes("spegni") || actionText.includes("turn off") || actionText.includes("spegnere") || actionText.includes("turning off") || actionText.includes("disattiva") || actionText.includes("disattivare") || actionText.includes("disable") || actionText.includes("spento")) {
+              iconElem1.classList.add("icon-off");
+          }
+          iconElem1.textContent = iconInfo1.icon;
+          actionBox1.appendChild(iconElem1);
+
+          // Testo azione
+          const actionText1 = document.createElement("span");
+          const textAction1 = (rule1_match.groups.action?.trim() || "")
+            .replace(/\([^)]*\)/g, "")
+            .replace(/(\.)(?!$)/g, "")
+            .replace(/\.{2,}$/, ".")
+            .replace(/([^\.])\.$/, "$1.")
+            .replace(/\s+,/g, ",")
+            .replace(/\s+\.$/, ".")
+            .toLowerCase();
+          actionText1.innerHTML = `<b>${textAction1.replace(/\.$/, '') || ""}</b>`;
+          actionBox1.appendChild(actionText1);
+          td.appendChild(actionBox1);
         } else if(i === 1) {
             const conflictIcon = document.createElement("div");
             conflictIcon.className = "conflict-icon";
             conflictIcon.textContent = "💥";
             td.appendChild(conflictIcon);
         } else {
-            const actionBox2 = document.createElement("div");
-            actionBox2.className = "action-box";
-            actionBox2.innerHTML = rule2_match.groups.action?.trim().replace(/\.$/, '') || "";
-            td.appendChild(actionBox2);
-        }
+          const actionBox2 = document.createElement("div");
+          actionBox2.className = "action-box";
+
+          // Recupera l'icona per la seconda azione
+          const iconInfo2 = getAutomationIconInfo({ description: rule2_match.groups.action });
+          const iconElem2 = document.createElement("div");
+          iconElem2.className = `card-icon ${iconInfo2.className}`;
+
+          const actionText = rule2_match.groups.action?.toLowerCase() || "";
+          if (actionText.includes("accendi") || actionText.includes("turn on") || actionText.includes("accendere") || actionText.includes("turning on") || actionText.includes("attiva") || actionText.includes("attivare") || actionText.includes("enable") || actionText.includes("acceso")) {
+              iconElem2.classList.add("icon-on");
+          } else if (actionText.includes("spegni") || actionText.includes("turn off") || actionText.includes("spegnere") || actionText.includes("turning off") || actionText.includes("disattiva") || actionText.includes("disattivare") || actionText.includes("disable") || actionText.includes("spento")) {
+              iconElem2.classList.add("icon-off");
+              iconElem2.classList.add("fade-animate");
+          }
+
+          iconElem2.textContent = iconInfo2.icon;
+          actionBox2.appendChild(iconElem2);
+          // Testo azione
+          const actionText2 = document.createElement("span");
+          const textAction2 = (rule2_match.groups.action?.trim() || "")
+          .replace(/\([^)]*\)/g, "")           
+          .replace(/(\.)(?!$)/g, "")          
+          .replace(/\.{2,}$/, ".")            
+          .replace(/([^\.])\.$/, "$1.")
+          .replace(/\s+,/g, ",") 
+          .replace(/\s+\.$/, ".")
+          .toLowerCase();
+          actionText2.innerHTML = `<b>${textAction2.replace(/\.$/, "") || ""}</b>`;
+          actionBox2.appendChild(actionText2);
+          td.appendChild(actionBox2);
+      }
         row_action.appendChild(td);
     }
     conflictTable.appendChild(row_action);

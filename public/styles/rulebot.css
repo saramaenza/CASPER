@@ -1347,6 +1347,14 @@ td {
 .room-icon { background: linear-gradient(135deg, #0066FF, #00FF88); }
 .oven-icon { background: linear-gradient(135deg, #5cf67d, #35e1ff); }
 
+.icon-on {
+    background: linear-gradient(135deg, #1b6922, #08c046);
+}
+
+.icon-off {
+    background: linear-gradient(135deg, #2d3033, #7a8d9b);
+}
+
 .automation-title {
   font-size: 14px;
   font-weight: 600;
@@ -1355,7 +1363,7 @@ td {
   white-space: normal;
     word-break: break-word;
     overflow-wrap: break-word;
-    max-width: 350px; /* puoi regolare la larghezza */
+    max-width: 350px; 
     display: block;
 }
 
