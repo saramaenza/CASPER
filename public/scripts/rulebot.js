@@ -2851,7 +2851,7 @@ function createChainCard(isActive, headerText, chainInfo) {
     firstTitle.textContent = (
       `${rule1_match.groups.event}${rule1_match.groups.condition ? `, ${rule1_match.groups.condition}` : ''}, ${rule1_match.groups.action}`
     ).replace(/\([^)]*\)/g, "")           
-    .replace(/(\.)(?!$)/g, "")          
+    .replace(/\./g, "")         
     .replace(/\.{2,}$/, ".")            
     .replace(/([^\.])\.$/, "$1.")
     .replace(/\s+,/g, ",") 
@@ -2906,7 +2906,7 @@ function createChainCard(isActive, headerText, chainInfo) {
     secondTitle.textContent = (
       `${rule2_match.groups.event}${rule2_match.groups.condition ? `, ${rule2_match.groups.condition}` : ''}, ${rule2_match.groups.action}`
     ).replace(/\([^)]*\)/g, "")           
-    .replace(/(\.)(?!$)/g, "")          
+    .replace(/\./g, "")         
     .replace(/\.{2,}$/, ".")            
     .replace(/([^\.])\.$/, "$1.")
     .replace(/\s+,/g, ",") 
