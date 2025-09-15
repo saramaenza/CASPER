@@ -248,41 +248,53 @@ def get_problem(user_id, problem_id=None):
 def post_problem(user_id, input_problem):
     """
     Aggiunge un problema alla lista dei problemi per l'utente specificato.
-    input_problem(s): list -> [dict -> {'id': str, 'type': str...}, {...}]
-    input_roblem e sempre una lista anche se contiene un solo problema.
+    Evita duplicati sia nel DB che tra i problemi in input.
     """
     try:
         collection = db["problems"]
         problems = collection.find_one({"user_id": user_id})
+        existing_unique_ids = set()
+        if problems is not None and 'problems' in problems:
+            existing_unique_ids = {p['unique_id'] for p in problems['problems']}
+
+        batch_unique_ids = set()
+        new_problems = []
+        p_len = len(problems['problems']) if problems and 'problems' in problems else 0
+
+        for prob in input_problem:
+            uid = prob['unique_id']
+            if uid not in existing_unique_ids and uid not in batch_unique_ids:
+                prob['id'] = str(p_len + len(new_problems) + 1)
+                prob['ignore'] = False
+                prob['solved'] = False
+                new_problems.append(prob)
+                batch_unique_ids.add(uid)
+
         if problems is not None:
-            p_len = len(problems['problems'])
-            for index in range(len(input_problem)):
-                input_problem[index]['id'] = str(p_len + index + 1)
-                input_problem[index]['ignore'] = False
-                input_problem[index]['solved'] = False
-            problems['problems'].extend(input_problem)
-            collection.update_one(
-                {"_id": problems["_id"]},
-                {"$set": {"problems": problems['problems'], "last_update": datetime.now()}}
-            )
+            if new_problems:
+                problems['problems'].extend(new_problems)
+                collection.update_one(
+                    {"_id": problems["_id"]},
+                    {"$set": {"problems": problems['problems'], "last_update": datetime.now()}}
+                )
+            return new_problems or None
         else:
-            for index in range(len(input_problem)):
-                input_problem[index]['id'] = str(index + 1)
+            for idx, prob in enumerate(new_problems):
+                prob['id'] = str(idx + 1)
             collection.insert_one({
                 "user_id": user_id,
-                "problems": input_problem,
+                "problems": new_problems,
                 "created": datetime.now(),
                 "last_update": datetime.now()
             })
-            #ritorna solamente i problemi appena inseriti
-        return input_problem or None
+            return new_problems or None
     except Exception as e:
         print("--> Post Problem Error <--")
         print(user_id)
         print(e)
         print("----------------")
         return e
-
+    
 def save_tmp_data(user_id, data):
     """
     Salva i dati temporanei per l'utente e la sessione specificati 
