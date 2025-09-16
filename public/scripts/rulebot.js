@@ -3224,6 +3224,68 @@ function createConflictCard(isActive, headerText, conflictInfo) {
     conflictTable.style.borderCollapse = "collapse";
     conflictTable.style.tableLayout = "fixed";
 
+    function createTimelineIconEvent() {
+      const timelineIconWrapper = document.createElement('div');
+      timelineIconWrapper.className = 'timeline-icon-tooltip-wrapper';
+      timelineIconWrapper.style.position = 'relative';
+      timelineIconWrapper.style.display = 'inline-block';
+
+      const timelineIcon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      timelineIcon.setAttribute("width", "60");
+      timelineIcon.setAttribute("height", "24");
+      timelineIcon.setAttribute("viewBox", "0 0 60 24");
+      timelineIcon.style.verticalAlign = "middle";
+
+      // Path per linea e freccia (colore #555)
+      const actionPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      actionPath.setAttribute("d", "M 2 12 L 58 12 M 52 8 L 58 12 L 52 16 M 2 12 L 58 12 M 52 8 L 58 12 L 52 16");
+      actionPath.setAttribute("fill", "none");
+      actionPath.setAttribute("stroke", "#555");
+      actionPath.setAttribute("stroke-width", "2");
+      actionPath.setAttribute("stroke-linecap", "round");
+      actionPath.setAttribute("stroke-linejoin", "round");
+
+      // Path per i cerchi (colore #1976d2)
+      const circlesPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      circlesPath.setAttribute("d", "M 33 12 A 5 5 0 1 1 23 12 A 5 5 0 1 1 33 12");
+      circlesPath.setAttribute("fill", "#fff");
+      circlesPath.setAttribute("stroke", "#1976d2");
+      circlesPath.setAttribute("stroke-width", "2");
+
+      timelineIcon.appendChild(actionPath);
+      timelineIcon.appendChild(circlesPath);
+
+      // Tooltip
+      const tooltip = document.createElement('div');
+      tooltip.className = 'timeline-tooltip';
+      tooltip.textContent = 'Evento: un fatto che si verifica in un preciso istante e fa partire l’automazione';
+      tooltip.style.position = 'absolute';
+      tooltip.style.bottom = '100%';
+      tooltip.style.left = '50%';
+      tooltip.style.transform = 'translateX(-50%)';
+      tooltip.style.background = '#004ecaff';
+      tooltip.style.color = '#fff';
+      tooltip.style.padding = '2px 8px';
+      tooltip.style.borderRadius = '4px';
+      tooltip.style.fontSize = '14px';
+      tooltip.style.whiteSpace = 'normal';
+      tooltip.style.opacity = '0';
+      tooltip.style.pointerEvents = 'none';
+      tooltip.style.transition = 'opacity 0.2s';
+
+      timelineIconWrapper.appendChild(timelineIcon);
+      timelineIconWrapper.appendChild(tooltip);
+
+      timelineIconWrapper.addEventListener('mouseenter', () => {
+        tooltip.style.opacity = '1';
+      });
+      timelineIconWrapper.addEventListener('mouseleave', () => {
+        tooltip.style.opacity = '0';
+      });
+
+      return timelineIconWrapper;
+    }
+
     if(type_of_conflict.includes("same_event")){
         // Titolo diagramma
         const diagramTitle = document.createElement("div");
@@ -3237,11 +3299,12 @@ function createConflictCard(isActive, headerText, conflictInfo) {
               .replace(/\./g, "")
               .replace(/^([a-zà-ù])/i, (m) => m.toUpperCase())
           ) + ",";
-
           eventText = eventText.replace(/\s+,/g, ",");
+          
         }
         diagramTitle.textContent = eventText ? eventText : "Evento in comune:";
         conflictDiagram.appendChild(diagramTitle);
+        conflictDiagram.appendChild(createTimelineIconEvent());
         
         if(type_of_conflict === "same_event_same_conditions") { 
             const conditionBox1 = document.createElement("div");
@@ -3275,62 +3338,138 @@ function createConflictCard(isActive, headerText, conflictInfo) {
     } else {
         // RIGA EVENTI
         const row_events = document.createElement("tr");
+
+        
         
         // Celle eventi
         for(let i = 0; i < 3; i++) {
-            const td = document.createElement("td");
-            if(i === 0) {
-                td.innerHTML = `<div class="box-event">${
-                rule1.event
-                  .replace(/\([^)]*\)/g, "")
-                  .replace(/\./g, "")
-                  .toLowerCase()
-                  .replace(/^([a-zà-ù])/i, (m) => m.toUpperCase())
-                  .trim()
+          const td = document.createElement("td");
+          if(i === 0) {
+              td.innerHTML = `<div class="box-event">${
+                  rule1.event
+                      .replace(/\([^)]*\)/g, "")
+                      .replace(/\./g, "")
+                      .toLowerCase()
+                      .replace(/^([a-zà-ù])/i, (m) => m.toUpperCase())
+                      .trim()
               },</div>`;
-            } else if(i === 2) {
-                td.innerHTML = `<div class="box-event">${
-                  rule2.event
-                    .replace(/\([^)]*\)/g, "")
-                    .replace(/\./g, "")
-                    .toLowerCase()
-                    .replace(/^([a-zà-ù])/i, (m) => m.toUpperCase())
-                    .trim()
-                },</div>`;
-            }
-            row_events.appendChild(td);
-        }
+              td.appendChild(createTimelineIconEvent());
+          } else if(i === 2) {
+              td.innerHTML = `<div class="box-event">${
+                  rule2.event  
+                      .replace(/\([^)]*\)/g, "")
+                      .replace(/\./g, "")
+                      .toLowerCase()
+                      .replace(/^([a-zà-ù])/i, (m) => m.toUpperCase())
+                      .trim()
+              },</div>`;
+              td.appendChild(createTimelineIconEvent());
+          }
+          row_events.appendChild(td);
+      }
         conflictTable.appendChild(row_events);
 
         if(type_of_conflict === "different_event_different_conditions" || 
            type_of_conflict === "different_event_same_conditions") {
             const row_condition = document.createElement("tr");
-            
+
+            // Icona timeline
+            function createTimelineIconCondition() {
+              const timelineIconWrapper = document.createElement('div');
+              timelineIconWrapper.className = 'timeline-icon-tooltip-wrapper';
+              timelineIconWrapper.style.position = 'relative';
+              timelineIconWrapper.style.display = 'inline-block';
+
+              const timelineIcon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+              timelineIcon.setAttribute("width", "60");
+              timelineIcon.setAttribute("height", "24");
+              timelineIcon.setAttribute("viewBox", "0 0 60 24");
+              timelineIcon.style.verticalAlign = "middle";
+
+              // Path per linea orizzontale in basso e frecce (colore #555)
+              const basePath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+              basePath.setAttribute("d", "M 2 17 L 58 17 M 52 13 L 58 17 L 52 21 L 58 17 M 52 13 L 58 17");
+              basePath.setAttribute("fill", "none");
+              basePath.setAttribute("stroke", "#555");
+              basePath.setAttribute("stroke-width", "2");
+              basePath.setAttribute("stroke-linecap", "round");
+              basePath.setAttribute("stroke-linejoin", "round");
+
+              // Path per linea verticale e orizzontale in alto (colore #1976d2)
+              const topPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+              topPath.setAttribute("d", "M 9 15 V 0 H 52");
+              topPath.setAttribute("fill", "none");
+              topPath.setAttribute("stroke", "#1976d2");
+              topPath.setAttribute("stroke-width", "3");
+              topPath.setAttribute("stroke-linecap", "round");
+              topPath.setAttribute("stroke-linejoin", "round");
+
+              timelineIcon.appendChild(basePath);
+              timelineIcon.appendChild(topPath);
+
+              // Tooltip
+              const tooltip = document.createElement('div');
+              tooltip.className = 'timeline-tooltip';
+              tooltip.textContent = 'Condizione: situazione che deve essere vera affinché l’automazione venga eseguita';
+              tooltip.style.position = 'absolute';
+              tooltip.style.bottom = '100%';
+              tooltip.style.left = '50%';
+              tooltip.style.transform = 'translateX(-50%)';
+              tooltip.style.background = '#004ecaff';
+              tooltip.style.color = '#fff';
+              tooltip.style.padding = '2px 8px';
+              tooltip.style.borderRadius = '4px';
+              tooltip.style.fontSize = '14px';
+              tooltip.style.opacity = '0';
+              tooltip.style.pointerEvents = 'none';
+              tooltip.style.transition = 'opacity 0.2s';
+              tooltip.style.whiteSpace = 'normal';
+
+              timelineIconWrapper.appendChild(timelineIcon);
+              timelineIconWrapper.appendChild(tooltip);
+
+              timelineIconWrapper.addEventListener('mouseenter', () => {
+                  tooltip.style.opacity = '1';
+              });
+              timelineIconWrapper.addEventListener('mouseleave', () => {
+                  tooltip.style.opacity = '0';
+              });
+
+              return timelineIconWrapper;
+          }
+
             // Celle condizioni
             for(let i = 0; i < 3; i++) {
                 const td = document.createElement("td");
                 if(i === 0) {
                     const conditionBox1 = document.createElement("div");
-                    conditionBox1.className = "condition-box";
-                    console.log(rule1.condition);
+                    conditionBox1.className = "condition-box";       
                     if (rule1.condition === undefined) {
                       conditionBox1.innerHTML = "/";
                     }
                     else {
                       conditionBox1.innerHTML = `se ${rule1.condition.toLowerCase()},` || "/";
+                      const timelineDiv = document.createElement("div");
+                      timelineDiv.className = "timeline-icon-wrapper";
+                      timelineDiv.appendChild(createTimelineIconCondition());
+                      conditionBox1.appendChild(timelineDiv);
                     }
-
                     td.appendChild(conditionBox1);
                 } else if(i === 2) {
                     const conditionBox2 = document.createElement("div");
                     conditionBox2.className = "condition-box";
-                    console.log(rule2.condition);
+                  
                     if (rule2.condition === undefined) {
                       conditionBox2.innerHTML = "/";
                     }
                     else {
                       conditionBox2.innerHTML = `se ${rule2.condition.toLowerCase()},` || "/";
+                      const timelineDiv2 = document.createElement("div");
+                      timelineDiv2.className = "timeline-icon-wrapper";
+                      timelineDiv2.appendChild(createTimelineIconCondition());
+                      conditionBox2.appendChild(timelineDiv2);
                     }
+
                     td.appendChild(conditionBox2);
                 }
                 row_condition.appendChild(td);
