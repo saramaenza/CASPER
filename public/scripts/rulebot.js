@@ -2728,6 +2728,7 @@ function printUserProblems(problemsList) {
         }
       }
       document.querySelector('#n_problems').innerText = trueProblemNumber;
+      carouselObject.update(problemsList);
   }
 }
 
