@@ -61,7 +61,11 @@ sse.addEventListener("message", async ({ data }) => {
   }
   else if (message.action == "update-automation-list") {
     rulesList = await getRulesParam()
-    printUserRule(rulesList)
+    printUserRule(rulesList);
+    let problemsList = await getProblems()
+    problemsList = problemsList.filter(problem => !problem.ignore && !problem.solved && problem.state != "off");
+    printUserProblems(problemsList);
+    carouselObject.update(problemsList);
   }
   else if (message.action == "update-problems") {
     //message.state = []
@@ -2684,11 +2688,12 @@ function printUserProblems(problemsList) {
   problemsContainer.querySelector('.loader-container').style.display = 'none';
   const carouselControls = document.getElementById('carousel-controls');
   const carouselMessages = document.getElementById('carousel-messages');
+  const carouselTrack = document.getElementById('carouselTrack') || document.querySelector('.carousel');
  
   let trueProblemNumber = 0;
   if (!problemsList || problemsList.length === 0) {
       // Nascondi i controlli e mostra il messaggio
-      carousel.innerHTML = '';
+      carouselTrack.innerHTML = '';
       carouselControls.style.display = 'none';
       carouselMessages.innerHTML = `
           <div class="no-problems-message">
@@ -2701,7 +2706,7 @@ function printUserProblems(problemsList) {
       carouselMessages.style.display = 'block';
   } else {
     // Mostra i controlli e nascondi il messaggio
-      carousel.innerHTML = ''; // Pulisce il contenuto del carousel
+      carouselTrack.innerHTML = ''; // Pulisce il contenuto del carousel
       carouselControls.style.display = 'flex';
       carouselMessages.innerHTML = '';
       carouselMessages.style.display = 'none';
@@ -2728,7 +2733,23 @@ function printUserProblems(problemsList) {
         }
       }
       document.querySelector('#n_problems').innerText = trueProblemNumber;
-      carouselObject.update(problemsList);
+      // Aggiorna l'istanza del carosello solo se esiste,
+      // e forza la visualizzazione del primo slide se ci sono card.
+      if (typeof carouselObject !== 'undefined' && carouselObject) {
+        carouselObject.currentSlide = 0;
+        carouselObject.update(problemsList);
+        carouselObject.updateDisplay();
+      } else {
+        // Se non esiste l'oggetto carousel, assicurati che il primo elemento del track sia visibile
+        if (carouselTrack.children.length > 0) {
+          // mostra il primo figlio (fallback semplice)
+          carouselTrack.children[0].scrollIntoView({ behavior: 'auto', block: 'nearest', inline: 'start' });
+        } else {
+          // se non ci sono card mostra il messaggio
+          carouselControls.style.display = 'none';
+          carouselMessages.style.display = 'block';
+        }
+      }
   }
 }
 
@@ -3077,6 +3098,7 @@ function createChainCard(isActive, headerText, chainInfo) {
     solveButton.textContent = "Risolvi";
     solveButton.id =  chainInfo["unique_id"];
     solveButton.setAttribute("problemid", chainInfo["id"]);
+    
     solveButton.addEventListener("click", async (e) => { 
      if (choosenSolution != null) {
  
@@ -3094,25 +3116,6 @@ function createChainCard(isActive, headerText, chainInfo) {
         
         getBotResponse(message);
         
-        // Aggiorna il contatore dei problemi
-        let n_prob = document.querySelector('#n_problems').innerText;
-        let new_n_prob = parseInt(n_prob) - 1;
-        document.querySelector('#n_problems').innerText = new_n_prob;
-        
-        // Se non ci sono più problemi, mostra il messaggio
-        if(new_n_prob == 0) {
-          document.querySelector('.carousel-controls').style.display = 'none';
-          document.getElementById('carousel-messages').style.display = 'flex';
-          document.getElementById('carousel-messages').innerHTML = `
-              <div class="no-problems-message">
-                  Non sono presenti problemi nella tua smart home 😊
-                  <br>
-                  <span class="no-problems-submessage">Se hai bisogno di aiuto, chiedi a Casper!</span>
-              </div>
-          `;  
-        }
-        // Rimuovi la carta dal DOM
-        e.target.closest('.card').remove();
 
       } else {
         generateDialog("info", "Selezione richiesta", "Seleziona una soluzione prima di procedere.", () => {});
@@ -3696,11 +3699,16 @@ function createConflictCard(isActive, headerText, conflictInfo) {
     
     solveButton.addEventListener("click", async (e) => { 
      if (choosenSolution != null) {
- 
-        e.target.innerHTML = `
-          <span>Risoluzione...</span>
-        `;
+
+        // Mostra spinner + animazione e disabilita il bottone
+        e.target.classList.add('resolving');
         e.target.disabled = true;
+        e.target.innerHTML = `
+          <div style="display:inline-flex;align-items:center;gap:8px;">
+            <div class="loader mini-loader"></div>
+            <span>Risoluzione...</span>
+          </div>
+        `;
 
         let problemId = e.target.getAttribute("problemid");
         let ruleId = choosenSolution.rule_id;
@@ -3710,27 +3718,6 @@ function createConflictCard(isActive, headerText, conflictInfo) {
         console.log("Solve button clicked with message:", message);
         
         getBotResponse(message);
-        
-        // Aggiorna il contatore dei problemi
-        let n_prob = document.querySelector('#n_problems').innerText;
-        let new_n_prob = parseInt(n_prob) - 1;
-        document.querySelector('#n_problems').innerText = new_n_prob;
-        
-        // Se non ci sono più problemi, mostra il messaggio
-        if(new_n_prob == 0) {
-          document.querySelector('.carousel-controls').style.display = 'none';
-          document.getElementById('carousel-messages').style.display = 'flex';
-          document.getElementById('carousel-messages').innerHTML = `
-              <div class="no-problems-message">
-                  Non sono presenti problemi nella tua smart home 😊
-                  <br>
-                  <span class="no-problems-submessage">Se hai bisogno di aiuto, chiedi a Casper!</span>
-              </div>
-          `;  
-        }
-
-        // Rimuovi la carta dal DOM
-        e.target.closest('.card').remove();
 
       } else {
         generateDialog("info", "Selezione richiesta", "Seleziona una soluzione prima di procedere.", () => {});
