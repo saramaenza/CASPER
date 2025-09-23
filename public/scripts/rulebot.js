@@ -316,12 +316,15 @@ async function deleteAutomation(rule_id) {
       console.log("Delete Automation response: ", data);
       document.querySelector(`div [ruleid='${rule_id}']`).remove();
       let rulesList = await getRulesParam() //GET regole
-      let problemsList = await getProblems()  //GET problemi
+
+      let problemsList = await getProblems()
       problemsList = problemsList.filter(problem => !problem.ignore && !problem.solved && problem.state != "off");
+      printUserProblems(problemsList);
+      carouselObject.update(problemsList);
+
       let problemsGoalList = await getProblemGoal()
       problemsGoalList = problemsGoalList.filter(problem => !problem.ignore && !problem.solved && problem.state != "off");
       printUserRule(rulesList);
-      document.querySelector('#n_problems').innerText = problemsList.length;
       document.querySelector('#n_goal_advisor').innerText = problemsGoalList.length;
     })
     .catch(error => {

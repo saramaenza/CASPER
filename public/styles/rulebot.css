@@ -200,7 +200,7 @@ body{
     transition: all 0.3s ease;
 }
 .mini-loader{
-  width: 20px;
+  width: 12px;
   height: 12px;
 }
 
