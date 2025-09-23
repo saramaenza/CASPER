@@ -3335,12 +3335,24 @@ function createConflictCard(isActive, headerText, conflictInfo) {
                 if(i === 0) {
                     const conditionBox1 = document.createElement("div");
                     conditionBox1.className = "condition-box";
-                    conditionBox1.textContent = rule1.condition.toLowerCase() || "/";
+                    conditionText = (
+                      (rule1.condition ? rule1.condition.trim() : "")
+                        .replace(/\([^)]*\)/g, "")
+                        .replace(/\./g, "") // Rimuove tutti i punti
+                        .replace(/^([a-zà-ù])/i, (m) => m.toUpperCase())
+                    ) + ",";
+                    conditionBox1.textContent = (rule1.condition ? rule1.condition.toLowerCase() : "/");
                     td.appendChild(conditionBox1);
                 } else if(i === 2) {
                     const conditionBox2 = document.createElement("div");
                     conditionBox2.className = "condition-box";
-                    conditionBox2.textContent = rule2.condition.toLowerCase() || "/";
+                    conditionText = (
+                      (rule2.condition ? rule2.condition.trim() : "")
+                        .replace(/\([^)]*\)/g, "")
+                        .replace(/\./g, "") // Rimuove tutti i punti
+                        .replace(/^([a-zà-ù])/i, (m) => m.toUpperCase())
+                    ) + ",";
+                    conditionBox2.textContent = (rule2.condition ? rule2.condition.toLowerCase() : "/");
                     td.appendChild(conditionBox2);
                 }
                 row_condition.appendChild(td);

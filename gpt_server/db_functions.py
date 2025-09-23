@@ -371,6 +371,36 @@ def get_credentials(user_id):
         print(e)
         print("----------------")
         return None
+    
+def remove_problems_with_automation(user_id, automation_id):
+    """
+    Rimuove tutti i problemi che coinvolgono l'automazione con id specificato.
+    """
+    try:
+        print(f"Removing problems with automation {automation_id} for user {user_id}")
+        collection = db["problems"]
+        problems = collection.find_one({"user_id": user_id})
+        
+        if problems and 'problems' in problems:
+            # Filtra i problemi che non coinvolgono l'automazione specificata
+            updated_problems = [
+                problem for problem in problems['problems']
+                if automation_id not in [rule.get('id') for rule in problem.get('rules', [])]
+            ]
+            
+            # Aggiorna la collezione solo se ci sono modifiche
+            if len(updated_problems) != len(problems['problems']):
+                collection.update_one(
+                    {"_id": problems["_id"]},
+                    {"$set": {"problems": updated_problems, "last_update": datetime.now()}}
+                )
+        return True
+    except Exception as e:
+        print("--> Remove Problems With Automation Error <--")
+        print(user_id, automation_id)
+        print(e)
+        print("----------------")
+        return False
 
 def save_automation(user_id, automation_id, config):
     """
@@ -410,6 +440,9 @@ def save_automation(user_id, automation_id, config):
             
             if automation_index != -1:
                 # Aggiorna automazione esistente
+                id_automation = user_automations['automation_data'][automation_index]['id']
+                # Rimuovi i problemi che coinvolgono questa automazione
+                remove_problems_with_automation(user_id, id_automation)
                 user_automations['automation_data'][automation_index] = automation_data
             else:
                 # Aggiungi nuova automazione
