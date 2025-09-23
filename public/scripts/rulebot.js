@@ -3386,7 +3386,7 @@ function createConflictCard(isActive, headerText, conflictInfo) {
               timelineIcon.setAttribute("viewBox", "0 0 60 24");
               timelineIcon.style.verticalAlign = "middle";
 
-              // Path per linea orizzontale in basso e frecce (colore #555)
+              // Path linea orizzontale in basso + freccia (colore #555)
               const basePath = document.createElementNS("http://www.w3.org/2000/svg", "path");
               basePath.setAttribute("d", "M 2 17 L 58 17 M 52 13 L 58 17 L 52 21 L 58 17 M 52 13 L 58 17");
               basePath.setAttribute("fill", "none");
@@ -3395,12 +3395,12 @@ function createConflictCard(isActive, headerText, conflictInfo) {
               basePath.setAttribute("stroke-linecap", "round");
               basePath.setAttribute("stroke-linejoin", "round");
 
-              // Path per linea verticale e orizzontale in alto (colore #1976d2)
+              // Path linea verticale e orizzontale in alto (colore #1976d2)
               const topPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
-              topPath.setAttribute("d", "M 9 15 V 0 H 52");
+              topPath.setAttribute("d", "M 10 16 V 0 H 44 V 16");
               topPath.setAttribute("fill", "none");
               topPath.setAttribute("stroke", "#1976d2");
-              topPath.setAttribute("stroke-width", "3");
+              topPath.setAttribute("stroke-width", "2.5");
               topPath.setAttribute("stroke-linecap", "round");
               topPath.setAttribute("stroke-linejoin", "round");
 
