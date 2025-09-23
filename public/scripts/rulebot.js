@@ -3105,10 +3105,15 @@ function createChainCard(isActive, headerText, chainInfo) {
     solveButton.addEventListener("click", async (e) => { 
      if (choosenSolution != null) {
  
-        e.target.innerHTML = `
-          <span>Risoluzione...</span>
-        `;
+        // Mostra spinner + animazione e disabilita il bottone
+        e.target.classList.add('resolving');
         e.target.disabled = true;
+        e.target.innerHTML = `
+          <div style="display:inline-flex;align-items:center;gap:8px;">
+            <div class="loader mini-loader"></div>
+            <span>Risoluzione...</span>
+          </div>
+        `;
 
         let problemId = e.target.getAttribute("problemid");
         let ruleId = choosenSolution.rule_id;
