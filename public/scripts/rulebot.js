@@ -66,6 +66,8 @@ sse.addEventListener("message", async ({ data }) => {
     problemsList = problemsList.filter(problem => !problem.ignore && !problem.solved && problem.state != "off");
     printUserProblems(problemsList);
     carouselObject.update(problemsList);
+    let problemsGoalList = await getProblemGoal()
+    printUserGoalProblems(problemsGoalList );
   }
   else if (message.action == "update-problems") {
     //message.state = []
@@ -3363,8 +3365,6 @@ function createConflictCard(isActive, headerText, conflictInfo) {
     } else {
         // RIGA EVENTI
         const row_events = document.createElement("tr");
-
-        
         
         // Celle eventi
         for(let i = 0; i < 3; i++) {
