@@ -19,7 +19,7 @@ const getProblemGoalList = `${base_link}/get_problems_goal`; // chiamata GET per
 const ping = `${base_link}/post_chat_state`; // chiamata POST per mantere la sessione attiva
 const toggleAutomation = `${base_link}/toggle_automation`; // chiamata per accendere/spegnere un'automazione
 const ignoreProblem = `${base_link}/ignore_problem`; // chiamata per ignorare un problema
-const ignoreSuggestions = `${base_link}/ignore_suggestions`; // chiamata per ignorare le raccomandazioni
+const deleteSuggestions = `${base_link}/delete_suggestions`; // chiamata per ignorare le raccomandazioni
 const resetConversationUrl = `${base_link}/reset_conv`; // chiamata per resettare la conversazione
 const getGoalImprovements = `${base_link}/get_goal_improvements`; // chiamata per ottenere i miglioramenti degli obiettivi
 
@@ -2012,9 +2012,49 @@ function displaySuggestionsCascade(container, suggestions) {
                     }
                   });
                 });
+                let structured = singleSuggestion.structured;
+
                 const resolveBtn = document.createElement('button');
                 resolveBtn.className = 'btn btn-resolve';
                 resolveBtn.textContent = 'Attiva';
+
+                resolveBtn.addEventListener('click', async () => {
+                  generateDialog("confirm", "Conferma attivazione", `Sei sicuro di voler attivare l'automazione: "${singleSuggestion.title}"?`, async () => {
+                    try {
+                      // Disabilita il pulsante
+                      const button = resolveBtn;
+                      button.classList.add('resolving');
+                      button.disabled = true;
+                      button.innerHTML = `
+                        <div style="display:inline-flex;align-items:center;gap:8px;">
+                          <div class="loader mini-loader"></div>
+                          <span>Attivazione...</span>
+                        </div>
+                      `;
+                      const message = `<new_automation>The user wants to create a new automation with the following details. Title: ${singleSuggestion.title}. Description: ${singleSuggestion.natural_language}. Here is the structured representation of the automation:${(structured)}</new_automation>`;
+                      getBotResponse(message);
+
+                      await postData(
+                        { suggestionId: e.target.getAttribute("problemid"), userId: userId },
+                        deleteSuggestions
+                      );
+                      
+                      await new Promise(resolve => setTimeout(resolve, 2000));
+                      
+                      // Ricarica i suggerimenti
+                      const suggestionsContainer = document.querySelector('.suggestions-container');
+                      await loadAndShowSuggestions(suggestionsContainer);
+                    } catch (error) {
+                      // Ripristina il pulsante in caso di errore
+                      const button = resolveBtn;
+                      button.disabled = false;
+                      button.textContent = 'Attiva';
+
+                      generateDialog("info", "Errore", "Si è verificato un errore e non posso attivare l'automazione", () => {});
+                      console.error("Error activating automation:", error);
+                    }
+                  });
+                });
                 expandedActions.appendChild(ignoreBtn);
                 expandedActions.appendChild(resolveBtn);
 
@@ -4198,16 +4238,26 @@ const dialogDescription = document.querySelector('.confirm-dialog-description');
 const btnYes = document.querySelector('.confirm-btn.yes');
 const btnNo = document.querySelector('.confirm-btn.no');  
 const btnOk = document.querySelector('.confirm-btn.ok');
-function generateDialog(type, title, description, yesCallback){
-  //type: "confirm" (Ha i bottoni "Si", "No"), "info" (Ha il bottone "OK")
+
+function generateDialog(type, title, description, yesCallback) {
+    // type: "confirm" (Ha i bottoni "Si", "No"), "info" (Ha il bottone "OK")
     overlay.style.display = 'flex';
-    //dialog.style.display = 'block';
     dialogTitle.innerText = title;
     dialogDescription.innerText = description;
+
     if (type === "confirm") {
         btnYes.style.display = 'inline-block';
         btnNo.style.display = 'inline-block';
         btnOk.style.display = 'none';
+
+        // Cambia il colore del pulsante "Sì" in base al titolo
+        if (title.includes("attivazione")) {
+            btnYes.classList.add('btn-green'); // Aggiungi classe per il verde
+            btnYes.classList.remove('btn-red'); // Rimuovi eventuale classe rossa
+        } else {
+            btnYes.classList.add('btn-red'); // Usa il rosso per altri casi
+            btnYes.classList.remove('btn-green'); // Rimuovi eventuale classe verde
+        }
     } else if (type === "info") {
         btnYes.style.display = 'none';
         btnNo.style.display = 'none';
@@ -4217,17 +4267,14 @@ function generateDialog(type, title, description, yesCallback){
     const buttons = dialog.querySelectorAll('.confirm-btn');
     buttons.forEach(button => {
         button.addEventListener('click', async () => {
-            // Aggiungi la classe fadeOut all'overlay per l'animazione di uscita
             overlay.classList.add('fadeOut');
-            // Rimuovi l'overlay dopo che l'animazione è completata
             setTimeout(async () => {
                 if (button.classList.contains('yes')) {
                     yesCallback();
                 }
                 overlay.classList.remove('fadeOut');
-                overlay.style.display= 'none';
-            }, 200); // Stesso tempo dell'animazione CSS dell'overlay
+                overlay.style.display = 'none';
+            }, 200);
         });
     });
-
 }

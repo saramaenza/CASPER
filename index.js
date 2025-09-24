@@ -775,6 +775,19 @@ app.post('/ignore_suggestions', verifyToken, async (req, res) => {
   }
 });
 
+
+app.use('/delete_suggestion', verifyToken, async (req, res) =>{
+  try {
+    const suggestionId = req.body.data.suggestionId;
+    const userId = req.body.id;
+    const response = await deleteSuggestion(userId, suggestionId);
+    res.json(response)
+  } catch (error) {
+    console.log('/delete_suggestion error:')
+    console.log(error)
+  }
+})
+
  app.get('/sse', async (req, res) =>{
   try {
     const session_id = req.cookies['chat_session_id'];

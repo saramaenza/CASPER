@@ -1894,6 +1894,16 @@ td {
     transform: scale(1.05);
 }
 
+.confirm-btn.yes.btn-green {
+    background: #28a745; /* Verde */
+    color: white;
+    font-family: 'Nunito', sans-serif;
+}
+
+.confirm-btn.yes.btn-green:hover {
+    background: #218838; /* Verde più scuro per hover */
+}
+
 /* Modern Scrollbar *//*
 ::-webkit-scrollbar {
     width: 8px;

@@ -487,7 +487,6 @@ def save_automation(user_id, automation_id, config):
                 # Aggiorna automazione esistente
                 id_automation = user_automations['automation_data'][automation_index]['id']
                 # Rimuovi i problemi che coinvolgono questa automazione
-                print(f"Updating automation {automation_id} for user {user_id}, removing related problems.")
                 remove_problems_with_automation(user_id, id_automation)
                 user_automations['automation_data'][automation_index] = automation_data
             else:

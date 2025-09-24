@@ -787,6 +787,51 @@ const ignoreSuggestions = async (userId, suggestionId) => {
     }
 };
 
+const deleteSuggestion = async (userId, suggestionId) => {
+    try {
+        const database = client.db(dbName);
+        const suggestions = database.collection('improvement_solutions');
+
+        // Trova il documento dell'utente
+        const userSuggestions = await suggestions.findOne({ 'user_id': userId });
+
+        if (!userSuggestions || !userSuggestions.solutions || !userSuggestions.solutions.recommendations) {
+            return false; // Nessun suggerimento trovato
+        }
+
+        let updated = false;
+
+        // Itera attraverso le categorie di suggerimenti (energia, sicurezza, ecc.)
+        for (const [goalKey, recs] of Object.entries(userSuggestions.solutions.recommendations)) {
+            if (Array.isArray(recs)) {
+                // Trova l'indice del suggerimento da eliminare
+                const suggestionIndex = recs.findIndex(rec => rec.unique_id === suggestionId);
+                if (suggestionIndex !== -1) {
+                    // Rimuovi il suggerimento dall'array
+                    recs.splice(suggestionIndex, 1);
+                    updated = true;
+                    break;
+                }
+            }
+        }
+
+        if (!updated) {
+            return false; // Suggerimento non trovato
+        }
+
+        // Aggiorna il documento nel database
+        await suggestions.updateOne(
+            { 'user_id': userId },
+            { $set: { 'solutions': userSuggestions.solutions } }
+        );
+
+        return true; // Suggerimento eliminato con successo
+    } catch (err) {
+        console.error('Errore in deleteSuggestion:', err);
+        return false;
+    }
+};  
+
 const saveIgnoredSuggestion = async (userId, goal, suggestion) => {
     try {
         const database = client.db(dbName);
@@ -1045,6 +1090,7 @@ module.exports = {
     toggleAutomation,
     ignoreProblem,
     ignoreSuggestions,
+    deleteSuggestion,
     saveIgnoredSuggestion,
     changeStateProblem,
     updateAllProblemsState,
