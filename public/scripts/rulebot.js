@@ -319,15 +319,17 @@ async function deleteAutomation(rule_id) {
       document.querySelector(`div [ruleid='${rule_id}']`).remove();
       let rulesList = await getRulesParam() //GET regole
 
+      //Ricarica problemi e regole
       let problemsList = await getProblems()
       problemsList = problemsList.filter(problem => !problem.ignore && !problem.solved && problem.state != "off");
+
       printUserProblems(problemsList);
       carouselObject.update(problemsList);
 
       let problemsGoalList = await getProblemGoal()
       problemsGoalList = problemsGoalList.filter(problem => !problem.ignore && !problem.solved && problem.state != "off");
+      printUserGoalProblems(problemsGoalList);
       printUserRule(rulesList);
-      document.querySelector('#n_goal_advisor').innerText = problemsGoalList.length;
     })
     .catch(error => {
       console.log(error);
@@ -2078,6 +2080,7 @@ function printUserGoalProblems(problemsGoalList) {
     // Container per ogni problema
     const problemGoalContainer = document.createElement('div');
     problemGoalContainer.className = 'problem-goal-container';
+    const automationID = problem.rules[0].id;
 
     // Card principale
     const card = document.createElement('div');
@@ -2281,29 +2284,44 @@ function printUserGoalProblems(problemsGoalList) {
         // Prendi il primo automation_id dalle recommendations
         const firstAutomationId = Object.keys(recommendations)[0];
         if (firstAutomationId && recommendations[firstAutomationId].alternatives) {
-          resolutionOptions = recommendations[firstAutomationId].alternatives.map(alt => alt.natural_language);
+          resolutionOptions = recommendations[firstAutomationId].alternatives;
         }
       }
     }
     
     resolutionOptions.forEach((option, optionIndex) => {
-      const formCheck = document.createElement('div');
-      formCheck.className = 'form-check';
-      
-      const radioInput = document.createElement('input');
-      radioInput.className = 'form-check-input';
-      radioInput.type = 'radio';
-      radioInput.name = `radioDefault${index}`;
-      radioInput.id = `radioDefault${index}-${optionIndex}`;
-      
-      const label = document.createElement('label');
-      label.className = 'form-check-label';
-      label.setAttribute('for', `radioDefault${index}-${optionIndex}`);
-      label.textContent = option;
-      
-      formCheck.appendChild(radioInput);
-      formCheck.appendChild(label);
-      optionsContainer.appendChild(formCheck);
+        const formCheck = document.createElement("div");
+        formCheck.className = "form-check";
+
+        const radioInput = document.createElement("input");
+        radioInput.className = "form-check-input";
+        radioInput.type = "radio";
+        radioInput.name = `radioDefault${index}`;
+        radioInput.id = `radioDefault${index}-${optionIndex}`;
+        radioInput.value = option;
+
+        const label = document.createElement("label");
+        label.className = "form-check-label";
+        label.setAttribute("for", `radioDefault${index}-${optionIndex}`);
+        label.textContent = option["natural_language"];
+
+        // Aggiungi un event listener per gestire la selezione
+        radioInput.addEventListener("change", () => {
+            if (radioInput.checked) {
+                choosenSolution = {
+                    "rule_id": automationID,
+                    "rule_name": problem.rules[0].name,
+                    "solution": option["structured"]
+                };
+                console.log("Choosen solution goal:", choosenSolution);
+            } else {
+                choosenSolution = null;
+            }
+        });
+
+        formCheck.appendChild(radioInput);
+        formCheck.appendChild(label);
+        optionsContainer.appendChild(formCheck);
     });
     
     expandedSection.appendChild(optionsContainer);
@@ -2326,6 +2344,35 @@ function printUserGoalProblems(problemsGoalList) {
     resolveBtn.id = `${problem.unique_id || problem.id}_resolve`;
     resolveBtn.setAttribute('problemid', problem.id);
     resolveBtn.textContent = 'Risolvi';
+
+    resolveBtn.addEventListener("click", async (e) => {
+        // Controlla se è stata selezionata una soluzione
+        if (choosenSolution != null) {
+            // Mostra spinner + animazione e disabilita il bottone
+            e.target.classList.add('resolving');
+            e.target.disabled = true;
+            e.target.innerHTML = `
+              <div style="display:inline-flex;align-items:center;gap:8px;">
+                <div class="loader mini-loader"></div>
+                <span>Risoluzione...</span>
+              </div>
+            `;
+
+            // Recupera i dettagli del problema e della soluzione selezionata
+            const problemId = e.target.getAttribute("problemid");
+            let ruleId = choosenSolution.rule_id;
+            let ruleName = choosenSolution.rule_name;
+            let structured = choosenSolution.solution;
+            const message = `<solve_problem>The user want to solve the problem with ID:${problemId} by modifing the automation '${ruleName}'(Automation ID:${ruleId}) in the following way: ${structured}</solve_problem>`;
+            console.log("Solve button clicked with message:", message);
+
+            getBotResponse(message);
+
+        } else {
+            // Mostra il dialog se nessuna opzione è selezionata
+            generateDialog("info", "Selezione richiesta", "Seleziona una soluzione prima di procedere.", () => {});
+        }
+    });
     
     expandedActions.appendChild(ignoreBtn);
     expandedActions.appendChild(resolveBtn);
