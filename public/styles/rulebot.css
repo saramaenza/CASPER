@@ -851,10 +851,10 @@ td {
     color: var(--text-secondary);
     background-color: rgba(255, 255, 255, 0.05);
 }
-
+/*
 .btn-save:focus-visible, .action-buttons .btn:focus-visible, .show-all-goals-btn:focus-visible {
    border: 1px solid var(--border-color);
-}
+}*/
 
 .show-all-goals-btn {
     width: fit-content;

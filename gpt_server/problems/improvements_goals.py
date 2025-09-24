@@ -37,7 +37,9 @@ def save_solutions_to_db(user_id: str, solutions):
 def get_goal_improvements(user_id: str):
     """Genera le soluzioni e le salva nel database se non esistono problemi con goal"""
     userProblems = _db.get_problems_goals(user_id)
-    if (not userProblems or len(userProblems) == 0):
+    # Verifica se userProblems è vuoto o non contiene i campi richiesti
+    required_goals = ["energy", "security", "safety", "well-being"]
+    if (not userProblems or len(userProblems) == 0 or not any(goal in userProblems for goal in required_goals)):
         solutions = call_find_solution_llm(user_id)
         save_solutions_to_db(user_id, solutions)
         return solutions

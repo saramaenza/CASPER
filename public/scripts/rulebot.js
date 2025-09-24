@@ -1200,8 +1200,9 @@ async function printUserPreferences() {
       })
       .then(response => response.json())
       .then(data => {
-          console.log('Goal improvements:', data);
-          if (suggestionsContainer) loadAndShowSuggestions(suggestionsContainer);
+          if (suggestionsContainer) {
+            loadAndShowSuggestions(suggestionsContainer);
+          }
       })
       .catch(error => {
           console.log(error);
