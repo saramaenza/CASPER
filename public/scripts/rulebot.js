@@ -2880,6 +2880,10 @@ function createChainCard(isActive, headerText, chainInfo) {
     const rule2_id = rule2['id'];
     const rule2_name = rule2['name'];
 
+    const temp_mapping = new Map();
+    temp_mapping.set(rule1_id, rule1);
+    temp_mapping.set(rule2_id, rule2);
+
     // DETERMINA LA DIREZIONE DELLA CATENA
     const chainDirection = chainInfo['direction'] || 'rule1_to_rule2';
     const isReversed = chainDirection === 'rule2_to_rule1';
@@ -3112,7 +3116,9 @@ function createChainCard(isActive, headerText, chainInfo) {
     // ACCORDION
     const accordion = document.createElement("div");
     accordion.className = "accordion stay-open";
+    let index = 0;
     
+    //Aggiunta delle raccomandazioni
     const recommendations = chainInfo["possibleSolutions"]["recommendations"];
     for (let automationID in recommendations) {
         const item = document.createElement("div");
@@ -3124,7 +3130,7 @@ function createChainCard(isActive, headerText, chainInfo) {
         const button = document.createElement("button");
         button.className = "accordion-button";
         button.setAttribute("onclick", "toggleStayOpen(this)");
-        
+
         // DETERMINA IL NOME CORRETTO BASATO SULL'ID
         let automationName = "";
         if (automationID === rule1_id) {
@@ -3142,6 +3148,7 @@ function createChainCard(isActive, headerText, chainInfo) {
 
         const collapse = document.createElement("div");
         collapse.className = "accordion-collapse";
+        if (index === 0) { collapse.classList.add("active"); }
 
         const body = document.createElement("div");
         body.className = "accordion-body";
@@ -3153,13 +3160,26 @@ function createChainCard(isActive, headerText, chainInfo) {
             const input = document.createElement("input");
             input.className = "form-check-input";
             input.type = "radio";
-            input.name = `radio-${automationID}`;
-            input.id = `radio-${automationID}-${i}`;
+            input.name = "radioDefault";
+            input.id = `radioDefault${index}-${i}`;
 
             const label = document.createElement("label");
             label.className = "form-check-label";
             label.setAttribute("for", input.id);
             label.textContent = alternative["natural_language"];
+
+             input.addEventListener("change", () => {
+                if (input.checked) {
+                  choosenSolution = {
+                    "rule_id": automationID,
+                    "rule_name": temp_mapping.get(automationID)["name"],
+                    "solution": alternative["structured"],
+                  }
+                  console.log("Choosen solution:", choosenSolution);
+                } else {
+                  choosenSolution = null;
+                }
+            });
 
             formCheck.appendChild(input);
             formCheck.appendChild(label);
