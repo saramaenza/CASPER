@@ -848,10 +848,12 @@ const deleteSuggestion = async (userId, suggestionId) => {
         }
 
         let updated = false;
+        let goalOfIgnoredSuggestion = null;
 
         // Itera attraverso le categorie di suggerimenti (energia, sicurezza, ecc.)
         for (const [goalKey, recs] of Object.entries(userSuggestions.solutions.recommendations)) {
             if (Array.isArray(recs)) {
+                goalOfIgnoredSuggestion = goalKey;
                 // Trova l'indice del suggerimento da eliminare
                 const suggestionIndex = recs.findIndex(rec => rec.unique_id === suggestionId);
                 if (suggestionIndex !== -1) {
@@ -872,6 +874,38 @@ const deleteSuggestion = async (userId, suggestionId) => {
             { 'user_id': userId },
             { $set: { 'solutions': userSuggestions.solutions } }
         );
+
+        //Genera un nuovo suggerimento per lo stesso goal
+        if (goalOfIgnoredSuggestion) {
+            try {
+
+                const pythonServerUrl = 'http://localhost:8080';
+                //console.log(`Tentativo di chiamata a: ${pythonServerUrl}/generate_replacement_suggestion`);
+                        
+                const response = await fetch(`${pythonServerUrl}/generate_replacement_suggestion`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        user_id: userId,
+                        goal: goalOfIgnoredSuggestion
+                    })
+                });
+
+                console.log(`Response status: ${response.status}`);
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    console.log('Nuovo suggerimento generato con successo');
+                } else {
+                    const errorText = await response.text();
+                    console.log(`Errore nella generazione del nuovo suggerimento. Status: ${response.status}, Message: ${errorText}`);
+                }
+            } catch (error) {
+                console.log('Errore nella chiamata per generare nuovo suggerimento:', error.message);
+            }
+        }
 
         return true; // Suggerimento eliminato con successo
     } catch (err) {

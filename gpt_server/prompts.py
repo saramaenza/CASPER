@@ -172,6 +172,8 @@ Your are a recommender system for home automation. You will receive the user's p
 
 For the goal in first place in the ranking, it is necessary to suggest 3 alternative automations. For the goal in second place, it is necessary to suggest 2 alternative automations. For the goals in third and fourth place, it is necessary to suggest 1 alternative automation.
 
+For automation suggestions related to the goal 'energy', ensure that if an automation has as action the turning on of a device, that automation must turn off that device after a specified period to prevent unnecessary energy consumption.
+
 Each alternatives automation should present a structured format, a natual language description and a title. For example:
 - Structured: Event: <event> (<entity_id>) Condition: <condition> (<entity_id>) AND <condition> (<entity_id>) OR ... Action: <actions> (<entity_ids>).
 - Natural language: When the door opens, if it’s after 6 PM and the temperature is below 20 degrees, turn on the lights in the living room and send a notification to the user.
@@ -212,6 +214,8 @@ Automations already ignored by the user: {ignored_automations}
 
 single_goal_suggestion = """
 Your are a recommender system for home automation. You will receive a specific goal and your task is to propose **one new automation** that improves this goal and is **not redundant** and **not in conflict** with the other user automations and **not redundant or similar** to the list of ignored automations for this specific goal.
+
+For automation suggestions related to the goal 'energy', ensure that if an automation has as action the turning on of a device, that automation must turn off that device after a specified period to prevent unnecessary energy consumption.
 
 The automation should present a structured format, a natural language description and a title. For example:
 - Structured: Event: <event> (<entity_id>) Condition: <condition> (<entity_id>) AND <condition> (<entity_id>) OR ... Action: <actions> (<entity_ids>).

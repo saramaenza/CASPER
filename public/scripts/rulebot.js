@@ -20,7 +20,8 @@ const ping = `${base_link}/post_chat_state`; // chiamata POST per mantere la ses
 const toggleAutomation = `${base_link}/toggle_automation`; // chiamata per accendere/spegnere un'automazione
 const ignoreProblem = `${base_link}/ignore_problem`; // chiamata per ignorare un problema
 const ignoreGoalProblem = `${base_link}/ignore_goal_problem`; // chiamata per ignorare un problema legato ai goal
-const deleteSuggestions = `${base_link}/delete_suggestions`; // chiamata per ignorare le raccomandazioni
+const ignoreSuggestions = `${base_link}/ignore_suggestions`; // chiamata per ignorare le raccomandazioni
+const deleteSuggestion = `${base_link}/delete_suggestion`; // chiamata per ignorare le raccomandazioni
 const resetConversationUrl = `${base_link}/reset_conv`; // chiamata per resettare la conversazione
 const getGoalImprovements = `${base_link}/get_goal_improvements`; // chiamata per ottenere i miglioramenti degli obiettivi
 
@@ -2018,8 +2019,10 @@ function displaySuggestionsCascade(container, suggestions) {
                 const resolveBtn = document.createElement('button');
                 resolveBtn.className = 'btn btn-resolve';
                 resolveBtn.textContent = 'Attiva';
+                ignoreBtn.setAttribute("problemid", singleSuggestion.id);
+                resolveBtn.setAttribute("problemid", singleSuggestion.id);
 
-                resolveBtn.addEventListener('click', async () => {
+                resolveBtn.addEventListener('click', async (e) => {
                   generateDialog("confirm", "Conferma attivazione", `Sei sicuro di voler attivare l'automazione: "${singleSuggestion.title}"?`, async () => {
                     try {
                       // Disabilita il pulsante
@@ -2035,16 +2038,19 @@ function displaySuggestionsCascade(container, suggestions) {
                       const message = `<new_automation>The user wants to create a new automation with the following details. Title: ${singleSuggestion.title}. Description: ${singleSuggestion.natural_language}. Here is the structured representation of the automation:${(structured)}</new_automation>`;
                       getBotResponse(message);
 
-                      await postData(
+                     await postData(
                         { suggestionId: e.target.getAttribute("problemid"), userId: userId },
-                        deleteSuggestions
-                      );
-                      
-                      await new Promise(resolve => setTimeout(resolve, 2000));
-                      
+                        deleteSuggestion
+                     )
+
+                     await new Promise(resolve => setTimeout(resolve, 2000));
+                          
                       // Ricarica i suggerimenti
                       const suggestionsContainer = document.querySelector('.suggestions-container');
                       await loadAndShowSuggestions(suggestionsContainer);
+                          
+                      suggestionsContainer.classList.add('fade-in');
+
                     } catch (error) {
                       // Ripristina il pulsante in caso di errore
                       const button = resolveBtn;

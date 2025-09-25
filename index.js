@@ -24,7 +24,7 @@ const uuid = require('uuid');
 const bcrypt = require('bcryptjs')
 const cookieParser = require('cookie-parser')
 const jwt = require('jsonwebtoken')
-const {setServerConfig, createUser, getUser, verifyToken, isLogged, createGoogleUser, userInfo, verifyEmail, getAutomationsStates, getProblems, getUsersId, getProblemsGoals,getAutomations, getConfiguration, saveConfiguration,  saveSelectedConfiguration, saveAutomations,saveRulesStates,saveAutomation, deleteRule, closeDatabaseConnection, ignoreProblem, ignoreGoalProblem, ignoreSuggestions, updateAutomationState, saveUserPreferences, getUserPreferences, getImprovementSolutions} = require('./db_methods.cjs');
+const {setServerConfig, createUser, getUser, verifyToken, isLogged, createGoogleUser, userInfo, verifyEmail, getAutomationsStates, getProblems, getUsersId, getProblemsGoals,getAutomations, getConfiguration, saveConfiguration,  saveSelectedConfiguration, saveAutomations,saveRulesStates,saveAutomation, deleteRule, closeDatabaseConnection, ignoreProblem, ignoreGoalProblem, ignoreSuggestions, deleteSuggestion, updateAutomationState, saveUserPreferences, getUserPreferences, getImprovementSolutions} = require('./db_methods.cjs');
 const JWT_SECRET = 'sdjkfh8923yhjdksbfma@#*(&@*!^#&@bhjb2qiuhesdbhjdsfg839ujkdhfjk'
 // =======================================
 const { getEntities, getAutomationsHA, postAutomationHA, getEntitiesStates, getLogbook, toggleAutomation, deleteAutomation} = require('./utils.cjs');
@@ -693,7 +693,7 @@ app.use('/get_goal_improvements', verifyToken, async (req, res) => {
     console.log('/get_goal_improvements error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
-}); 
+});
 
 app.use('/get_problems_goal', verifyToken, async (req, res) => {
   try {

@@ -37,9 +37,22 @@ def save_solutions_to_db(user_id: str, solutions):
 def get_goal_improvements(user_id: str):
     """Genera le soluzioni e le salva nel database se non esistono problemi con goal"""
     userProblems = _db.get_problems_goals(user_id)
+    # Filtra gli elementi di userProblems per rimuovere quelli con "ignore" o "solved" uguale a True
+    filtered_user_problems = {
+        key: [
+            item for item in value 
+            if not item.get("ignore", False) and not item.get("solved", False)
+        ]
+        for key, value in userProblems.items() 
+        if isinstance(value, list)  # Assicurati che il valore sia una lista
+    }
+    # Verifica se tutte le liste in filtered_user_problems sono vuote
+    if not filtered_user_problems or all(len(value) == 0 for value in filtered_user_problems.values()):
+        userProblems = []  # Restituisci array vuoto se non ci sono problemi validi
+    
     # Verifica se userProblems è vuoto o non contiene i campi richiesti
     required_goals = ["energy", "security", "safety", "well-being"]
-    if (not userProblems or len(userProblems) == 0 or not any(goal in userProblems for goal in required_goals)):
+    if not any(goal in userProblems for goal in required_goals):
         solutions = call_find_solution_llm(user_id)
         save_solutions_to_db(user_id, solutions)
         return solutions
