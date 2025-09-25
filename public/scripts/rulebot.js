@@ -19,6 +19,7 @@ const getProblemGoalList = `${base_link}/get_problems_goal`; // chiamata GET per
 const ping = `${base_link}/post_chat_state`; // chiamata POST per mantere la sessione attiva
 const toggleAutomation = `${base_link}/toggle_automation`; // chiamata per accendere/spegnere un'automazione
 const ignoreProblem = `${base_link}/ignore_problem`; // chiamata per ignorare un problema
+const ignoreGoalProblem = `${base_link}/ignore_goal_problem`; // chiamata per ignorare un problema legato ai goal
 const deleteSuggestions = `${base_link}/delete_suggestions`; // chiamata per ignorare le raccomandazioni
 const resetConversationUrl = `${base_link}/reset_conv`; // chiamata per resettare la conversazione
 const getGoalImprovements = `${base_link}/get_goal_improvements`; // chiamata per ottenere i miglioramenti degli obiettivi
@@ -2007,7 +2008,7 @@ function displaySuggestionsCascade(container, suggestions) {
                       button.disabled = false;
                       button.textContent = originalText;
 
-                      generateDialog("info", "Errore", "Si è verificato un errore e non posso eliminare il problema", () => {});
+                      generateDialog("info", "Errore", "Si è verificato un errore e non posso ignorare il problema", () => {});
                       console.error("Error ignoring problem:", error);
                     }
                   });
@@ -2077,9 +2078,13 @@ function displaySuggestionsCascade(container, suggestions) {
 }
 
 function printUserGoalProblems(problemsGoalList) {
+
+  // Ignora i problemi marcati come "ignore" o come "solved"
+  problemsGoalList = problemsGoalList.filter(problem => !problem.ignore && !problem.solved);
   
   const goalAdvContainer = document.querySelector('#goal-adv-container');
   goalAdvContainer.innerHTML = ''; 
+  
   
   if (!problemsGoalList || problemsGoalList.length === 0) {
     const noProblemsDiv = document.createElement('div');
@@ -2377,6 +2382,25 @@ function printUserGoalProblems(problemsGoalList) {
     ignoreBtn.id = `${problem.unique_id || problem.id}_ignore`;
     ignoreBtn.setAttribute('problemid', problem.id);
     ignoreBtn.textContent = 'Ignora';
+
+    ignoreBtn.addEventListener("click", (e) => {
+      generateDialog("confirm", "Conferma ignora", "Sei sicuro di voler ignorare questo problema?", () => {
+        postData(
+          {goalProblemId: e.target.getAttribute("problemid")},
+          ignoreGoalProblem)
+        .then(async (response) => {
+          
+          let problemsGoalList = await getProblemGoal()
+          console.log(problemsGoalList)
+          printUserGoalProblems(problemsGoalList)
+
+          console.log("Goal problem ignored:", response);
+        }).catch((error) => {
+          generateDialog("info", "Errore", "Si è verificato un errore e non posso ignorare il problema",() => {});
+          console.error("Error ignoring problem:", error);
+        });
+      });
+    });
     
     // Pulsante Risolvi
     const resolveBtn = document.createElement('button');
@@ -2804,7 +2828,7 @@ function printUserProblems(problemsList) {
       carouselMessages.innerHTML = '';
       carouselMessages.style.display = 'none';
       for (const [index, problem] of problemsList.entries()){
-        if (problem['ignore'] == true || problem['solved'] == true) continue; // Ignora i problemi marcati come "ignore"
+        //if (problem['ignore'] == true || problem['solved'] == true) continue; // Ignora i problemi marcati come "ignore"
         if (problem['type'] == 'conflict'){
           createConflictCard(
             index == 0,
@@ -2986,7 +3010,7 @@ function createChainCard(isActive, headerText, chainInfo) {
     // First arrow
     const firstArrow = document.createElement("div");
     firstArrow.className = "flow-arrow";
-    firstArrow.textContent = "→";
+    firstArrow.textContent = "→"; 
 
     // Variable card (per catene indirette)
     const variableCard = document.createElement("div");
@@ -3162,25 +3186,15 @@ function createChainCard(isActive, headerText, chainInfo) {
         postData(
           {problemId: e.target.getAttribute("problemid")},
           ignoreProblem)
-        .then((response) => {
-          e.target.closest('.card').remove();
-          let n_prob = document.querySelector('#n_problems').innerText
-          let new_n_prob = parseInt(n_prob) - 1;
-          document.querySelector('#n_problems').innerText = new_n_prob;
-          if(new_n_prob == 0) {
-            document.querySelector('.carousel-controls').style.display = 'none';
-            document.getElementById('carousel-messages').style.display = 'flex';
-            document.getElementById('carousel-messages').innerHTML = `
-                <div class="no-problems-message">
-                    Non sono presenti problemi nella tua smart home 😊
-                    <br>
-                    <span class="no-problems-submessage">Se hai bisogno di aiuto, chiedi a Casper!</span>
-                </div>
-            `;  
-          }
+        .then(async (response) => {
+          
+          let problemsList = await getProblems()
+          problemsList = problemsList.filter(problem => !problem.ignore && !problem.solved && problem.state != "off");
+          printUserProblems(problemsList);
+          
           console.log("Problem ignored:", response);
         }).catch((error) => {
-          generateDialog("info", "Errore", "Si è verificato un errore e non posso eliminare il problema",() => {});
+          generateDialog("info", "Errore", "Si è verificato un errore e non posso ignorare il problema",() => {});
           console.error("Error ignoring problem:", error);
         });
       });
@@ -3776,25 +3790,15 @@ function createConflictCard(isActive, headerText, conflictInfo) {
         postData(
           {problemId: e.target.getAttribute("problemid")},
           ignoreProblem)
-        .then((response) => {
-          e.target.closest('.card').remove();
-          let n_prob = document.querySelector('#n_problems').innerText;
-          let new_n_prob = parseInt(n_prob) - 1;
-          document.querySelector('#n_problems').innerText = new_n_prob;
-          if(new_n_prob == 0) {
-            document.querySelector('.carousel-controls').style.display = 'none';
-            document.getElementById('carousel-messages').style.display = 'flex';
-            document.getElementById('carousel-messages').innerHTML = `
-                <div class="no-problems-message">
-                    Non sono presenti problemi nella tua smart home 😊
-                    <br>
-                    <span class="no-problems-submessage">Se hai bisogno di aiuto, chiedi a Casper!</span>
-                </div>
-            `;  
-          }
+        .then(async (response) => {
+          
+          let problemsList = await getProblems()
+          problemsList = problemsList.filter(problem => !problem.ignore && !problem.solved && problem.state != "off");
+          printUserProblems(problemsList);
+          
           console.log("Problem ignored:", response);
         }).catch((error) => {
-          generateDialog("info", "Errore", "Si è verificato un errore e non posso eliminare il problema",() => {});
+          generateDialog("info", "Errore", "Si è verificato un errore e non posso ignorare il problema",() => {});
           console.error("Error ignoring problem:", error);
         });
       });

@@ -709,6 +709,54 @@ const ignoreProblem = async (userId, problemId) => {
     }
 };
 
+const ignoreGoalProblem = async (userId, goalProblemId) => {
+    try {
+        const database = client.db(dbName);
+        const goalsCollection = database.collection('goals');
+        
+        // Recupera il documento dell'utente
+        const userGoals = await goalsCollection.findOne({ 'user_id': userId });
+        if (!userGoals) {
+            return false;
+        }
+
+        let updated = false;
+
+        // Itera attraverso le categorie di goal (energy, health, etc.)
+        const updatedGoals = {};
+        for (const [goalType, goalArray] of Object.entries(userGoals)) {
+            if (Array.isArray(goalArray)) {
+                // Cerca il problema con l'ID specificato
+                const updatedGoalArray = goalArray.map(goal => {
+                    if (goal.id === goalProblemId) {
+                        updated = true;
+                        return { ...goal, ignore: true }; // Imposta ignore a true
+                    }
+                    return goal;
+                });
+                updatedGoals[goalType] = updatedGoalArray;
+            } else {
+                updatedGoals[goalType] = goalArray;
+            }
+        }
+
+        if (!updated) {
+            return false; // Nessun problema trovato
+        }
+
+        // Aggiorna il documento nel database
+        await goalsCollection.updateOne(
+            { 'user_id': userId },
+            { $set: { ...updatedGoals, last_update: new Date() } }
+        );
+
+        return true;
+    } catch (err) {
+        console.log('Errore in ignoreGoalProblem:', err);
+        return false;
+    }
+};
+
 const ignoreSuggestions = async (userId, suggestionId) => {
     try {
         const database = client.db(dbName);
@@ -1090,6 +1138,7 @@ module.exports = {
     toggleAutomation,
     ignoreProblem,
     ignoreSuggestions,
+    ignoreGoalProblem,
     deleteSuggestion,
     saveIgnoredSuggestion,
     changeStateProblem,
