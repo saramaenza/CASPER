@@ -372,81 +372,62 @@ def get_credentials(user_id):
         print("----------------")
         return None
     
-def remove_problems_with_automation(user_id, automation_id):
+def solved_problems_with_automation(user_id, automation_id):
     """
-    Rimuove tutti i problemi che coinvolgono l'automazione con id specificato
-    sia dalla collezione "problems" che dalla collezione "goals".
+    Setta come "solved" i problemi e gli obiettivi che coinvolgono l'automazione con id specificato
+    nelle collezioni "problems" e "goals".
     """
     try:
-        print(f"Removing problems with automation {automation_id} for user {user_id}")
-        
-        # Rimuovi dalla collezione "problems"
+        # Aggiorna la collezione "problems"
         collection_problems = db["problems"]
         problems = collection_problems.find_one({"user_id": user_id})
         
         if problems and 'problems' in problems:
-            # Filtra i problemi che non coinvolgono l'automazione specificata
-            updated_problems = [
-                problem for problem in problems['problems']
-                if automation_id not in [rule.get('id') for rule in problem.get('rules', [])]
-            ]
+            updated_problems = []
+            for problem in problems['problems']:
+                if automation_id in [rule.get('id') for rule in problem.get('rules', [])]:
+                    problem['solved'] = True  # Imposta "solved" a True
+                    problem['last_update'] = datetime.now()
+                updated_problems.append(problem)
             
-            # Aggiorna la collezione solo se ci sono modifiche
-            if len(updated_problems) != len(problems['problems']):
-                collection_problems.update_one(
-                    {"_id": problems["_id"]},
-                    {"$set": {"problems": updated_problems, "last_update": datetime.now()}}
-                )
-        
-        # Rimuovi dalla collezione "goals"
+            # Aggiorna il documento nel database
+            collection_problems.update_one(
+                {"_id": problems["_id"]},
+                {"$set": {"problems": updated_problems, "last_update": datetime.now()}}
+            )
+            print("Problemi aggiornati nella collezione 'problems'.")
+
+        # Aggiorna la collezione "goals"
         collection_goals = db["goals"]
         goals = collection_goals.find_one({"user_id": user_id})
-        print(f"Initial goals: {goals}")
         
         if goals:
             updated_goals = {}
-            fields_to_unset = {}
-
             for goal_key, goal_items in goals.items():
                 if goal_key not in ["_id", "user_id", "created", "last_update"]:
-                    # Filtra gli obiettivi che non coinvolgono l'automazione specificata
-                    filtered_items = [
-                        item for item in goal_items
-                        if automation_id not in [rule.get('id') for rule in item.get('rules', [])]
-                    ]
-                    print(f"Filtered items for goal '{goal_key}': {filtered_items}")
+                    updated_goal_items = []
+                    for item in goal_items:
+                        if automation_id in [rule.get('id') for rule in item.get('rules', [])]:
+                            item['solved'] = True  # Imposta "solved" a True
+                            item['last_update'] = datetime.now()
+                        updated_goal_items.append(item)
+                    updated_goals[goal_key] = updated_goal_items
+            
+            # Aggiorna il documento nel database
+            collection_goals.update_one(
+                {"_id": goals["_id"]},
+                {"$set": {**updated_goals, "last_update": datetime.now()}}
+            )
+            print("Obiettivi aggiornati nella collezione 'goals'.")
 
-                    # Aggiungi solo se l'array non è vuoto
-                    if filtered_items:
-                        updated_goals[goal_key] = filtered_items
-                    else:
-                        # Se l'array è vuoto, aggiungi il campo alla lista da rimuovere
-                        fields_to_unset[goal_key] = ""
-
-            # Aggiorna i campi non vuoti
-            if updated_goals:
-                collection_goals.update_one(
-                    {"_id": goals["_id"]},
-                    {"$set": {**updated_goals, "last_update": datetime.now()}}
-                )
-                print("Goals collection updated with non-empty fields.")
-
-            # Rimuovi i campi vuoti
-            if fields_to_unset:
-                collection_goals.update_one(
-                    {"_id": goals["_id"]},
-                    {"$unset": fields_to_unset, "$set": {"last_update": datetime.now()}}
-                )
-                print(f"Empty fields removed: {list(fields_to_unset.keys())}")
-        
         return True
     except Exception as e:
-        print("--> Remove Problems With Automation Error <--")
+        print("--> Solved Problems With Automation Error <--")
         print(user_id, automation_id)
         print(e)
         print("----------------")
         return False
-
+    
 def save_automation(user_id, automation_id, config):
     """
     Salva una singola automazione per l'utente specificato.
@@ -486,8 +467,8 @@ def save_automation(user_id, automation_id, config):
             if automation_index != -1:
                 # Aggiorna automazione esistente
                 id_automation = user_automations['automation_data'][automation_index]['id']
-                # Rimuovi i problemi che coinvolgono questa automazione
-                remove_problems_with_automation(user_id, id_automation)
+                # Setta come "solved" i problemi che coinvolgono questa automazione
+                solved_problems_with_automation(user_id, id_automation)
                 user_automations['automation_data'][automation_index] = automation_data
             else:
                 # Aggiungi nuova automazione
