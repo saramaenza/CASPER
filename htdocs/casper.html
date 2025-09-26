@@ -7,6 +7,7 @@
     <link rel="icon" href="img/favicon.png" type="image/png">
     <link rel="stylesheet" href="styles/rulebot.css">
     <link rel="stylesheet" href="styles/icons.css">
+    <!--<link rel="stylesheet" href="styles/config.css">-->
     <!-- <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600&display=swap" rel="stylesheet"> -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -43,7 +44,8 @@
                         <div type="button" id="show-devices" class="selector-button selector-unselected"><i class='bx bxs-washer'></i> Oggetti <span class="circle-number" id="n_devices"></span></div>
                         <div type="button" id="show-problems" class="selector-button selector-unselected"><i class='bx bx-alarm-exclamation'></i> Problemi <span class="circle-number" id="n_problems"></span></div>
                         <div type="button" id="show-goal-adv" class="selector-button selector-unselected"><i class='bx bx-crosshair'></i> Suggerimenti <span class="circle-number" id="n_goal_advisor"></span></div>
-                        <div type="button" id="show-preferences" class="selector-button selector-unselected"><i class='bx bx-cog'></i> Preferenze </span></div>
+                        <div type="button" id="show-preferences" class="selector-button selector-unselected"><i class='bx bx-user-circle'></i> Preferenze </span></div>
+                        <div type="button" id="show-configuration" class="selector-button selector-unselected"><i class='bx bx-cog'></i> Configurazione </span></div>
                     </div>
                 </div>
                 
@@ -80,6 +82,61 @@
                 <div id="preferences-container" class="leftbar-unselected">
                     
                 </div>  
+
+                <div id="configuration-container" class="leftbar-unselected">
+                    <div id ="config-header">
+                        <div class="container_configuration">
+                            <div class="header">
+                                <h1 class="title">Configurazione Smart Home</h1>
+                                <p class="subtitle">Configura la connessione con Home Assistant per iniziare a utilizzare CASPER.</p>
+                            </div>
+                            
+                            <div class="config-content">
+                                <div class="config-form">
+                                    <div class="input-group">
+                                        <label for="home-assistant-url" class="input-label">
+                                            🔗 URL Home Assistant
+                                        </label>
+                                        <input type="url" 
+                                            id="home-assistant-url" 
+                                            placeholder="http://homeassistant:8123" 
+                                            class="config-input" 
+                                            required>
+                                    </div>
+                                    
+                                    <div class="input-group">
+                                        <label for="home-assistant-token" class="input-label">
+                                            🔑 Token di Accesso
+                                        </label>
+                                        <input type="password" 
+                                            id="home-assistant-token" 
+                                            placeholder="Token di accesso a lungo termine" 
+                                            class="config-input" 
+                                            required>
+                                        <div class="input-help">
+                                            Il processo caricherà automaticamente tutte le entità e automazioni.
+                                        </div>
+                                    </div>
+
+                                    <div id="status-message" class="status-message hidden"></div>
+                                    
+                                    <div class="config-actions">
+                                        <button id="load-devices" class="btn btn-load">Carica Dispositivi</button>
+                                    </div>
+                                    
+                                </div>
+                                
+                                <div id="devices-list" class="devices-container hidden">
+                                    <div class="section-divider"></div>
+                                    <h3 class="subsection-title">
+                                        <i class='bx bxs-washer'></i>
+                                        Dispositivi Caricati
+                                    </h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 
             </div>
             <div id="chat">
@@ -185,5 +242,6 @@
     <script src="https://requirejs.org/docs/release/2.3.6/minified/require.js"></script>
     <script src="scripts/icons-map.js"></script>
     <script src="scripts/rulebot.js"></script>
+    <script src="scripts/configuration.js"></script>
 </body>
 </html>

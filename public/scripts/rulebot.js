@@ -88,6 +88,7 @@ const problemsContainer = document.querySelector('#problems-main-container');
 const devicesContainer = document.querySelector('#devices-list-container');
 const goalAdvContainer = document.querySelector('#goal-adv-container');
 const preferencesContainer = document.querySelector('#preferences-container');
+const configurationContainer = document.querySelector('#configuration-container');
 
 document.getElementById('show-rules').addEventListener('click', function() {
   if (this.classList.contains('selector-selected')) return;
@@ -102,6 +103,8 @@ document.getElementById('show-rules').addEventListener('click', function() {
     document.getElementById('show-goal-adv').classList.add('selector-unselected');
     document.getElementById('show-preferences').classList.remove('selector-selected');
     document.getElementById('show-preferences').classList.add('selector-unselected');
+    document.getElementById('show-configuration').classList.remove('selector-selected');
+    document.getElementById('show-configuration').classList.add('selector-unselected');
   }
   rulesContainer.classList.remove('leftbar-unselected');
   rulesContainer.classList.add('leftbar-selected');
@@ -113,6 +116,8 @@ document.getElementById('show-rules').addEventListener('click', function() {
   goalAdvContainer.classList.add('leftbar-unselected');
   preferencesContainer.classList.remove('leftbar-selected');
   preferencesContainer.classList.add('leftbar-unselected');
+  configurationContainer.classList.remove('leftbar-selected');
+  configurationContainer.classList.add('leftbar-unselected');
 });
 
 document.getElementById('show-devices').addEventListener('click', function() {
@@ -128,6 +133,8 @@ document.getElementById('show-devices').addEventListener('click', function() {
     document.getElementById('show-goal-adv').classList.add('selector-unselected');
     document.getElementById('show-preferences').classList.remove('selector-selected');
     document.getElementById('show-preferences').classList.add('selector-unselected');
+    document.getElementById('show-configuration').classList.remove('selector-selected');
+    document.getElementById('show-configuration').classList.add('selector-unselected');
   }
   rulesContainer.classList.remove('leftbar-selected');
   rulesContainer.classList.add('leftbar-unselected');
@@ -139,6 +146,8 @@ document.getElementById('show-devices').addEventListener('click', function() {
   goalAdvContainer.classList.add('leftbar-unselected');
   preferencesContainer.classList.remove('leftbar-selected');
   preferencesContainer.classList.add('leftbar-unselected');
+  configurationContainer.classList.remove('leftbar-selected');
+  configurationContainer.classList.add('leftbar-unselected');
 });
 
 document.getElementById('show-problems').addEventListener('click', function() {
@@ -154,6 +163,8 @@ document.getElementById('show-problems').addEventListener('click', function() {
     document.getElementById('show-goal-adv').classList.add('selector-unselected');
     document.getElementById('show-preferences').classList.remove('selector-selected');
     document.getElementById('show-preferences').classList.add('selector-unselected');
+    document.getElementById('show-configuration').classList.remove('selector-selected');
+    document.getElementById('show-configuration').classList.add('selector-unselected');
   }
   rulesContainer.classList.remove('leftbar-selected');
   rulesContainer.classList.add('leftbar-unselected');
@@ -165,6 +176,8 @@ document.getElementById('show-problems').addEventListener('click', function() {
   goalAdvContainer.classList.add('leftbar-unselected');
   preferencesContainer.classList.remove('leftbar-selected');
   preferencesContainer.classList.add('leftbar-unselected');
+  configurationContainer.classList.remove('leftbar-selected');
+  configurationContainer.classList.add('leftbar-unselected');
 });
 
 document.getElementById('show-goal-adv').addEventListener('click', function() {
@@ -180,6 +193,8 @@ document.getElementById('show-goal-adv').addEventListener('click', function() {
     document.getElementById('show-problems').classList.add('selector-unselected');
     document.getElementById('show-preferences').classList.remove('selector-selected');
     document.getElementById('show-preferences').classList.add('selector-unselected');
+    document.getElementById('show-configuration').classList.remove('selector-selected');
+    document.getElementById('show-configuration').classList.add('selector-unselected');
   }
   rulesContainer.classList.remove('leftbar-selected');
   rulesContainer.classList.add('leftbar-unselected');
@@ -191,6 +206,8 @@ document.getElementById('show-goal-adv').addEventListener('click', function() {
   preferencesContainer.classList.add('leftbar-unselected');
   goalAdvContainer.classList.add('leftbar-selected');
   goalAdvContainer.classList.remove('leftbar-unselected');
+  configurationContainer.classList.remove('leftbar-selected');
+  configurationContainer.classList.add('leftbar-unselected');
 });
 
 document.getElementById('show-preferences').addEventListener('click', function() {
@@ -206,6 +223,8 @@ document.getElementById('show-preferences').addEventListener('click', function()
     document.getElementById('show-problems').classList.add('selector-unselected');
     document.getElementById('show-goal-adv').classList.remove('selector-selected');
     document.getElementById('show-goal-adv').classList.add('selector-unselected');
+    document.getElementById('show-configuration').classList.remove('selector-selected');
+    document.getElementById('show-configuration').classList.add('selector-unselected');
   }
   rulesContainer.classList.remove('leftbar-selected');
   rulesContainer.classList.add('leftbar-unselected');
@@ -217,6 +236,38 @@ document.getElementById('show-preferences').addEventListener('click', function()
   goalAdvContainer.classList.add('leftbar-unselected');
   preferencesContainer.classList.add('leftbar-selected');
   preferencesContainer.classList.remove('leftbar-unselected');
+  configurationContainer.classList.remove('leftbar-selected');
+  configurationContainer.classList.add('leftbar-unselected');
+});
+
+document.getElementById('show-configuration').addEventListener('click', function() {
+  if(this.classList.contains('selector-selected')) return;
+  else {
+    this.classList.remove('selector-unselected'); 
+    this.classList.add('selector-selected'); 
+    document.getElementById('show-devices').classList.remove('selector-selected');
+    document.getElementById('show-devices').classList.add('selector-unselected');
+    document.getElementById('show-rules').classList.remove('selector-selected');
+    document.getElementById('show-rules').classList.add('selector-unselected');
+    document.getElementById('show-problems').classList.remove('selector-selected');
+    document.getElementById('show-problems').classList.add('selector-unselected');
+    document.getElementById('show-goal-adv').classList.remove('selector-selected');
+    document.getElementById('show-goal-adv').classList.add('selector-unselected');
+    document.getElementById('show-preferences').classList.remove('selector-selected');
+    document.getElementById('show-preferences').classList.add('selector-unselected');
+  }
+  rulesContainer.classList.remove('leftbar-selected');
+  rulesContainer.classList.add('leftbar-unselected');
+  devicesContainer.classList.remove('leftbar-selected');
+  devicesContainer.classList.add('leftbar-unselected');
+  problemsContainer.classList.add('leftbar-unselected');
+  problemsContainer.classList.remove('leftbar-selected');
+  goalAdvContainer.classList.add('leftbar-selected');
+  goalAdvContainer.classList.add('leftbar-unselected');
+  preferencesContainer.classList.remove('leftbar-selected');
+  preferencesContainer.classList.add('leftbar-unselected');
+  configurationContainer.classList.add('leftbar-selected');
+  configurationContainer.classList.remove('leftbar-unselected');
 });
 
 let rulesList;

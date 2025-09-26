@@ -1,7 +1,7 @@
-const tokenRaw = Cookies.get("auth-token");
-const chat_session_id = Cookies.get("chat_session_id");
-const token = jwt_decode(tokenRaw);
-const userId = token.id;
+//const tokenRaw = Cookies.get("auth-token");
+//const chat_session_id = Cookies.get("chat_session_id");
+//const token = jwt_decode(tokenRaw);
+//const userId = token.id;
 
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -28,6 +28,72 @@ document.addEventListener('DOMContentLoaded', () => {
             if (checkbox) checkbox.checked = true;
         });
     }
+
+    // Funzione per validare i campi input
+    function validateInputFields() {
+        // Rimuovi eventuali classi di errore precedenti
+        urlInput.classList.remove('error');
+        tokenInput.classList.remove('error');
+        statusMessage.classList.add('hidden');
+        
+        let isValid = true;
+        let errorMessage = '';
+        
+        // Controlla se l'URL è vuoto
+        if (!urlInput.value.trim()) {
+            urlInput.classList.add('error');
+            errorMessage += 'Il campo URL Home Assistant è obbligatorio. ';
+            isValid = false;
+        }
+        
+        // Controlla se il token è vuoto
+        if (!tokenInput.value.trim()) {
+            tokenInput.classList.add('error');
+            errorMessage += 'Il campo Token di Accesso è obbligatorio. ';
+            isValid = false;
+        }
+        
+        // Validazione formato URL (opzionale)
+        if (urlInput.value.trim() && !isValidUrl(urlInput.value.trim())) {
+            urlInput.classList.add('error');
+            errorMessage += 'Inserisci un URL valido. ';
+            isValid = false;
+        }
+        
+        // Mostra messaggio di errore se ci sono problemi
+        if (!isValid) {
+            showStatusMessage(errorMessage.trim(), 'error');
+        }
+        
+        return isValid;
+    }
+
+    // Funzione per validare il formato URL
+    function isValidUrl(string) {
+        try {
+            new URL(string);
+            return true;
+        } catch (_) {
+            return false;
+        }
+    }
+
+    // Funzione per mostrare messaggi di stato
+    function showStatusMessage(message, type = 'info') {
+        statusMessage.textContent = message;
+        statusMessage.className = `status-message ${type}`;
+        statusMessage.classList.remove('hidden');
+    }
+
+    // Aggiungi stili CSS per gli errori
+    const style = document.createElement('style');
+    style.textContent = `
+        .config-input.error {
+            border-color: #dc3545 !important;
+            box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1) !important;
+        }
+    `;
+    document.head.appendChild(style);
 
     function groupDevicesByRoom(devices) {
         return devices.reduce((groups, device) => {
@@ -118,12 +184,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     loadButton.addEventListener('click', async () => {
+        // Prima ottieni i riferimenti alle variabili necessarie
+        const tokenRaw = Cookies.get("auth-token");
+        const token = jwt_decode(tokenRaw);
+        const userId = token.id;
+
         try {
             const url = urlInput.value.trim().replace(/\/+$/, '');
             const token = tokenInput.value.trim();
             
-            if (!url || !token) {
-                throw new Error('Compilare tutti i campi');
+            if (!validateInputFields()) {
+                return;
             }
 
             loadButton.disabled = true;
@@ -149,7 +220,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const devices = await response.json();
 
-             /* ------------- Saves automations -------------*/
+            /* ------------- Saves automations -------------*/
             const response2 = await fetch(`/load_automations`, {
                 method: 'POST',
                 headers: {
@@ -176,29 +247,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             let logbook = await response_logbook.json();
 
-            /*
-            logbook = [
-                {state: 'on', entity_id: 'binary_sensor.shellymotion2_2c1165cb13df_motion', name: 'Sensore movimento Motion', when: '2025-07-15T15:30:51.266495+00:00'},
-                {name: 'Accendi luce bagno', message: 'triggered by state of binary_sensor.shellymotion2_2c1165cb13df_motion', source: 'state of binary_sensor.shellymotion2_2c1165cb13df_motion', entity_id: 'automation.accendi_luce_bagno', context_id: '01K07BBJ83G29HVB8KF6HPPZC0'},
-                {state: 'on', entity_id: 'light.shellycolorbulb_3494546e408a', name: 'Luce bagno', when: '2025-07-15T15:30:51.301942+00:00', context_event_type: 'automation_triggered'},
-                {state: 'off', entity_id: 'binary_sensor.shellymotion2_2c1165cb13df_motion', name: 'Sensore movimento Motion', when: '2025-07-15T15:36:02.875112+00:00'},
-                {name: 'Spegni luce bagno', message: 'triggered by state of binary_sensor.shellymotion2_2c1165cb13df_motion', source: 'state of binary_sensor.shellymotion2_2c1165cb13df_motion', entity_id: 'automation.spegni_luce_bagno', context_id: '01K07BN2HW694AC30E7B4D3FHR'},
-                {state: 'off', entity_id: 'light.shellycolorbulb_3494546e408a', name: 'Luce bagno', when: '2025-07-15T15:36:02.906163+00:00', context_event_type: 'automation_triggered'}
-            ];
-            logbook = [
-                {state: 'off', entity_id: 'light.lampadina', name: 'Lampadina', when: '2025-07-15T15:30:51.301942+00:00', context_event_type: 'automation_triggered'}
-            ];
-            logbook = [
-                {name: 'attiva lampadina', message: 'triggered by state of binary_sensor.shellymotion2_2c1165cb13df_motion', source: 'state of binary_sensor.shellymotion2_2c1165cb13df_motion', entity_id: 'automation.attiva_lampadina', context_id: '01K07BBJ83G29HVB8KF6HPPZC0'},
-                {state: 'on', entity_id: 'light.lampadina', name: 'Lampadina', when: '2025-07-15T15:30:51.301942+00:00', context_event_type: 'automation_triggered'}
-            ];*/ 
-            //console.log("logbook", logbook);
             if (logbook !== null && logbook.length > 0) {
                 await checkNotRunningAutomations(logbook, userId);
                 await checkRunningAutomations(logbook, userId);
             }
-            //TODO: 
-            //considera il caso in cui 2 automazioni attivano lo stesso dispositivo: si attiva la prima attivazione (la seconda non ha il dispositivo subito dopo perchè è già attivo) --> è giusto??
             
             /* ------------- Saves default goal ranking -------------*/
             // controlla se esistono già le preferenze per l'utente
@@ -252,15 +304,17 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             
             statusMessage.textContent = 'Dispositivi caricati con successo!';
+            statusMessage.classList.remove('error');
             
         } catch (error) {
-            statusMessage.textContent = `Errore: ${error.message}`;
-            statusMessage.classList.add('error');
+            generateDialog("error", "Errore di caricamento", `Si è verificato un errore: ${error.message}`, () => {});
             devicesList.classList.add('hidden');
         } finally {
             loadButton.disabled = false;
-            loadButton.querySelector('.spinner').classList.add('hidden');
-            
+            const spinner = loadButton.querySelector('.spinner');
+            if (spinner) {
+                spinner.classList.add('hidden');
+            }
         }
     });
 });
