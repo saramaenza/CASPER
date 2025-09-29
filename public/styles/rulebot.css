@@ -229,6 +229,11 @@ body{
   scrollbar-width: none; 
   -ms-overflow-style: none; 
 }
+#config-header {
+  overflow-y: auto;
+  scrollbar-width: none; 
+  -ms-overflow-style: none; 
+}
 
 .automation-list-wrapper {
   height: inherit;
@@ -248,7 +253,7 @@ body{
   -ms-overflow-style: none; 
 }
 
-#rules-container::-webkit-scrollbar, #problems-main-container::-webkit-scrollbar, #devices-list-container::-webkit-scrollbar, #preferences-container::-webkit-scrollbar, #configuration-container::-webkit-scrollbar, #goal-adv-container::-webkit-scrollbar, #msgContainer::-webkit-scrollbar, .automation-list-wrapper::-webkit-scrollbar, .devices-list-wrapper::-webkit-scrollbar {
+#rules-container::-webkit-scrollbar, #problems-main-container::-webkit-scrollbar, #devices-list-container::-webkit-scrollbar, #preferences-container::-webkit-scrollbar, #configuration-container::-webkit-scrollbar, #goal-adv-container::-webkit-scrollbar, #msgContainer::-webkit-scrollbar, .automation-list-wrapper::-webkit-scrollbar, .devices-list-wrapper::-webkit-scrollbar, #config-header::-webkit-scrollbar {
     display: none; 
 }
 
@@ -543,13 +548,13 @@ body{
     50% { transform: rotate(90deg) translateX(5px); }
 }
 
-.room-card {
+.room-card, .room-card-config {
   margin-bottom: 10px;
   animation: 0.3s ease 0s 1 normal none running fadeIn;
   cursor: pointer;
 }
 
-.category-title {
+.category-title, .category-title-config {
   display: flex; 
   align-items: center;
   background: var(--bg-secondary);
@@ -565,7 +570,7 @@ body{
   cursor: pointer;
 }
 
-.category-title::before {
+.category-title::before, .category-title-config::before {
   content: '';
   position: absolute;
   top: 0;
@@ -577,16 +582,16 @@ body{
   transition: opacity 0.3s ease;
 }
 
-.category-title:hover {
+.category-title:hover, .category-title-config:hover {
     transform: translateX(+5px);
     border-color: #0066ff88;
 }
 
-.category-title:hover::before {
+.category-title:hover::before, .category-title-config:hover::before {
     opacity: 1;
 }
 
-.category-title.active {
+.category-title.active, .category-title-config.active {
   background-color: var(--bg-primary);
 }
 
@@ -2769,6 +2774,49 @@ td {
     border-top: 2px solid currentColor;
     border-radius: 50%;
     animation: spin 1s linear infinite;
+}
+
+.select-all-checkbox {
+    margin-right: 8px;
+    cursor: pointer;
+    transform: scale(1.2); /* Ingrandisci leggermente il checkbox */
+}
+
+.category-title-config.active .room-name::after {
+    transform: rotate(180deg); /* Ruota la freccia verso l'alto */
+}
+
+.config-actions-config {
+    display: flex;
+    justify-content: center;
+    margin-top: 24px;
+}
+
+.save-devices-conf {
+    display: flex;
+    justify-content: center;
+}
+
+/* Cambia il colore di sfondo del checkbox */
+input[type="checkbox"] {
+    appearance: none; /* Rimuove lo stile predefinito */
+    width: 15px;
+    height: 15px;
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-color);
+    border-radius: 4px; /* Angoli arrotondati */
+    cursor: pointer;
+}
+
+/* Aggiungi un'icona di spunta */
+input[type="checkbox"]:checked::after {
+    content: '✔';
+    color: #0066FF;
+    font-size: 13px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
 }
 
 @keyframes spin {

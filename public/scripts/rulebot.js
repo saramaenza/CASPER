@@ -297,7 +297,7 @@ window.addEventListener('load', async ()=>{
   initial.appendChild(chatID);
   let rulesList = await getRulesParam() //GET regole
   //problemList = await getData(`${getProblems}?id=${userId}`) //GET problemi
-  let devicesList = await getData(`${getDevices}?id=${userId}`) //GET problemi
+  let devicesList = await getData(`${getDevices}?id=${userId}`) //GET dispositivi
   //goalList = await getData(`${getGoals}?id=${userId}`) //GET goal
   
   entitiesStates = await getData(`${getEntitiesStates}?id=${userId}`) 
@@ -4321,7 +4321,7 @@ const btnNo = document.querySelector('.confirm-btn.no');
 const btnOk = document.querySelector('.confirm-btn.ok');
 
 function generateDialog(type, title, description, yesCallback) {
-    // type: "confirm" (Ha i bottoni "Si", "No"), "info" (Ha il bottone "OK")
+    // type: "confirm" (Ha i bottoni "Si", "No"), "info" e "error" e "success" (Ha il bottone "OK")
     overlay.style.display = 'flex';
     dialogTitle.innerText = title;
     dialogDescription.innerText = description;
@@ -4339,7 +4339,7 @@ function generateDialog(type, title, description, yesCallback) {
             btnYes.classList.add('btn-red'); // Usa il rosso per altri casi
             btnYes.classList.remove('btn-green'); // Rimuovi eventuale classe verde
         }
-    } else if (type === "info") {
+    } else if (type === "info" || type === "error" || type === "success") {
         btnYes.style.display = 'none';
         btnNo.style.display = 'none';
         btnOk.style.display = 'inline-block';

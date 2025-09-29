@@ -552,27 +552,45 @@ app.use('/get_problems', verifyToken, async (req, res) => {
   }
 }); 
 
-app.use('/load_automations', verifyToken, async (req, res) =>{
+app.use('/load_automations', verifyToken, async (req, res) => {
   try {
-    let url = req.body.url
-    let token = req.body.token
+    let url = req.body.url;
+    let token = req.body.token;
+
+    // Log per verificare i parametri ricevuti
+    console.log('URL ricevuto:', url);
+    console.log('Token ricevuto:', token);
+
     const automations = await getAutomationsHA(url, token);
+
+    // Log per verificare il valore di automations
+    console.log('Automations ricevute:', automations);
+
+    // Controlla se automations è null o undefined
+    if (!automations || !Array.isArray(automations)) {
+      console.error('Errore: automations non è un array valido:', automations);
+      return res.status(500).json({ error: 'Errore nel caricamento delle automazioni' });
+    }
+
     const cleanedAutomations = automations.map(automation => ({
       id: automation.id,
       entity_id: automation.entity_id,
       is_running: false,
       time: new Date().toISOString()
     }));
-    res.json(automations)
+
+    res.json(automations);
+
     if (automations) {
       saveAutomations(req.body.userId, automations);
       saveRulesStates(req.body.userId, cleanedAutomations);
     }
   } catch (error) {
-    console.log('/load_automations:')
-    console.log(error)
+    console.log('/load_automations:');
+    console.log(error);
+    res.status(500).json({ error: 'Errore interno del server' });
   }
-})
+});
 
 app.use('/save_config', verifyToken, async (req, res) =>{
   try {
