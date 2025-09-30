@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="it">
 	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>Casper - Registrazione</title>
-		<link rel="stylesheet" href="styles/login.css">
-		<link rel="icon" href="img/favicon.png" type="image/png">
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>Casper - Registrazione</title>
+	<link rel="stylesheet" href="styles/login.css">
+	<link rel="icon" href="img/favicon.png" type="image/png">
     <!-- <link rel="preconnect" href="https://fonts.gstatic.com">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600&display=swap" rel="stylesheet"> -->
@@ -17,6 +17,17 @@
 	</head>
 
 	<body>
+		<div class="overlay" id="overlay">
+			<div class="confirm-dialog" id="confirm-dialog">
+				<h3 class="confirm-dialog-title">Titolo</h3>
+				<p class="confirm-dialog-description">Descrizione</p>
+				<div class="confirm-buttons">
+					<button class="confirm-btn no">No</button>
+					<button class="confirm-btn yes">Si</button>
+					<button class="confirm-btn ok">Ok</button>
+				</div>
+			</div>
+		</div>
 		<!-- Animated Background -->
 		<div class="background-animation">
 			<div class="floating-orb orb-1"></div>

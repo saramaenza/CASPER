@@ -161,7 +161,6 @@ function loadSavedCredentials() {
 // Aggiungi questo all'inizializzazione
 document.addEventListener('DOMContentLoaded', () => {
     loadSavedCredentials();
-    updateBackgroundBasedOnTime();
     addEntryAnimations();
     enhanceInputAnimations();
     enhanceErrorMessages();

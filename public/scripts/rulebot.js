@@ -395,13 +395,50 @@ async function deleteAutomation(rule_id) {
   //effettua GET generici dal server
   async function getData(url) {
     try {
-      const response = await fetch(url);
-      const data = await response.json();
-      return data;
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`Errore ${response.status}: ${response.statusText}`);
+        }
+        const data = await response.json();
+        return data;
     } catch (error) {
-      console.log(error);
-      return [];
+        console.error(error);
+
+        // Mostra un messaggio informativo all'utente
+        showConfigurationMessage();
+        return [];
     }
+  }
+
+  // Funzione per mostrare il messaggio di configurazione
+  function showConfigurationMessage() {
+      // Crea l'overlay
+      const overlay = document.createElement('div');
+      overlay.className = 'overlay';
+      overlay.id = 'configuration-overlay';
+      overlay.style.display = 'flex';
+
+      // Crea il contenuto del dialog
+      overlay.innerHTML = `
+          <div class="confirm-dialog" id="confirm-dialog">
+              <h3 class="confirm-dialog-title">Configurazione necessaria</h3>
+              <p class="confirm-dialog-description">
+                  Per utilizzare tutte le funzionalità di CASPER, configura la tua smart home.
+              </p>
+              <div class="confirm-buttons">
+                  <button class="confirm-btn ok" id="go-to-configuration">Vai alla configurazione</button>
+              </div>
+          </div>
+      `;
+
+      // Aggiungi l'overlay al body
+      document.body.appendChild(overlay);
+
+      // Aggiungi l'evento per il pulsante
+      document.getElementById('go-to-configuration').addEventListener('click', () => {
+          document.getElementById('show-configuration').click(); // Simula il click sul pulsante di configurazione
+          overlay.remove(); // Rimuovi l'overlay
+      });
   }
   
   function getRulesParam() {

@@ -729,7 +729,7 @@ body{
 }
 
 .devicesList_container.open, .problem-goal-explanation-container.open {
-  max-height: 1000px;
+  max-height: 1200px;
 }
 
 .room-name::after {
@@ -1842,7 +1842,6 @@ td {
 }
 
 .confirm-dialog {
-
     background: var(--bg-secondary);
     padding: 20px;
     border-radius: 12px;
@@ -2817,6 +2816,24 @@ input[type="checkbox"]:checked::after {
     justify-content: center;
     align-items: center;
     height: 100%;
+}
+
+.device-text {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.device-type {
+  margin-left: auto;
+  font-size: 0.9em;
+  color: #6c757d; /* Colore grigio per differenziare */
+}
+.device-name {
+  padding-right: 20px;
+}
+.config-input.error {
+    border-color: #dc3545 !important;
+    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1) !important;
 }
 
 @keyframes spin {

@@ -47,30 +47,29 @@ async function registerUser(event) {
         })
     }).then((res) => res.json())
 
+    loadingOverlay.style.display = 'none';
+
     if (result.status === 'ok') {
-        // Show success message
-        messageBox.className = 'message-box success';
-        messageText.textContent = 'Registrazione avvenuta con successo! ✅';
-        messageOverlay.classList.add('show');
-
-        setTimeout(() => {
-            window.location.replace(base_link);
-        }, 3000);
-        
-        /* alert('Success') */
+        generateDialogReg(
+            "success",
+            "Registrazione completata",
+            "La registrazione è avvenuta con successo",
+            () => {
+                // Callback per il pulsante "OK"
+                window.location.replace(base_link);
+            }
+        );
+        return; 
     } else {
-        loadingOverlay.style.display = 'none';
+        // Usa generateDialogReg per mostrare il error-dialog
+        generateDialogReg(
+            "error",
+            "Errore durante la registrazione",
+            "Qualcosa è andato storto. L'email potrebbe essere già registrata o si è verificato un problema temporaneo con il server. Ti invitiamo a riprovare.",
+            async () => {}
+        );
 
-        // Show error message
-        messageBox.className = 'message-box error';
-        messageText.textContent = `Si è verificato un errore imprevisto ❌`;
-        messageOverlay.classList.add('show');
-        
-        // Reset form after delay
-        setTimeout(() => {
-            messageOverlay.classList.remove('show');
-            document.getElementById('registerForm').reset();
-        }, 3000);
+        return; // Interrompi l'esecuzione
     }
 }
 
@@ -435,3 +434,57 @@ document.addEventListener('DOMContentLoaded', () => {
         setTheme(isDark);
     });
 });
+
+const overlay = document.getElementById('overlay');
+const dialog = document.querySelector('.confirm-dialog');
+const dialogTitle = document.querySelector('.confirm-dialog-title');
+const dialogDescription = document.querySelector('.confirm-dialog-description');
+const btnYes = document.querySelector('.confirm-btn.yes');
+const btnNo = document.querySelector('.confirm-btn.no');  
+const btnOk = document.querySelector('.confirm-btn.ok');
+
+function generateDialogReg(type, title, description, yesCallback) {
+    // type: "confirm" (Ha i bottoni "Si", "No"), "info" e "error" e "success" (Ha il bottone "OK")
+    overlay.style.display = 'flex';
+    dialogTitle.innerText = title;
+    dialogDescription.innerText = description;
+
+    if (type === "confirm") {
+        btnYes.style.display = 'inline-block';
+        btnNo.style.display = 'inline-block';
+        btnOk.style.display = 'none';
+
+        // Cambia il colore del pulsante "Sì" in base al titolo
+        if (title.includes("attivazione")) {
+            btnYes.classList.add('btn-green'); // Aggiungi classe per il verde
+            btnYes.classList.remove('btn-red'); // Rimuovi eventuale classe rossa
+        } else {
+            btnYes.classList.add('btn-red'); // Usa il rosso per altri casi
+            btnYes.classList.remove('btn-green'); // Rimuovi eventuale classe verde
+        }
+    } else if (type === "info" || type === "error" || type === "success") {
+        btnYes.style.display = 'none';
+        btnNo.style.display = 'none';
+        btnOk.style.display = 'inline-block';
+
+        // Aggiungi l'evento per il pulsante "OK"
+        btnOk.onclick = () => {
+            overlay.style.display = 'none';
+            if (yesCallback) yesCallback(); // Esegui il callback se esiste
+        };
+    }
+
+    const buttons = dialog.querySelectorAll('.confirm-btn');
+    buttons.forEach(button => {
+        button.addEventListener('click', async () => {
+            overlay.classList.add('fadeOut');
+            setTimeout(async () => {
+                if (button.classList.contains('yes')) {
+                    yesCallback();
+                }
+                overlay.classList.remove('fadeOut');
+                overlay.style.display = 'none';
+            }, 200);
+        });
+    });
+}
