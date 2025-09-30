@@ -30,8 +30,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const groupedDevices = groupDevicesByRoom(savedDevices || []);
 
-    console.log("savedDevices", savedDevices);
-    console.log("groupedDevices", groupedDevices);
     // Controlla se tutte le checkbox di una stanza sono selezionate
     Object.entries(groupedDevices).forEach(([room, roomDevices]) => {
         // Trova il contenitore della stanza corrente
@@ -68,6 +66,8 @@ document.addEventListener('DOMContentLoaded', () => {
             urlInput.classList.add('error');
             errorMessage += 'Il campo URL Home Assistant è obbligatorio. ';
             isValid = false;
+            loadButton.disabled = false;
+            loadButton.innerHTML = 'Carica Dispositivi';
         }
         
         // Controlla se il token è vuoto
@@ -75,6 +75,8 @@ document.addEventListener('DOMContentLoaded', () => {
             tokenInput.classList.add('error');
             errorMessage += 'Il campo Token di Accesso è obbligatorio. ';
             isValid = false;
+            loadButton.disabled = false;
+            loadButton.innerHTML = 'Carica Dispositivi';
         }
         
         // Validazione formato URL (opzionale)
@@ -82,6 +84,8 @@ document.addEventListener('DOMContentLoaded', () => {
             urlInput.classList.add('error');
             errorMessage += 'Inserisci un URL valido. ';
             isValid = false;
+            loadButton.disabled = false;
+            loadButton.innerHTML = 'Carica Dispositivi';
         }
         
         // Mostra messaggio di errore se ci sono problemi
@@ -112,12 +116,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Aggiungi stili CSS per gli errori
     const style = document.createElement('style');
-    style.textContent = `
-        .config-input.error {
-            border-color: #dc3545 !important;
-            box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1) !important;
-        }
-    `;
     document.head.appendChild(style);
 
     function groupDevicesByRoom(devices) {
@@ -131,131 +129,192 @@ document.addEventListener('DOMContentLoaded', () => {
         }, {});
     }
 
-function displayDevices(devices) {
-    devicesList.innerHTML = '';
-    const groupedDevices = groupDevicesByRoom(devices);
+    function displayDevices(devices) {
+        devicesList.innerHTML = '';
+        document.querySelectorAll('.save-devices-conf').forEach(el => el.remove()); // Rimuovi pulsante di salvataggio esistente
+        const groupedDevices = groupDevicesByRoom(devices);
 
-    // Clean and organize devices list
-    let cleanList = formatDeviceList(devices);
-    console.log("cleanList", cleanList);
+        // Clean and organize devices list
+        let cleanList = formatDeviceList(devices);
 
-    Object.entries(groupedDevices).forEach(([room, roomDevices]) => {
-        const roomCard = document.createElement('div');
-        roomCard.classList.add('room-card-config');
+        Object.entries(groupedDevices).forEach(([room, roomDevices]) => {
+            const roomCard = document.createElement('div');
+            roomCard.classList.add('room-card-config');
 
-        // Intestazione della stanza con checkbox per selezionare/deselezionare tutti
-        const roomHeader = document.createElement('div');
-        roomHeader.classList.add('category-title-config');
-        roomHeader.innerHTML = `
-            <input type="checkbox" class="select-all-checkbox" title="Seleziona/Deseleziona tutti">
-            <div class="automation-icon room-icon">${getIcon(room)}</div>
-            <span class="room-name">${room}</span>
-        `;
-        roomCard.appendChild(roomHeader);
+            // Intestazione della stanza con checkbox per selezionare/deselezionare tutti
+            const roomHeader = document.createElement('div');
+            roomHeader.classList.add('category-title-config');
+            roomHeader.innerHTML = `
+                <input type="checkbox" class="select-all-checkbox" title="Seleziona/Deseleziona tutti">
+                <div class="automation-icon room-icon">${getIcon(room)}</div>
+                <span class="room-name">${room}</span>
+            `;
+            roomCard.appendChild(roomHeader);
 
-        // Contenitore per la lista dei dispositivi
-        const devicesListContainer = document.createElement('div');
-        devicesListContainer.classList.add('devicesList_container');
-        devicesListContainer.style.maxHeight = '0'; // Nascondi inizialmente il contenitore
-        devicesListContainer.style.overflow = 'hidden';
-        devicesListContainer.style.transition = 'max-height 0.3s ease';
+            // Contenitore per la lista dei dispositivi
+            const devicesListContainer = document.createElement('div');
+            devicesListContainer.classList.add('devicesList_container');
+            devicesListContainer.style.maxHeight = '0'; // Nascondi inizialmente il contenitore
+            devicesListContainer.style.overflow = 'hidden';
+            devicesListContainer.style.transition = 'max-height 0.3s ease';
 
-        // Lista dispositivi
-        const deviceList = document.createElement('div');
-        deviceList.classList.add('devices-list');
+            // Lista dispositivi
+            const deviceList = document.createElement('div');
+            deviceList.classList.add('devices-list');
 
-        roomDevices.forEach(device => {
-            const deviceElement = document.createElement('div');
-            deviceElement.classList.add('device-element');
-            deviceElement.setAttribute('entityid', device.e);
+            roomDevices.forEach(device => {
+                const deviceElement = document.createElement('div');
+                deviceElement.classList.add('device-element');
+                deviceElement.setAttribute('entityid', device.e);
 
-            const itemIndicator = document.createElement('div');
-            itemIndicator.classList.add('item-indicator', device.active ? '' : 'inactive');
+                const icon = document.createElement('i');
+                // Cerca il valore corrispondente in cleanList
+                const roomDevicesList = cleanList[room] || [];
+                const deviceData = roomDevicesList.find(d => d[2] === device.e); // Trova il dispositivo corrispondente
+                // Usa l'icona trovata o una predefinita
+                icon.classList.add('bx', deviceData ? deviceData[1] : 'bx-device');
 
-            const icon = document.createElement('i');
-            // Cerca il valore corrispondente in cleanList
-            const roomDevicesList = cleanList[room] || [];
-            const deviceData = roomDevicesList.find(d => d[2] === device.e); // Trova il dispositivo corrispondente
-            // Usa l'icona trovata o una predefinita
-            icon.classList.add('bx', deviceData ? deviceData[1] : 'bx-device');
+                const deviceText = document.createElement('div');
+                deviceText.classList.add('device-text');
+                deviceText.innerHTML = `
+                    <span class="device-name">${device.f} - <i>${device.df}</i></span>
+                    <span class="device-type">${device.t}</span>
+                `;
+                // Checkbox per la selezione del dispositivo
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.classList.add('device-checkbox');
+                checkbox.dataset.deviceId = device.e;
 
-            const deviceText = document.createElement('div');
-            deviceText.classList.add('device-text');
-            deviceText.textContent = device.f;
+                // Aggiungi elementi al dispositivo
+                deviceElement.appendChild(checkbox);
+                deviceElement.appendChild(icon);
+                deviceElement.appendChild(deviceText);
 
-            const itemValue = document.createElement('div');
-            itemValue.classList.add('item-value');
-            itemValue.textContent = 'unavailable'; // Usa il valore trovato o 'unavailable'
-            itemIndicator.classList.add('item-indicator', deviceData && deviceData[0] !== 'unavailable' ? 'active' : 'inactive');
-
-
-            // Checkbox per la selezione del dispositivo
-            const checkbox = document.createElement('input');
-            checkbox.type = 'checkbox';
-            checkbox.classList.add('device-checkbox');
-            checkbox.dataset.deviceId = device.e;
-
-            // Aggiungi elementi al dispositivo
-            deviceElement.appendChild(checkbox);
-            deviceElement.appendChild(itemIndicator);
-            deviceElement.appendChild(icon);
-            deviceElement.appendChild(deviceText);
-            deviceElement.appendChild(itemValue);
-
-            // Aggiungi il dispositivo alla lista
-            deviceList.appendChild(deviceElement);
-        });
-
-        devicesListContainer.appendChild(deviceList);
-        roomCard.appendChild(devicesListContainer);
-        devicesList.appendChild(roomCard);
-
-        // Aggiungi evento per aprire/chiudere la lista dei dispositivi
-        roomHeader.addEventListener('click', (event) => {
-            // Evita che il click sul checkbox triggeri l'apertura/chiusura
-            if (event.target.classList.contains('select-all-checkbox')) return;
-
-            const isOpen = devicesListContainer.style.maxHeight !== '0px';
-            devicesListContainer.style.maxHeight = isOpen ? '0' : `${deviceList.scrollHeight}px`;
-
-            // Aggiungi o rimuovi la classe 'active' per il comportamento della freccia
-            roomHeader.classList.toggle('active');
-        });
-
-        // Aggiungi evento per selezionare/deselezionare tutti i dispositivi della stanza
-        const selectAllCheckbox = roomHeader.querySelector('.select-all-checkbox');
-        selectAllCheckbox.addEventListener('change', () => {
-            const isChecked = selectAllCheckbox.checked;
-            const checkboxes = deviceList.querySelectorAll('.device-checkbox');
-            checkboxes.forEach(checkbox => {
-                checkbox.checked = isChecked;
+                // Aggiungi il dispositivo alla lista
+                deviceList.appendChild(deviceElement);
             });
 
-            // Aggiorna il localStorage
+            devicesListContainer.appendChild(deviceList);
+            roomCard.appendChild(devicesListContainer);
+            devicesList.appendChild(roomCard);
+
+            // Aggiungi evento per aprire/chiudere la lista dei dispositivi
+            roomHeader.addEventListener('click', (event) => {
+                // Evita che il click sul checkbox triggeri l'apertura/chiusura
+                if (event.target.classList.contains('select-all-checkbox')) return;
+
+                const isOpen = devicesListContainer.style.maxHeight !== '0px';
+                devicesListContainer.style.maxHeight = isOpen ? '0' : `${deviceList.scrollHeight}px`;
+
+                // Aggiungi o rimuovi la classe 'active' per il comportamento della freccia
+                roomHeader.classList.toggle('active');
+            });
+
+            // Aggiungi evento per selezionare/deselezionare tutti i dispositivi della stanza
+            const selectAllCheckbox = roomHeader.querySelector('.select-all-checkbox');
+            selectAllCheckbox.addEventListener('change', () => {
+                const isChecked = selectAllCheckbox.checked;
+                const checkboxes = deviceList.querySelectorAll('.device-checkbox');
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = isChecked;
+                });
+
+                // Aggiorna il localStorage
+                const selectedDevices = Array.from(document.querySelectorAll('.device-checkbox:checked'))
+                    .map(checkbox => checkbox.dataset.deviceId);
+                localStorage.setItem('selected_devices', JSON.stringify(selectedDevices));
+            });
+        });
+
+        devicesList.classList.remove('hidden');
+
+        // Ripristina le selezioni precedenti
+        const selectedDevices = JSON.parse(localStorage.getItem('selected_devices') || '[]');
+        selectedDevices.forEach(deviceId => {
+            const checkbox = document.querySelector(`.device-checkbox[data-device-id="${deviceId}"]`);
+            if (checkbox) checkbox.checked = true;
+        });
+
+        // Aggiungi evento per salvare le selezioni
+        devicesList.addEventListener('change', () => {
             const selectedDevices = Array.from(document.querySelectorAll('.device-checkbox:checked'))
                 .map(checkbox => checkbox.dataset.deviceId);
             localStorage.setItem('selected_devices', JSON.stringify(selectedDevices));
         });
-    });
 
-    devicesList.classList.remove('hidden');
+        // Crea un contenitore per il pulsante di salvataggio
+        const saveDevicesContainer = document.createElement('div');
+        saveDevicesContainer.classList.add('save-devices-conf');
 
-    // Ripristina le selezioni precedenti
-    const selectedDevices = JSON.parse(localStorage.getItem('selected_devices') || '[]');
-    selectedDevices.forEach(deviceId => {
-        const checkbox = document.querySelector(`.device-checkbox[data-device-id="${deviceId}"]`);
-        if (checkbox) checkbox.checked = true;
-    });
+        // Crea il pulsante per salvare i dispositivi selezionati
+        const saveButton = document.createElement('button');
+        saveButton.textContent = 'Salva Dispositivi Selezionati';
+        saveButton.classList.add('btn', 'btn-save');
+        saveButton.id = 'save-selection';
 
-    // Aggiungi evento per salvare le selezioni
-    devicesList.addEventListener('change', () => {
-        const selectedDevices = Array.from(document.querySelectorAll('.device-checkbox:checked'))
-            .map(checkbox => checkbox.dataset.deviceId);
-        localStorage.setItem('selected_devices', JSON.stringify(selectedDevices));
-    });
-}
+        // Aggiungi il pulsante al contenitore
+        saveDevicesContainer.appendChild(saveButton);
+
+        // Aggiungi il contenitore al DOM
+        devicesList.parentElement.appendChild(saveDevicesContainer);
+
+
+        // Aggiungi evento per salvare i dispositivi selezionati
+        saveButton.addEventListener('click', async() => {
+            try {
+                const selectedDevices = Array.from(document.querySelectorAll('.device-checkbox:checked'))
+                    .map(checkbox => checkbox.dataset.deviceId);
+
+
+                // Salva in localStorage o invia al server
+                localStorage.setItem('selected_devices', JSON.stringify(selectedDevices));
+
+                console.log("selectedDevices", selectedDevices);
+
+                const response = await fetch(`${base_link}/save_config`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({'userId': userId, 'devices': selectedDevices }),
+                });
+
+                if (!response.ok) {
+                    generateDialog(
+                        "error",
+                        "Errore durante il salvataggio",
+                        `Si è verificato un errore: ${error.message}`,
+                        () => {}
+                    );
+                }else{
+                    let devicesList = await getData(`${getDevices}?id=${userId}`) //GET dispositivi
+                    printUserDevices(devicesList); //PRINT devices
+                    // Mostra un messaggio di conferma
+                    generateDialog(
+                        "success",
+                        "Salvataggio completato",
+                        "I dispositivi selezionati sono stati salvati con successo.",
+                        () => {}
+                    );
+                    
+                }
+
+            } catch (error) {
+                // Mostra un messaggio di errore
+                generateDialog(
+                    "error",
+                    "Errore durante il salvataggio",
+                    `Si è verificato un errore: ${error.message}`,
+                    () => {}
+                );
+            }
+        });
+    }
 
     loadButton.addEventListener('click', async () => {
+        document.querySelectorAll('.save-devices-conf').forEach(el => el.remove()); // Rimuovi pulsante di salvataggio esistente
+
         loadButton.innerHTML = '<div style="display:inline-flex;align-items:center;gap:8px;">' +
                            '<div class="loader mini-loader"></div>' +
                            '<span>Caricamento dispositivi...</span>' +
@@ -295,7 +354,7 @@ function displayDevices(devices) {
                 // Ripristina il pulsante in caso di errore
                 loadButton.innerHTML = 'Carica Dispositivi';
                 loadButton.disabled = false;
-                throw new Error('Errore nel caricamento dei dispositivi');
+                throw new Error('errore nel caricamento dei dispositivi');
             }
 
             const devices = await response.json();
@@ -313,7 +372,7 @@ function displayDevices(devices) {
                 // Ripristina il pulsante in caso di errore
                 loadButton.innerHTML = 'Carica Dispositivi';
                 loadButton.disabled = false;
-                throw new Error('Errore nel caricamento delle automazioni');
+                throw new Error('errore nel caricamento delle automazioni. Controlla se l\'URL Home Assistant e il Token di Accesso sono corretti.');
             }
 
             /* ------------- Saves logbook -------------*/
@@ -362,7 +421,7 @@ function displayDevices(devices) {
                 });
             
                 if (!response_preferences.ok) {
-                    throw new Error('Errore nel salvataggio delle preferenze di default');
+                    throw new Error('errore nel salvataggio delle preferenze di default');
                 } 
 
                 await fetch('/get_goal_improvements', {
@@ -414,6 +473,8 @@ function displayDevices(devices) {
             // Ripristina il pulsante in caso di errore
             loadButton.innerHTML = 'Carica Dispositivi';
             loadButton.disabled = false;
+
+            
             
         } catch (error) {
             generateDialog("error", "Errore di caricamento", `Si è verificato un errore: ${error.message}`, () => {});
@@ -426,83 +487,13 @@ function displayDevices(devices) {
             }
         }
     });
-
-    // Crea un contenitore per il pulsante
-    const saveDevicesContainer = document.createElement('div');
-    saveDevicesContainer.classList.add('save-devices-conf');
-
-    // Crea il pulsante per salvare i dispositivi selezionati
-    const saveButton = document.createElement('button');
-    saveButton.textContent = 'Salva Dispositivi Selezionati';
-    saveButton.classList.add('btn', 'btn-save');
-    saveButton.id = 'save-selection';
-
-    // Aggiungi il pulsante al contenitore
-    saveDevicesContainer.appendChild(saveButton);
-
-    // Aggiungi il contenitore al DOM
-    devicesList.parentElement.appendChild(saveDevicesContainer);
-
-
-    // Aggiungi evento per salvare i dispositivi selezionati
-    saveButton.addEventListener('click', async() => {
-        try {
-            const selectedDevices = Array.from(document.querySelectorAll('.device-checkbox:checked'))
-                .map(checkbox => checkbox.dataset.deviceId);
-
-
-             // Salva in localStorage o invia al server
-            localStorage.setItem('selected_devices', JSON.stringify(selectedDevices));
-
-            console.log("selectedDevices", selectedDevices);
-
-            const response = await fetch(`${base_link}/save_config`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({'userId': userId, 'devices': selectedDevices }),
-            });
-
-            if (!response.ok) {
-                generateDialog(
-                    "error",
-                    "Errore durante il salvataggio",
-                    `Si è verificato un errore: ${error.message}`,
-                    () => {}
-                );
-            }else{
-                let devicesList = await getData(`${getDevices}?id=${userId}`) //GET dispositivi
-                printUserDevices(devicesList); //PRINT devices
-                // Mostra un messaggio di conferma
-                generateDialog(
-                    "success",
-                    "Salvataggio completato",
-                    "I dispositivi selezionati sono stati salvati con successo.",
-                    () => {}
-                );
-                
-            }
-
-        } catch (error) {
-            // Mostra un messaggio di errore
-            generateDialog(
-                "error",
-                "Errore durante il salvataggio",
-                `Si è verificato un errore: ${error.message}`,
-                () => {}
-            );
-        }
-    });
     
 });
 
 function getIcon(room) {
-    // Convert to lowercase for case-insensitive comparison
     const text = room.toLowerCase();
-    // Room specific icons
     if (text.includes("cucina") || text.includes("kitchen")) {
-            return "🍳";
+        return "🍳";
     }
     if (text.includes("camera") || text.includes("bedroom")) {
         return "🛏️";
