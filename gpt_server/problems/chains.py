@@ -258,11 +258,12 @@ class ChainsDetector:
             
             # Verifica match
             is_match = False
-            if isinstance(device_action_source, list):
-                if device_trigger in device_action_source:
+            if device_trigger is not None and device_action_source is not None:
+                if isinstance(device_action_source, list):
+                    if device_trigger in device_action_source:
+                        is_match = True
+                elif device_action_source == device_trigger:
                     is_match = True
-            elif device_action_source == device_trigger:
-                is_match = True
             
             # Normalizza i tipi per il confronto
             type_action_normalized = type_action_source.split('.')[-1] if '.' in type_action_source else type_action_source
