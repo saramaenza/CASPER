@@ -3,7 +3,29 @@
 //const token = jwt_decode(tokenRaw);
 //const userId = token.id;
 
-document.addEventListener('DOMContentLoaded', () => {
+// Fetch data config from the database
+async function fetchConfig(userId) {
+    try {
+        const response = await fetch(`/get_config?id=${userId}`, { 
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error('Errore nel recupero della configurazione');
+        }
+
+        const config = await response.json();
+        return config || {};
+    } catch (error) {
+        console.error('Errore durante il recupero della configurazione:', error);
+        return {};
+    }
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
     const urlInput = document.getElementById('home-assistant-url');
     const tokenInput = document.getElementById('home-assistant-token');
     const loadButton = document.getElementById('load-devices');
@@ -11,10 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const devicesList = document.getElementById('devices-list');
 
     // Carica credenziali salvate
-    const savedUrl = localStorage.getItem('ha_url');
-    const savedToken = localStorage.getItem('ha_token');
-    const savedDevices = JSON.parse(localStorage.getItem('all_devices') || 'null');
-    const selectedDevices = JSON.parse(localStorage.getItem('selected_devices') || '[]');
+    const { auth: { url: savedUrl, token: savedToken } = {}, config: savedDevices = [], selected: selectedDevices = [] } = await fetchConfig(userId);
     
     if (savedUrl) urlInput.value = savedUrl;
     if (savedToken) tokenInput.value = savedToken;
@@ -23,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Ripristina le selezioni precedenti
         selectedDevices.forEach(deviceId => {
             //console.log(deviceId);
-            const checkbox = document.querySelector(`.device-checkbox[data-device-id="${deviceId}"]`);
+            const checkbox = document.querySelector(`.device-checkbox[data-device-id="${deviceId.e}"]`);
             if (checkbox) checkbox.checked = true;
         });
     }
@@ -129,7 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }, {});
     }
 
-    function displayDevices(devices) {
+    async function displayDevices(devices) {
         devicesList.innerHTML = '';
         document.querySelectorAll('.save-devices-conf').forEach(el => el.remove()); // Rimuovi pulsante di salvataggio esistente
         const groupedDevices = groupDevicesByRoom(devices);
@@ -220,96 +239,82 @@ document.addEventListener('DOMContentLoaded', () => {
                     checkbox.checked = isChecked;
                 });
 
-                // Aggiorna il localStorage
-                const selectedDevices = Array.from(document.querySelectorAll('.device-checkbox:checked'))
-                    .map(checkbox => checkbox.dataset.deviceId);
-                localStorage.setItem('selected_devices', JSON.stringify(selectedDevices));
             });
         });
 
         devicesList.classList.remove('hidden');
 
-        // Ripristina le selezioni precedenti
-        const selectedDevices = JSON.parse(localStorage.getItem('selected_devices') || '[]');
+        // Ripristina le selezioni precedenti 
+        const { config: savedDevices = [], selected: selectedDevices = [] } = await fetchConfig(userId);
+
         selectedDevices.forEach(deviceId => {
             const checkbox = document.querySelector(`.device-checkbox[data-device-id="${deviceId}"]`);
             if (checkbox) checkbox.checked = true;
         });
 
-        // Aggiungi evento per salvare le selezioni
-        devicesList.addEventListener('change', () => {
-            const selectedDevices = Array.from(document.querySelectorAll('.device-checkbox:checked'))
-                .map(checkbox => checkbox.dataset.deviceId);
-            localStorage.setItem('selected_devices', JSON.stringify(selectedDevices));
-        });
+        if (savedDevices.length > 0) {
+            // Crea un contenitore per il pulsante di salvataggio
+            const saveDevicesContainer = document.createElement('div');
+            saveDevicesContainer.classList.add('save-devices-conf');
 
-        // Crea un contenitore per il pulsante di salvataggio
-        const saveDevicesContainer = document.createElement('div');
-        saveDevicesContainer.classList.add('save-devices-conf');
+            // Crea il pulsante per salvare i dispositivi selezionati
+            const saveButton = document.createElement('button');
+            saveButton.textContent = 'Salva Dispositivi Selezionati';
+            saveButton.classList.add('btn', 'btn-save');
+            saveButton.id = 'save-selection';
 
-        // Crea il pulsante per salvare i dispositivi selezionati
-        const saveButton = document.createElement('button');
-        saveButton.textContent = 'Salva Dispositivi Selezionati';
-        saveButton.classList.add('btn', 'btn-save');
-        saveButton.id = 'save-selection';
+            // Aggiungi il pulsante al contenitore
+            saveDevicesContainer.appendChild(saveButton);
 
-        // Aggiungi il pulsante al contenitore
-        saveDevicesContainer.appendChild(saveButton);
-
-        // Aggiungi il contenitore al DOM
-        devicesList.parentElement.appendChild(saveDevicesContainer);
+            // Aggiungi il contenitore al DOM
+            devicesList.parentElement.appendChild(saveDevicesContainer);
 
 
-        // Aggiungi evento per salvare i dispositivi selezionati
-        saveButton.addEventListener('click', async() => {
-            try {
-                const selectedDevices = Array.from(document.querySelectorAll('.device-checkbox:checked'))
-                    .map(checkbox => checkbox.dataset.deviceId);
+            // Aggiungi evento per salvare i dispositivi selezionati
+            saveButton.addEventListener('click', async() => {
+                try {
+                    const selectedDevices = Array.from(document.querySelectorAll('.device-checkbox:checked'))
+                        .map(checkbox => checkbox.dataset.deviceId);
 
+                    const response = await fetch(`${base_link}/save_config`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({'userId': userId, 'devices': selectedDevices }),
+                    });
 
-                // Salva in localStorage o invia al server
-                localStorage.setItem('selected_devices', JSON.stringify(selectedDevices));
+                    if (!response.ok) {
+                        generateDialog(
+                            "error",
+                            "Errore durante il salvataggio",
+                            `Si è verificato un errore: ${error.message}`,
+                            () => {}
+                        );
+                    }else{
+                        let devicesList = await getData(`${getDevices}?id=${userId}`) //GET dispositivi
+                        printUserDevices(devicesList); //PRINT devices
+                        // Mostra un messaggio di conferma
+                        generateDialog(
+                            "success",
+                            "Salvataggio completato",
+                            "I dispositivi selezionati sono stati salvati con successo.",
+                            () => {}
+                        );
+                        
+                    }
 
-                console.log("selectedDevices", selectedDevices);
-
-                const response = await fetch(`${base_link}/save_config`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({'userId': userId, 'devices': selectedDevices }),
-                });
-
-                if (!response.ok) {
+                } catch (error) {
+                    // Mostra un messaggio di errore
                     generateDialog(
                         "error",
                         "Errore durante il salvataggio",
                         `Si è verificato un errore: ${error.message}`,
                         () => {}
                     );
-                }else{
-                    let devicesList = await getData(`${getDevices}?id=${userId}`) //GET dispositivi
-                    printUserDevices(devicesList); //PRINT devices
-                    // Mostra un messaggio di conferma
-                    generateDialog(
-                        "success",
-                        "Salvataggio completato",
-                        "I dispositivi selezionati sono stati salvati con successo.",
-                        () => {}
-                    );
-                    
                 }
-
-            } catch (error) {
-                // Mostra un messaggio di errore
-                generateDialog(
-                    "error",
-                    "Errore durante il salvataggio",
-                    `Si è verificato un errore: ${error.message}`,
-                    () => {}
-                );
-            }
-        });
+            });
+        }
     }
 
     loadButton.addEventListener('click', async () => {
@@ -338,9 +343,6 @@ document.addEventListener('DOMContentLoaded', () => {
             //statusMessage.classList.remove('hidden');
             statusMessage.classList.remove('error');
 
-            localStorage.setItem('ha_url', url);
-            localStorage.setItem('ha_token', token);
-            
             const response = await fetch(`/load_devices`, {
                 method: 'POST',
                 headers: {
@@ -434,12 +436,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
 
-            // Salva tutti i devices nel localStorage
-            localStorage.setItem('all_devices', JSON.stringify(devices));
             displayDevices(devices);
 
             // Ripristina le selezioni precedenti dopo il nuovo caricamento
-            const selectedDevices = JSON.parse(localStorage.getItem('selected_devices') || '[]');
+            const { selected: selectedDevices = [] } = await fetchConfig(userId);
+
             selectedDevices.forEach(deviceId => {
                 const checkbox = document.querySelector(`.device-checkbox[data-device-id="${deviceId}"]`);
                 if (checkbox) checkbox.checked = true;
