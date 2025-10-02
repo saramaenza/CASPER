@@ -1073,35 +1073,6 @@ async function printUserDevices(devicesList) {
     }
 }
 
-function showOverlayMessage(message, isSuccess = true) {
-    // Rimuovi eventuali overlay precedenti
-    let oldOverlay = document.getElementById('overlay-message');
-    if (oldOverlay) oldOverlay.remove();
-
-    const overlay = document.createElement('div');
-    overlay.id = 'overlay-message';
-    overlay.className = 'overlay-message ' + (isSuccess ? 'success' : 'error');
-    overlay.textContent = message;
-    overlay.style.opacity = '0';
-
-    overlay.classList.add(isSuccess ? 'success' : 'error');
-
-    overlay.textContent = message;
-
-    document.body.appendChild(overlay);
-
-    // Fade in
-    setTimeout(() => {
-        overlay.style.opacity = '1';
-    }, 50);
-
-    // Fade out dopo 2.5 secondi
-    setTimeout(() => {
-        overlay.style.opacity = '0';
-        setTimeout(() => overlay.remove(), 400);
-    }, 2500);
-}
-
 // Funzione per salvare le preferenze utente
 async function saveUserPreferences(ranking) {
     try {
@@ -1119,15 +1090,14 @@ async function saveUserPreferences(ranking) {
         
         const data = await response.json();
         if (data.status === 'success') {
-            console.log('Preferenze salvate con successo');
-            showOverlayMessage('Preferenze salvate con successo!', true);
+            generateDialog('success', 'Successo', 'Preferenze salvate con successo!', () => {});
         } else {
-            showOverlayMessage('Errore nel salvataggio delle preferenze.', false);
-            console.error('Errore nel salvataggio delle preferenze:', data.error);
+            generateDialog('error', 'Errore', 'Errore nel salvataggio delle preferenze.', () => {});
+            console.error('Errore nel salvataggio delle preferenze:', data.message);
         }
     } catch (error) {
-        showOverlayMessage('Errore nel salvataggio delle preferenze.', false);
-        console.error('Errore nella richiesta di salvataggio:', error);
+        generateDialog('error', 'Errore', 'Errore nel salvataggio delle preferenze.', () => {});
+        console.error('Errore nel salvataggio delle preferenze:', error);
     }
 }
 
