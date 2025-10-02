@@ -1,11 +1,12 @@
-from problems.goal_advisor import get_device_id, call_find_solution_llm
 import sys # Added for testing
 import os # Added for testing
 # Add parent directory (gpt_server) to sys.path for standalone testing
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from problems.goal_advisor import get_device_id, call_find_solution_llm
 import db_functions as _db
 
 def detectRevertProblem(automation, goal, user_id, ha_client_instance):
+    print("User ID in detectRevertProblem:", user_id)
     goalAdvisor_array = []
       
     ruleName = automation.get("alias", None)   
@@ -40,7 +41,28 @@ def detectRevertProblem(automation, goal, user_id, ha_client_instance):
         if not device_id and not area_id:
             continue
         area = area_id
-
+        """
+        # Verifica se l'automazione risolve un problema di revert
+        if eventType == "turn_off":
+            existing_problems = _db.get_problems_goals(user_id)  # Recupera i problemi di revert esistenti
+            revert_problem = []
+            for problem_db in existing_problems.get('energy', []):
+                unique_id = problem_db.get('unique_id', '')
+                if "_revert_energy" in unique_id:
+                    revert_problem.append(problem_db)
+            for problem_db in revert_problem:
+                if problem_db.get("goal") == "energy":
+                    rules_db = problem_db.get("rules", [])
+                    for rule_db in rules_db:
+                        device_id_db_rule = rule_db.get("device", "")
+                        event_type_db_rule = rule_db.get("eventType", "")
+                        # Verifica se il problema riguarda lo stesso dispositivo
+                        if device_id == device_id_db_rule:
+                            if (event_type_db_rule == "turn_on"):
+                                problem_db_id = problem_db.get("id", "")
+                                # Setta come "solved" il problema dalla collezione
+                                _db.solve_problem_goal(user_id, problem_db_id)
+        """
         find_revert_problem_result = find_revert_problem(eventType, nameDevice, device_id, description, goal, user_id, ha_client_instance, automation) 
         if find_revert_problem_result != None and len(find_revert_problem_result) > 0: 
 
@@ -56,6 +78,8 @@ def detectRevertProblem(automation, goal, user_id, ha_client_instance):
                     "id": id_automation,
                     "name": ruleName,
                     "description": description,
+                    "device": device_id,
+                    "eventType": eventType,
                 }]
             })
 
@@ -91,7 +115,8 @@ def find_revert_problem(eventType, nameDevice, device_id, automation_description
                             has_oppositive_action = True
             if(has_oppositive_action == False):
                 problem_description = "Questa automazione accende l'oggetto "+nameDevice+" ma non esiste un'automazione che lo spegne."
-                solution_info = call_find_solution_llm(userGoal, problem_description, automation_description, user_id)
+                solution_info = ""
+                #solution_info = call_find_solution_llm(userGoal, problem_description, automation_description, user_id)
                 if(solution_info is not None):
                     solution = solution_info
                 else:
@@ -153,7 +178,8 @@ def find_revert_problem(eventType, nameDevice, device_id, automation_description
                 
                 if has_security_automation == False:
                     problem_description = f"Dispositivo potenzialmente pericoloso '{nameDevice}' viene acceso ma non esiste un'automazione di sicurezza per spegnerlo automaticamente dopo un certo tempo o in caso di assenza dell'utente."
-                    solution_info = call_find_solution_llm(userGoal, problem_description, automation_description, user_id)
+                    solution_info = ""
+                    #solution_info = call_find_solution_llm(userGoal, problem_description, automation_description, user_id)
                     if(solution_info is not None):
                         solution = solution_info
                         print(f"DEBUG: Solution found: {solution}")
@@ -172,15 +198,17 @@ if __name__ == "__main__":
     
     # url HA casa simone
     # base_url = "https://test-home.duckdns.org"
-    user_id = "6818c8ac24e5db8f9a0304e5"
+    user_id = "688899c65d536a3990670ba4"
     
     # token HA ufficio
     token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiI2ODdmNGEyMDg5ZjA0NDc2YjQ2ZGExNWM3ZTYwNTRjYyIsImlhdCI6MTcxMTA5ODc4MywiZXhwIjoyMDI2NDU4NzgzfQ.lsqxXXhaSBa5BuoXbmho_XsEkq2xeCAeXL4lu7c2LMk"
     
     # Create HomeAssistant client
     ha_client = HomeAssistantClient(base_url, token)
-    
-    automations_post = {'alias': 'Accendi il Forno alle 19:00', 'description': 'Evento: alle 19:00 (time)\nAzione: accendi il Forno (switch.forno)', 'trigger': [{'platform': 'time', 'at': '19:00:00'}], 'action': [{'service': 'switch.turn_on', 'target': {'entity_id': 'switch.forno'}}], 'mode': 'single', 'id': '2'}
+
+    #automations_post = {'alias': 'Accendi Lampadina alle 11:00', 'description': 'Evento: alle 11:00 (time). Azione: accendere Lampadina (light.lampadina).', 'trigger': [{'platform': 'time', 'at': '11:00:00'}], 'action': [{'service': 'light.turn_on', 'target': {'entity_id': 'light.lampadina'}}], 'mode': 'single', 'id': '2'}
+    automations_post = {'alias': 'Spegni Lampadina alle 11:00', 'description': 'Evento: alle 11:00 (time). Azione: spegnere Lampadina (light.lampadina).', 'trigger': [{'platform': 'time', 'at': '11:00:00'}], 'action': [{'service': 'light.turn_off', 'target': {'entity_id': 'light.lampadina'}}], 'mode': 'single', 'id': '2'}
+
     detector = detectRevertProblem(automations_post, "energy", user_id, ha_client)
 
     print("Info REVERT: ", detector)

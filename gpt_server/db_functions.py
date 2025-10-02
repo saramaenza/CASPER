@@ -567,6 +567,39 @@ def solve_problem(user_id, problem_id, automation, automation_natural_language):
         print(e)
         print("----------------")
         return e
+
+def solve_problem_goal(user_id, problem_id):
+    """
+    Segna un problema come risolto per l'utente specificato.
+    user_id: str -> ID dell'utente
+    problem_id: str -> ID del problema da risolvere
+    """
+    try:
+        collection = db["goals"]
+        problems_goals = collection.find_one({"user_id": user_id})
+        if problems_goals is not None:
+            updated_goals = {}
+            for goal_key, goal_items in problems_goals.items():
+                if goal_key not in ["_id", "user_id", "created", "last_update"]:
+                    updated_goal_items = []
+                    for problem in goal_items:
+                        if problem['id'] == problem_id:
+                            problem['solved'] = True
+                        updated_goal_items.append(problem)
+                    updated_goals[goal_key] = updated_goal_items
+            
+            collection.update_one(
+                {"_id": problems_goals["_id"]},
+                {"$set": {**updated_goals, "last_update": datetime.now()}}
+            )
+            return True
+        return False
+    except Exception as e:
+        print("--> Solve Problem Goal Error <--")
+        print(user_id, problem_id)
+        print(e)
+        print("----------------")
+        return e
     
 def post_goal(user_id, goal, goal_body):
     """
