@@ -377,6 +377,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 throw new Error('errore nel caricamento delle automazioni. Controlla se l\'URL Home Assistant e il Token di Accesso sono corretti.');
             }
 
+            const rulesList = await response2.json();
+
             /* ------------- Saves logbook -------------*/
             const response_logbook = await fetch(`/casper/load_logbook`, {
                 method: 'POST',
@@ -437,6 +439,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
             displayDevices(devices);
+            printUserRule(rulesList);
 
             // Ripristina le selezioni precedenti dopo il nuovo caricamento
             const { selected: selectedDevices = [] } = await fetchConfig(userId);
