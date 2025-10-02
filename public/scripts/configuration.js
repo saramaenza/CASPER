@@ -6,7 +6,7 @@
 // Fetch data config from the database
 async function fetchConfig(userId) {
     try {
-        const response = await fetch(`/get_config?id=${userId}`, { 
+        const response = await fetch(`/casper/get_config?id=${userId}`, { 
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -276,7 +276,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const selectedDevices = Array.from(document.querySelectorAll('.device-checkbox:checked'))
                         .map(checkbox => checkbox.dataset.deviceId);
 
-                    const response = await fetch(`${base_link}/save_config`, {
+                    const response = await fetch(`${base_link}/casper/save_config`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
@@ -343,7 +343,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             //statusMessage.classList.remove('hidden');
             statusMessage.classList.remove('error');
 
-            const response = await fetch(`/load_devices`, {
+            const response = await fetch(`/casper/load_devices`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -360,9 +360,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
             const devices = await response.json();
-            console.log("devices from /load_devices", devices);
+            console.log("devices from /casper/load_devices", devices);
             /* ------------- Saves automations -------------*/
-            const response2 = await fetch(`/load_automations`, {
+            const response2 = await fetch(`/casper/load_automations`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -378,7 +378,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
             /* ------------- Saves logbook -------------*/
-            const response_logbook = await fetch(`/load_logbook`, {
+            const response_logbook = await fetch(`/casper/load_logbook`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -398,7 +398,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             /* ------------- Saves default goal ranking -------------*/
             // controlla se esistono già le preferenze per l'utente
-            const checkPreferences = await fetch(`/get_user_preferences?user_id=${userId}`, {
+            const checkPreferences = await fetch(`/casper/get_user_preferences?user_id=${userId}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json'
@@ -414,7 +414,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     {id: 'energia', position: 3, name: 'Energia', icon: '🔋'},
                     {id: 'benessere', position: 4, name: 'Benessere', icon: '🌱'}
                 ];
-                const response_preferences = await fetch(`/save_user_preferences`, {
+                const response_preferences = await fetch(`/casper/save_user_preferences`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -426,7 +426,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     throw new Error('errore nel salvataggio delle preferenze di default');
                 } 
 
-                await fetch('/get_goal_improvements', {
+                await fetch('/casper/get_goal_improvements', {
                     method: 'POST',
                     headers: {
                         'Accept': 'application/json',
@@ -528,7 +528,7 @@ function getIcon(room) {
 
 async function checkNotRunningAutomations(logbook, userId) {
     //recupera le automazioni in esecuzione dal db dalla collezione rules_state
-    const response_automations = await fetch(`/load_automations_running`, {
+    const response_automations = await fetch(`/casper/load_automations_running`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -547,7 +547,7 @@ async function checkNotRunningAutomations(logbook, userId) {
             if (element.entity_id === automation.entity_id_device) {
                 if(element.state != automation.state_device) {
                     console.log(`Automazione ${element.entity_id} non è più in esecuzione`);
-                    const updateResponse = await fetch('/update_automation_state', {
+                    const updateResponse = await fetch('/casper/update_automation_state', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
@@ -598,7 +598,7 @@ async function checkRunningAutomations(logbook, userId) {
                         console.log("AGGIUNGERE AL DB", element.entity_id);
                         // Aggiorna lo stato dell'automazione nel database
                         try {
-                            const updateResponse = await fetch('/update_automation_state', {
+                            const updateResponse = await fetch('/casper/update_automation_state', {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json'

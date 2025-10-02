@@ -1,7 +1,7 @@
 const formLogin = document.getElementById('login')
 formLogin.addEventListener('click', login)
 
-const base_link = window.location.origin;
+const base_link = window.location.origin+'/casper';
 
 document.addEventListener("keydown", (event) => {
     if(event.key == 'Enter'){
@@ -20,7 +20,7 @@ async function login(event) {
     const password = document.getElementById('password').value
     const rememberMe = document.querySelector('.custom-checkbox').classList.contains('checked');
 
-    const result = await fetch('/login', {
+    const result = await fetch(`${base_link}/login`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -53,31 +53,6 @@ async function login(event) {
         
     }
 }
-
-async function handleCredentialResponse(response) {
-    // decodeJwtResponse() is a custom function defined by you
-    // to decode the credential response.
-    /* const responsePayload = decodeJwtResponse(response.credential);
-
-    console.log("ID: " + responsePayload.sub);
-    console.log('Full Name: ' + responsePayload.name);
-    console.log('Given Name: ' + responsePayload.given_name);
-    console.log('Family Name: ' + responsePayload.family_name);
-    console.log("Image URL: " + responsePayload.picture);
-    console.log("Email: " + responsePayload.email); */
-    let result = await fetch('/googlelogin', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            token: response.credential
-        })
-    }).then((res) => {return res.json()})
-    if (result.status === 'ok') {
-        window.location.replace(base_link+"/casper")
-    }
- }
 
  // Password visibility toggle
 function togglePassword() {

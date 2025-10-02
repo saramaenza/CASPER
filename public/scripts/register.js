@@ -34,7 +34,7 @@ async function registerUser(event) {
     const email = document.getElementById('email').value
 
     if(surname == '') surname = null;
-    const result = await fetch('/register', {
+    const result = await fetch('/casper/register', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'

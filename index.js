@@ -34,7 +34,8 @@ setServerConfig(configs); //imposta la configurazione del server in db_methods.c
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(express.static( __dirname + '/public' ));
+//app.use(express.static( __dirname + '/casper/public' ));
+app.use("/casper", express.static( __dirname + '/public' ));
 app.use(express.static('rules'));
 app.use(cookieParser());
 
@@ -223,50 +224,17 @@ async function checkRunningAutomations(logbook, userId) {
     }
 }
 
-app.get('/policy', (req, res) =>{
-  res.sendFile(path.join( __dirname, 'htdocs', 'privacyPolicy.html' ));
-})
-
-app.post('/googlelogin', async (req, res) =>{
-  const payload = await verifyWeb(req.body.token);
-  const user = await createGoogleUser(payload, true);
-  //console.log(user); //ritorna l'id dell'utente nel DB, a prescindere che crei un nuovo record o che recuperi un account esistente
-  const session = uuid.v4();
-      // the username, password combination is successful
-  const token = jwt.sign(
-    {
-      id: user.id,
-      session: session,
-      name: user.name,
-      email: user.email
-    },
-    JWT_SECRET,
-    { expiresIn: "1 days" }
-  )
-  let CurrentDate = new Date()
-    CurrentDate.setDate(CurrentDate.getDate() + 1)
-  const cookieOptions = {
-    /* httpOnly: true,*/
-    secure: true, 
-    expires: CurrentDate
-    }
-  res.cookie('auth-token', token, cookieOptions)
-  userIdMap.set(session, user.id)
-  return res.json({ status: 'ok' })
-})
-
-
-app.get('/', (req, res) =>{
+app.get('/casper', (req, res) =>{
   if(!isLogged(req)) res.sendFile(path.join( __dirname, 'htdocs', 'index.html' ));
-  else res.redirect('/casper')
+  else res.redirect('/casper/chat')
 })
 
-app.get('/registration', (req, res) =>{
+app.get('/casper/registration', (req, res) =>{
   //res.send("Registrazioni chiuse, contattare l'admin per avere un account.")
   res.sendFile(path.join( __dirname, 'htdocs', 'register.html' ));
 })
 
-app.post('/login', async (req, res) => {
+app.post('/casper/login', async (req, res) => {
   const { email, password } = req.body
   if(!email || !password) return res.json({ status: 'error', error: 'Invalid email/password' })
   const user = await getUser(email);
@@ -308,7 +276,7 @@ app.post('/login', async (req, res) => {
   res.json({ status: 'error', error: 'Invalid email/password' })
 })
 
-app.post('/register', async (req, res) => {
+app.post('/casper/register', async (req, res) => {
 	const { name, surname, password: plainTextPassword, email } = req.body
 	/* if (!username || typeof username !== 'string') {
 		return res.json({ status: 'error', error: 'Invalid username' })
@@ -349,12 +317,12 @@ app.post('/register', async (req, res) => {
 	res.json({ status: 'ok' })
 })
 
-app.get('/userInfo', verifyToken, async (req, res) =>{
+app.get('/casper/userInfo', verifyToken, async (req, res) =>{
   const info = await userInfo(req);
   res.send(info);
 })
 
-app.use('/casper', verifyToken, (req, res) =>{
+app.use('/casper/chat', verifyToken, (req, res) =>{
   const token = jwt.decode(req.cookies['auth-token']);
   if (!userIdMap.get(token.id)) userIdMap.set(token.session, token.id)
   res.clearCookie('chat_session_id');
@@ -362,7 +330,7 @@ app.use('/casper', verifyToken, (req, res) =>{
   res.sendFile(path.join( __dirname, 'htdocs', 'casper.html' ));
   //next();
 })
-app.use('/configuration', verifyToken, (req, res) =>{
+app.use('/casper/configuration', verifyToken, (req, res) =>{
   const token = jwt.decode(req.cookies['auth-token']);
   if (!userIdMap.get(token.id)) userIdMap.set(token.session, token.id)
   res.clearCookie('chat_session_id');
@@ -371,13 +339,13 @@ app.use('/configuration', verifyToken, (req, res) =>{
   //next();
 })
 
-app.use('/profile', verifyToken, (req, res) =>{
+app.use('/casper/profile', verifyToken, (req, res) =>{
   const token = jwt.decode(req.cookies['auth-token']);
   if (!userIdMap.get(token.id)) userIdMap.set(token.session, token.id)
   res.sendFile(path.join( __dirname, 'htdocs', 'profile.html' ));
 })
 
-app.get('/verification/:tag', async function(req, res) {
+app.get('/casper/verification/:tag', async function(req, res) {
   let token = req.params.tag
   let email = jwt.decode(token)['email']
   let update = await verifyEmail(email)
@@ -387,7 +355,7 @@ app.get('/verification/:tag', async function(req, res) {
   else res.send("A error occurred during the mail verification")
 });
 // --- --- --- --- --- --- --- --- --- ---
-app.get('/reset_conv', verifyToken, (req, res) =>{
+app.get('/casper/reset_conv', verifyToken, (req, res) =>{
   
   res.clearCookie('chat_session_id');
   const convId = uuid.v4()
@@ -395,8 +363,7 @@ app.get('/reset_conv', verifyToken, (req, res) =>{
   res.json({status: 'ok', session_id: convId});
 });
 
-
-app.use('/send_message', verifyToken, async (req, res) => {
+app.use('/casper/send_message', verifyToken, async (req, res) => {
   try {
     let user_id = req.body.user_id
     let session = req.body.session
@@ -413,7 +380,7 @@ app.use('/send_message', verifyToken, async (req, res) => {
     res.json(data);
     
   } catch (error) {
-    console.log('/send_message error:', error.name);
+    console.log('/casper/send_message error:', error.name);
     
     // Gestione semplice degli errori
     if (error.name === 'AbortError' || error.code === 'ECONNREFUSED' || 
@@ -434,7 +401,7 @@ app.use('/send_message', verifyToken, async (req, res) => {
   }
 });
 
-app.get('/chatbot_status', async (req, res) => {
+app.get('/casper/chatbot_status', async (req, res) => {
   try {
     const response = await fetch(`${python_server}/health`, {
       method: 'GET',
@@ -453,7 +420,7 @@ app.get('/chatbot_status', async (req, res) => {
   }
 });
 
-app.use('/get_goals_scores', async (req, res) => {
+app.use('/casper/get_goals_scores', async (req, res) => {
   try {
     let user_id = req.query.user_id;
     const response = await fetch(`${python_server}/get_quality_scores`, {
@@ -465,12 +432,12 @@ app.use('/get_goals_scores', async (req, res) => {
     const data = await response.json();
     res.json(data);
   } catch (error) {
-    console.log('/get_goals_scores error:');
+    console.log('/casper/get_goals_scores error:');
     console.log(error);
   }
 });
 
-app.use('/load_devices', verifyToken, async (req, res) =>{
+app.use('/casper/load_devices', verifyToken, async (req, res) =>{
   try {
     let url = req.body.url
     let token = req.body.token
@@ -481,12 +448,12 @@ app.use('/load_devices', verifyToken, async (req, res) =>{
       saveConfiguration(req.body.userId, entities, auth)
     }
   } catch (error) {
-    console.log('/load_devices:')
+    console.log('/casper/load_devices:')
     console.log(error)
   }
 })
 
-app.use('/get_entities_states', verifyToken, async (req, res) => {
+app.use('/casper/get_entities_states', verifyToken, async (req, res) => {
   try {
     let conf = await getConfiguration(req.query.id);
     if (!conf || !conf.auth) {
@@ -497,25 +464,25 @@ app.use('/get_entities_states', verifyToken, async (req, res) => {
     const entitiesStates = await getEntitiesStates(url, token, conf);
     res.json(entitiesStates);
   } catch (error) {
-    console.log('/get_entities_states:');
+    console.log('/casper/get_entities_states:');
     console.log(error);
     res.status(500).json({ error: 'Internal server error.' });
   }
 });
 
-app.use('/load_logbook', verifyToken, async (req, res) =>{ 
+app.use('/casper/load_logbook', verifyToken, async (req, res) =>{ 
   try {
     let url = req.body.url
     let token = req.body.token
     const logbook = await getLogbook(url, token);
     res.json(logbook)
   } catch (error) {
-    console.log('/load_logbook:')
+    console.log('/casper/load_logbook:')
     console.log(error)
   }
 })
 
-app.post('/update_automation_state', verifyToken, async (req, res) => {
+app.post('/casper/update_automation_state', verifyToken, async (req, res) => {
     try {
         const response = await updateAutomationState(req.body.userId, req.body.entity_id, req.body.is_running, req.body.entity_id_device, req.body.state_device);
         console.log("Response from updateAutomationState:", response);
@@ -529,30 +496,30 @@ app.post('/update_automation_state', verifyToken, async (req, res) => {
     }
 });
 
-app.use('/load_automations_running', verifyToken, async (req, res) =>{
+app.use('/casper/load_automations_running', verifyToken, async (req, res) =>{
   try {
     let userId = req.body.user_id
     const automations = await getAutomationsStates(userId);
     const onlyRunning = automations.filter(automation => automation.is_running);
     res.json(onlyRunning)
   } catch (error) {
-    console.log('/load_automations_running:')
+    console.log('/casper/load_automations_running:')
     console.log(error)
   }
 });
 
-app.use('/get_problems', verifyToken, async (req, res) => {
+app.use('/casper/get_problems', verifyToken, async (req, res) => {
   try {
     let user_id = req.body.user_id;
     const data = await getProblems(user_id);
     res.json(data);
   } catch (error) {
-    console.log('/get_problems error:');
+    console.log('/casper/get_problems error:');
     console.log(error);
   }
 }); 
 
-app.use('/load_automations', verifyToken, async (req, res) => {
+app.use('/casper/load_automations', verifyToken, async (req, res) => {
   try {
     let url = req.body.url;
     let token = req.body.token;
@@ -586,34 +553,33 @@ app.use('/load_automations', verifyToken, async (req, res) => {
       saveRulesStates(req.body.userId, cleanedAutomations);
     }
   } catch (error) {
-    console.log('/load_automations:');
+    console.log('/casper/load_automations:');
     console.log(error);
     res.status(500).json({ error: 'Errore interno del server' });
   }
 });
 
-app.use('/save_config', verifyToken, async (req, res) =>{
+app.use('/casper/save_config', verifyToken, async (req, res) =>{
   try {
     const response = await saveSelectedConfiguration(req.body.userId, req.body.devices);
     res.json(response)
   } catch (error) {
-    console.log('/save_config error:')
+    console.log('/casper/save_config error:')
     console.log(error)
   }
 })
 
-
-app.use('/delete_rule', verifyToken, async (req, res) =>{
+app.use('/casper/delete_rule', verifyToken, async (req, res) =>{
   try {
     const response = await deleteRule(req.body.id, req.body.rule_id, deleteAutomation);
     res.json(response)
   } catch (error) {
-    console.log('/delete_rule error:')
+    console.log('/casper/delete_rule error:')
     console.log(error)
   }
 })
 
-app.use('/save_automation', verifyToken, async (req, res) =>{
+app.use('/casper/save_automation', verifyToken, async (req, res) =>{
   try {
     let response = ''
     const db_response = await saveAutomation(req.body.userId, req.body.automationId, req.body.config);
@@ -628,14 +594,14 @@ app.use('/save_automation', verifyToken, async (req, res) =>{
     //config = automation in JSOn
     res.json({status: response})
   } catch (error) {
-    console.log('/save_automation error:')
+    console.log('/casper/save_automation error:')
     console.log(error)
     return res.json(error)
   }
 })
 
 // Salva le preferenze utente
-app.post('/save_user_preferences', verifyToken, async (req, res) => {
+app.post('/casper/save_user_preferences', verifyToken, async (req, res) => {
     try {
         const { user_id, ranking } = req.body;
         const result = await saveUserPreferences(user_id, ranking);
@@ -646,57 +612,57 @@ app.post('/save_user_preferences', verifyToken, async (req, res) => {
             res.json({ status: 'error', error: 'Failed to save preferences' });
         }
     } catch (error) {
-        console.log('/save_user_preferences error:', error);
+        console.log('/casper/save_user_preferences error:', error);
         res.json({ status: 'error', error: 'Internal server error' });
     }
 });
 
 // Recupera le preferenze utente
-app.get('/get_user_preferences', verifyToken, async (req, res) => {
+app.get('/casper/get_user_preferences', verifyToken, async (req, res) => {
     try {
         const user_id = req.query.user_id;
         const preferences = await getUserPreferences(user_id);
         res.json(preferences);
     } catch (error) {
-        console.log('/get_user_preferences error:', error);
+        console.log('/casper/get_user_preferences error:', error);
         res.json({ ranking: null });
     }
 });
 
 // Recupera i miglioramenti suggeriti per l'utente basati sulle preferenze
-app.get('/get_improvement_solutions', verifyToken, async (req, res) => {
+app.get('/casper/get_improvement_solutions', verifyToken, async (req, res) => {
     try {
         const user_id = req.query.user_id;
         const solutions = await getImprovementSolutions(user_id);
         res.json(solutions);
     } catch (error) {
-        console.log('/get_improvement_solutions error:', error);
+        console.log('/casper/get_improvement_solutions error:', error);
         res.json({ ranking: null });
     }
 });
 
-app.get('/get_config', verifyToken, async (req, res) =>{
+app.get('/casper/get_config', verifyToken, async (req, res) =>{
   try {
     const data = await getConfiguration(req.query.id);
     res.json(data)
   } catch (error) {
-    console.log('/get_config error:')
+    console.log('/casper/get_config error:')
     console.log(error)
   }
 })
 
-app.use('/get_rule_list', verifyToken, async (req, res) =>{
+app.use('/casper/get_rule_list', verifyToken, async (req, res) =>{
   try {
     let user_id = req.body.user_id
     const data = await getAutomations(user_id);
     res.json(data)
   } catch (error) {
-    console.log('/get_rule_list error:')
+    console.log('/casper/get_rule_list error:')
     console.log(error)
   }
 })
 
-app.use('/get_goal_improvements', verifyToken, async (req, res) => {
+app.use('/casper/get_goal_improvements', verifyToken, async (req, res) => {
   try {
     const { user_id } = req.body;
     // Chiama il server Python per generare i miglioramenti
@@ -708,24 +674,24 @@ app.use('/get_goal_improvements', verifyToken, async (req, res) => {
     const data = await response.json();
     res.json(data);
   } catch (error) {
-    console.log('/get_goal_improvements error:', error);
+    console.log('/casper/get_goal_improvements error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-app.use('/get_problems_goal', verifyToken, async (req, res) => {
+app.use('/casper/get_problems_goal', verifyToken, async (req, res) => {
   try {
     let user_id = req.body.user_id;
     const data = await getProblemsGoals(user_id);
     res.json(data);
   } catch (error) {
-    console.log('/get_problems error:');
+    console.log('/casper/get_problems error:');
     console.log(error);
   }
 });
 
 let ssesessions = new Map();
-app.post('/post_chat_state', async (req, res) =>{
+app.post('/casper/post_chat_state', async (req, res) =>{
   try {
     let body = {"action": req.body.action, "state": req.body.state, "id": req.body.id};
     const session_id = req.body.session_id;
@@ -733,12 +699,12 @@ app.post('/post_chat_state', async (req, res) =>{
     session.push(body);
     res.json({status: 'ok'}) 
   } catch (error) {
-    console.log('/post_chat_state error:')
+    console.log('/casper/post_chat_state error:')
     console.log(error)
   }
 })
 
-app.post('/toggle_automation', verifyToken, async (req, res) =>{
+app.post('/casper/toggle_automation', verifyToken, async (req, res) =>{
   try {
     const conf = await getConfiguration(req.body.userId)
     const ha_response = await toggleAutomation(
@@ -753,13 +719,13 @@ app.post('/toggle_automation', verifyToken, async (req, res) =>{
       return res.json({status: 'ok', state: ha_response});
     }
   } catch (error) {
-    console.log('/toggle_automation error:')
+    console.log('/casper/toggle_automation error:')
     console.log(error)
     return res.json({status: 'error'});
   }
 });
 
-app.post('/ignore_problem', verifyToken, async (req, res) =>{
+app.post('/casper/ignore_problem', verifyToken, async (req, res) =>{
   try {
     const problemId = req.body.data.problemId;
     const userId = req.body.id;
@@ -770,13 +736,13 @@ app.post('/ignore_problem', verifyToken, async (req, res) =>{
       return res.json({status: 'error', message: 'Failed to ignore problem.'});
     }
   } catch (error) {
-    console.log('/ignore_problem error:')
+    console.log('/casper/ignore_problem error:')
     console.log(error)
     return res.json({status: 'error', message: 'An error occurred while ignoring the problem.'});
   }
 });
 
-app.post('/ignore_goal_problem', verifyToken, async (req, res) =>{
+app.post('/casper/ignore_goal_problem', verifyToken, async (req, res) =>{
   try {
     const goalProblemId = req.body.data.goalProblemId;
     const userId = req.body.id;
@@ -787,13 +753,13 @@ app.post('/ignore_goal_problem', verifyToken, async (req, res) =>{
       return res.json({status: 'error', message: 'Failed to ignore goal problem.'});
     }
   } catch (error) {
-    console.log('/ignore_goal_problem error:')
+    console.log('/casper/ignore_goal_problem error:')
     console.log(error)
     return res.json({status: 'error', message: 'An error occurred while ignoring the goal problem.'});
   }
 });
 
-app.post('/ignore_suggestions', verifyToken, async (req, res) => {
+app.post('/casper/ignore_suggestions', verifyToken, async (req, res) => {
   try {
     const suggestionId = req.body.data.suggestionId;
     const userId = req.body.id;
@@ -804,33 +770,32 @@ app.post('/ignore_suggestions', verifyToken, async (req, res) => {
       return res.json({status: 'error', message: 'Failed to ignore suggestion.'});
     }
   } catch (error) {
-    console.log('/ignore_suggestions error:')
+    console.log('/casper/ignore_suggestions error:')
     console.log(error)
     return res.json({status: 'error', message: 'An error occurred while ignoring the suggestion.'});
   }
 });
 
-
-app.use('/delete_suggestion', verifyToken, async (req, res) =>{
+app.use('/casper/delete_suggestion', verifyToken, async (req, res) =>{
   try {
     const suggestionId = req.body.data.suggestionId;
     const userId = req.body.id;
     const response = await deleteSuggestion(userId, suggestionId);
     res.json(response)
   } catch (error) {
-    console.log('/delete_suggestion error:')
+    console.log('/casper/delete_suggestion error:')
     console.log(error)
   }
 })
 
- app.get('/sse', async (req, res) =>{
+ app.get('/casper/sse', async (req, res) =>{
   try {
     const session_id = req.cookies['chat_session_id'];
     const session = await createSession(req, res);
     if (!ssesessions.get(session_id)) ssesessions.set(session_id, session);
     session.push("Init");
   } catch (error) {
-    console.log('/init_chat_state error:')
+    console.log('/casper/sse error:')
     console.log(error)
   }
 }) 
@@ -862,7 +827,7 @@ const sendEmail = (destinatario) => {
     from: 'hiislabiot@gmail.com',
     to: destinatario,
     subject: 'RuleBot: Confirm your email',
-    text: `Please click on the following link to verify your account ${configs.base_url}/verification/${token}`
+    text: `Please click on the following link to verify your account ${configs.base_url}/casper/verification/${token}`
   };
   
   transporter.sendMail(mailOptions, function(error, info){

@@ -127,13 +127,13 @@ const verifyEmail = async (email) => {
 
 const verifyToken = (req, res, next) =>{
     const token = req.cookies['auth-token'];
-    if(!token) return res.status(401).redirect('/');
+    if(!token) return res.status(401).redirect('/casper/');
     try{
         const verified = jwt.verify(token, secret);
         req.user = verified;
         next();
     }catch (err){
-        res.status(400).redirect('/')
+        res.status(400).redirect('/casper/')
     }
 }
 
@@ -303,6 +303,7 @@ const saveSelectedConfiguration = async (userId, data) => {
     };
 
     const userConfig = await config.findOne(query, { projection });
+    console.log(userConfig.selected);
     await config.updateOne({ 'user_id': userId }, { $set: { 'selected': userConfig.selected } }, { upsert: true });
     } catch (err) {
         console.log('error in saveSelectedConfiguration db_methods');

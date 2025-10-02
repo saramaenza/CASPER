@@ -14,6 +14,7 @@ for (let i in configData) {
 coicheString = coicheString.concat(`Your Choice: `);
 
 function selectConfig() {
+  //return configData[4];
   return new Promise((resolve, reject) => {
     readline.question(coicheString, choice => {
       const selectedIndex = parseInt(choice);

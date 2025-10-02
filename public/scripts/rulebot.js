@@ -10,27 +10,27 @@ let entitiesStates;
 let statusInterval = null;
 const intervalUpdate = 20000; // Aggiorna lo stato del chatbot ogni 20 secondi
 const base_link = window.location.origin;
-const getRuleList = `${base_link}/get_rule_list`; // chiamata POST per ricevere la lista delle regole
-const getDevices = `${base_link}/get_config`; // chiamata POST per ricevere la lista delle regole
-const getEntitiesStates = `${base_link}/get_entities_states`; // chiamata POST per ricevere lo stato delle entità
-const sendMessage = `${base_link}/send_message`; // chiamata POST per ricevere la lista delle regole
-const getProblemList = `${base_link}/get_problems`; // chiamata GET per ricevere la lista dei problemi
-const getProblemGoalList = `${base_link}/get_problems_goal`; // chiamata GET per ricevere la lista dei problemi legati ai goal
-const ping = `${base_link}/post_chat_state`; // chiamata POST per mantere la sessione attiva
-const toggleAutomation = `${base_link}/toggle_automation`; // chiamata per accendere/spegnere un'automazione
-const ignoreProblem = `${base_link}/ignore_problem`; // chiamata per ignorare un problema
-const ignoreGoalProblem = `${base_link}/ignore_goal_problem`; // chiamata per ignorare un problema legato ai goal
-const ignoreSuggestions = `${base_link}/ignore_suggestions`; // chiamata per ignorare le raccomandazioni
-const deleteSuggestion = `${base_link}/delete_suggestion`; // chiamata per ignorare le raccomandazioni
-const resetConversationUrl = `${base_link}/reset_conv`; // chiamata per resettare la conversazione
-const getGoalImprovements = `${base_link}/get_goal_improvements`; // chiamata per ottenere i miglioramenti degli obiettivi
+const getRuleList = `${base_link}/casper/get_rule_list`; // chiamata POST per ricevere la lista delle regole
+const getDevices = `${base_link}/casper/get_config`; // chiamata POST per ricevere la lista delle regole
+const getEntitiesStates = `${base_link}/casper/get_entities_states`; // chiamata POST per ricevere lo stato delle entità
+const sendMessage = `${base_link}/casper/send_message`; // chiamata POST per ricevere la lista delle regole
+const getProblemList = `${base_link}/casper/get_problems`; // chiamata GET per ricevere la lista dei problemi
+const getProblemGoalList = `${base_link}/casper/get_problems_goal`; // chiamata GET per ricevere la lista dei problemi legati ai goal
+const ping = `${base_link}/casper/post_chat_state`; // chiamata POST per mantere la sessione attiva
+const toggleAutomation = `${base_link}/casper/toggle_automation`; // chiamata per accendere/spegnere un'automazione
+const ignoreProblem = `${base_link}/casper/ignore_problem`; // chiamata per ignorare un problema
+const ignoreGoalProblem = `${base_link}/casper/ignore_goal_problem`; // chiamata per ignorare un problema legato ai goal
+const ignoreSuggestions = `${base_link}/casper/ignore_suggestions`; // chiamata per ignorare le raccomandazioni
+const deleteSuggestion = `${base_link}/casper/delete_suggestion`; // chiamata per ignorare le raccomandazioni
+const resetConversationUrl = `${base_link}/casper/reset_conv`; // chiamata per resettare la conversazione
+const getGoalImprovements = `${base_link}/casper/get_goal_improvements`; // chiamata per ottenere i miglioramenti degli obiettivi
 
 const carousel = document.querySelector(".carousel");
 const toggleSwitch = document.getElementById('toggleSwitch');
 const toggleBall = document.getElementById('toggleBall');
 let carouselObject = null
 const initial = document.querySelector('#initial-name');
-const sse = new EventSource("/sse");
+const sse = new EventSource("/casper/sse");
 
 let choosenSolution = null;
 
@@ -357,7 +357,7 @@ async function postData(data, url) {
 async function deleteAutomation(rule_id) {
   let id = userId;
   await new Promise((resolve, reject) => {
-    fetch('/delete_rule', {
+    fetch('/casper/delete_rule', {
       method: 'POST',
       headers: {
         'Accept': 'application/json',
@@ -1076,7 +1076,7 @@ async function printUserDevices(devicesList) {
 // Funzione per salvare le preferenze utente
 async function saveUserPreferences(ranking) {
     try {
-        const response = await fetch('/save_user_preferences', {
+        const response = await fetch('/casper/save_user_preferences', {
             method: 'POST',
             headers: {
                 'Accept': 'application/json',
@@ -1144,7 +1144,7 @@ async function printUserPreferences() {
     // Carica la classifica salvata dall'utente
     let userRanking;
     try {
-        const response = await fetch(`/get_user_preferences?user_id=${userId}`, {
+        const response = await fetch(`/casper/get_user_preferences?user_id=${userId}`, {
             method: 'GET',
             headers: { 'Cache-Control': 'no-cache' }
         });
@@ -1254,7 +1254,7 @@ async function printUserPreferences() {
               </div>
           `;
       }
-      fetch('/get_goal_improvements', {
+      fetch('/casper/get_goal_improvements', {
           method: 'POST',
           headers: {
               'Accept': 'application/json',
@@ -1869,7 +1869,7 @@ async function loadAndShowSuggestions(container) {
         }
         
         // Recupera le soluzioni dal backend
-        const response = await fetch(`/get_improvement_solutions?user_id=${userId}`, {
+        const response = await fetch(`/casper/get_improvement_solutions?user_id=${userId}`, {
             method: 'GET',
             headers: { 'Cache-Control': 'no-cache' }
         });
@@ -1905,7 +1905,7 @@ async function loadAndShowSuggestions(container) {
         });
 
         // Ordina secondo la classifica utente (opzionale)
-        const userRankingResponse = await fetch(`/get_user_preferences?user_id=${userId}`, {
+        const userRankingResponse = await fetch(`/casper/get_user_preferences?user_id=${userId}`, {
             method: 'GET',
             headers: { 'Cache-Control': 'no-cache' }
         });
@@ -2523,7 +2523,7 @@ function getProgressClass(score) {
 }
 
 async function printGoalOverview() {
-  const response = await fetch(`/get_goals_scores?user_id=${userId}`, {
+  const response = await fetch(`/casper/get_goals_scores?user_id=${userId}`, {
       method: 'GET',
       headers: { 
         'Cache-Control': 'no-cache'
@@ -4240,7 +4240,7 @@ async function updateChatbotStatus() {
   let status = document.querySelector('.agent-status');
   let indicator = document.querySelector('.status-indicator-chat');
    try {
-        const response = await fetch('/chatbot_status', {
+        const response = await fetch('/casper/chatbot_status', {
             headers: { 'Cache-Control': 'no-cache' }
         });
         const data = await response.json();

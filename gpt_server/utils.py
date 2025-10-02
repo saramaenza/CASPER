@@ -90,7 +90,7 @@ def update_chat_state(action:str, state: str, session_id: str, user_id: str, id:
     """
     #print(f"Update Chat State: {action} - {state} - {session_id} - {user_id} - {id}")
     try:
-        requests.post(f'{base_url}/post_chat_state', json={"action":action, "state": state, "id":id, "session_id": session_id, "user_id": user_id})
+        requests.post(f'{base_url}/casper/post_chat_state', json={"action":action, "state": state, "id":id, "session_id": session_id, "user_id": user_id})
     except Exception as e:
         print("--> Update Chat State Error utils.py<--")
         print(e)

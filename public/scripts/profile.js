@@ -9,7 +9,7 @@ window.addEventListener('load', () => {
 })
 
 async function getUserInfo(){
-    const response = await fetch('/userInfo');
+    const response = await fetch('/casper/userInfo');
     const data = await response.json();
     return printUserInfo(data);
 }
