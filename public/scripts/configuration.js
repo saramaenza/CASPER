@@ -410,14 +410,34 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             const url = urlInput.value.trim().replace(/\/+$/, '');
             const token = tokenInput.value.trim();
+
+            //Recupero le credenziali salvate per verificare se sono cambiate
+            const configDB = await fetchConfig(userId);
             
+            // svuota le collezioni "problems" e "goals" e "improvements_solutions"(?) dell'utente se le credenziali sono cambiate
+            if (configDB.auth.url !== url && configDB.auth.token !== token) {
+                console.log("Le credenziali sono cambiate");
+                
+                const response_remove = await fetch(`/casper/remove_problems`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({'user_id': userId}),
+                });
+
+                if (!response_remove.ok) {
+                    console.error('Error response:', await response_remove.text());
+                } else {
+                    printUserProblems([]); //svuota la carousel dei problems
+                    printUserGoalProblems([]); //svuota la carousel delle goal problems
+                }
+            }
+
             if (!validateInputFields()) {
                 return;
             }
 
-            //loadButton.querySelector('.spinner').classList.remove('hidden');
-            //statusMessage.textContent = 'Caricamento dispositivi...';
-            //statusMessage.classList.remove('hidden');
             statusMessage.classList.remove('error');
 
             const response = await fetch(`/casper/load_devices`, {
@@ -437,7 +457,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
             const devices = await response.json();
-            console.log("devices from /casper/load_devices", devices);
+            //console.log("devices from /casper/load_devices", devices);
             /* ------------- Saves automations -------------*/
             const response2 = await fetch(`/casper/load_automations`, {
                 method: 'POST',
@@ -446,7 +466,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 },
                 body: JSON.stringify({'userId': userId, 'url': url, 'token': token }),
             });
-            console.log("carico le automazioni")
+            //console.log("carico le automazioni")
             if (!response2.ok) {
                 // Ripristina il pulsante in caso di errore
                 loadButton.innerHTML = 'Carica Dispositivi';
@@ -579,10 +599,10 @@ async function checkNotRunningAutomations(logbook, userId) {
         console.error('Errore nel recupero delle automazioni running');
     } 
     const running_automations = await response_automations.json();
-    console.log("running automations", running_automations);
+    //console.log("running automations", running_automations);
     // Controlla se le automazioni in esecuzione sono ancora attive
     running_automations.forEach(async (automation) => {
-        console.log("automazione in esecuzione", automation);
+        //console.log("automazione in esecuzione", automation);
         logbook.forEach(async (element, index) => {
             if (element.entity_id === automation.entity_id_device) {
                 if(element.state != automation.state_device) {

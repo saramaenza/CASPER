@@ -183,6 +183,29 @@ const getProblems = async (userId) => {
     }
 };
 
+const removeProblems = async (userId) => {
+    try {
+        const database = client.db(dbName);
+        const problems = database.collection('problems');
+        const goals = database.collection('goals'); 
+        const improvementSolutions = database.collection('improvement_solutions');
+
+        // Elimina il documento con il campo user_id uguale a userId
+        const result = await problems.deleteOne({ user_id: userId });
+        const goalsResult = await goals.deleteOne({ user_id: userId });
+        const improvementSolutionsResult = await improvementSolutions.deleteOne({ user_id: userId });
+
+        console.log("User ID:", userId);
+
+        console.log(`Deleted ${improvementSolutionsResult.deletedCount} document(s) from improvement solutions collection.`);
+        return { problems: result, goals: goalsResult, improvementSolutions: improvementSolutionsResult };
+    } catch (err) {
+        console.log('error in db_methods - removeProblems');
+        console.log(err);
+        return err;
+    }
+}; 
+
 const getAutomationsStates = async (userId) => {
     try {
         const database = client.db(dbName);
@@ -303,7 +326,6 @@ const saveSelectedConfiguration = async (userId, data) => {
     };
 
     const userConfig = await config.findOne(query, { projection });
-    console.log(userConfig.selected);
     await config.updateOne({ 'user_id': userId }, { $set: { 'selected': userConfig.selected } }, { upsert: true });
     } catch (err) {
         console.log('error in saveSelectedConfiguration db_methods');
@@ -311,8 +333,6 @@ const saveSelectedConfiguration = async (userId, data) => {
         return err;
     }
 }
-
-
 
 const saveAutomations = async (userId, automationsData) => {
     //saves all automations to DB
@@ -1159,6 +1179,7 @@ module.exports = {
     getUsersId,
     getProblems,
     getProblemsGoals,
+    removeProblems,
     getAutomationsStates,
     getAutomations,
     saveConfiguration,

@@ -24,7 +24,7 @@ const uuid = require('uuid');
 const bcrypt = require('bcryptjs')
 const cookieParser = require('cookie-parser')
 const jwt = require('jsonwebtoken')
-const {setServerConfig, createUser, getUser, verifyToken, isLogged, createGoogleUser, userInfo, verifyEmail, getAutomationsStates, getProblems, getUsersId, getProblemsGoals,getAutomations, getConfiguration, saveConfiguration,  saveSelectedConfiguration, saveAutomations,saveRulesStates,saveAutomation, deleteRule, closeDatabaseConnection, ignoreProblem, ignoreGoalProblem, ignoreSuggestions, deleteSuggestion, updateAutomationState, saveUserPreferences, getUserPreferences, getImprovementSolutions} = require('./db_methods.cjs');
+const {setServerConfig, createUser, getUser, verifyToken, isLogged, createGoogleUser, userInfo, verifyEmail, getAutomationsStates, getProblems, removeProblems, getUsersId, getProblemsGoals,getAutomations, getConfiguration, saveConfiguration,  saveSelectedConfiguration, saveAutomations,saveRulesStates,saveAutomation, deleteRule, closeDatabaseConnection, ignoreProblem, ignoreGoalProblem, ignoreSuggestions, deleteSuggestion, updateAutomationState, saveUserPreferences, getUserPreferences, getImprovementSolutions} = require('./db_methods.cjs');
 const JWT_SECRET = 'sdjkfh8923yhjdksbfma@#*(&@*!^#&@bhjb2qiuhesdbhjdsfg839ujkdhfjk'
 // =======================================
 const { getEntities, getAutomationsHA, postAutomationHA, getEntitiesStates, getLogbook, toggleAutomation, deleteAutomation} = require('./utils.cjs');
@@ -191,7 +191,7 @@ async function checkRunningAutomations(logbook, userId) {
                                 if (logbook[j].entity_id === activatedDeviceName) {
                                     const newactivatedDeviceState = logbook[j].state;
                                     if (newactivatedDeviceState !== activatedDeviceState) {
-                                        console.log("NON SI AGGIUNGE", element.entity_id);
+                                        //console.log("NON SI AGGIUNGE", element.entity_id);
                                         shouldAddToDb = false;
                                         break;
                                     }
@@ -200,7 +200,7 @@ async function checkRunningAutomations(logbook, userId) {
                         }
                         
                         if (shouldAddToDb) {
-                            console.log("AGGIUNGERE AL DB", element.entity_id);
+                            //console.log("AGGIUNGERE AL DB", element.entity_id);
                             
                             // Chiama direttamente la funzione del database
                             const updateResult = await updateAutomationState(
@@ -519,19 +519,27 @@ app.use('/casper/get_problems', verifyToken, async (req, res) => {
   }
 }); 
 
+app.use('/casper/remove_problems', verifyToken, async (req, res) => {
+  try {
+    let user_id = req.body.user_id;
+    const result = await removeProblems(user_id);
+    res.json(result);
+  } catch (error) {
+    console.log('/casper/remove_problems error:');
+    console.log(error);
+  }
+});
+
 app.use('/casper/load_automations', verifyToken, async (req, res) => {
   try {
     let url = req.body.url;
     let token = req.body.token;
 
     // Log per verificare i parametri ricevuti
-    console.log('URL ricevuto:', url);
-    console.log('Token ricevuto:', token);
+    //console.log('URL ricevuto:', url);
+    //console.log('Token ricevuto:', token);
 
     const automations = await getAutomationsHA(url, token);
-
-    // Log per verificare il valore di automations
-    console.log('Automations ricevute:', automations);
 
     // Controlla se automations è null o undefined
     if (!automations || !Array.isArray(automations)) {

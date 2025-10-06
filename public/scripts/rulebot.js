@@ -1881,6 +1881,28 @@ async function loadAndShowSuggestions(container) {
         });
         const data = await response.json();
         const solutions = data.recommendations || {};
+        const noProblemsMessage = document.querySelector('#no-problems-message');
+        if (solutions === null || Object.keys(solutions).length === 0) {
+          container.innerHTML = '';
+          if (noProblemsMessage) {
+              noProblemsMessage.innerHTML = 'Non sono disposibili suggerimenti al momento. <br> Prova a caricare e selezionare i tuoi dispositivi da "Configurazione" oppure a salvare i tuoi obiettivi da "Preferenze" 😊';
+          } else {
+              container.innerHTML = '<div class="no-problems-message">Non sono disposibili suggerimenti al momento.<br>Prova a caricare e selezionare i tuoi dispositivi da "Configurazione" oppure a salvare i tuoi obiettivi da "Preferenze" 😊</div>';
+          }
+          return;
+        }
+        else {
+          if (noProblemsMessage) {
+              noProblemsMessage.innerHTML = `
+                Le tue automazioni sono allineate con i tuoi obiettivi 😊
+                <br>
+                <br>
+                Vuoi migliorarli ulteriormente?
+                <br>
+                Ecco alcuni suggerimenti basati sulle tue preferenze:
+              `;
+          } 
+        }
 
         // Filtra i suggerimenti: solo quelli con ignore === false
         Object.keys(solutions).forEach(goalKey => {
@@ -2159,6 +2181,7 @@ function printUserGoalProblems(problemsGoalList) {
   if (!problemsGoalList || problemsGoalList.length === 0) {
     const noProblemsDiv = document.createElement('div');
     noProblemsDiv.className = 'no-problems-message';
+    noProblemsDiv.id = 'no-problems-message';
     noProblemsDiv.innerHTML = `
        Le tue automazioni sono allineate con i tuoi obiettivi 😊
        <br>
