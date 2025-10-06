@@ -270,7 +270,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             devicesList.parentElement.appendChild(saveDevicesContainer);
 
 
-            // Aggiungi evento per salvare i dispositivi selezionati
+            // Aggiungi evento per salvare i dispositivi selezionati e generare suggerimenti
             saveButton.addEventListener('click', async() => {
                 try {
                     const selectedDevices = Array.from(document.querySelectorAll('.device-checkbox:checked'))
@@ -301,6 +301,83 @@ document.addEventListener('DOMContentLoaded', async () => {
                             "I dispositivi selezionati sono stati salvati con successo.",
                             () => {}
                         );
+                        // controlla se esistono già le preferenze per l'utente
+                        const checkPreferences = await fetch(`/casper/get_user_preferences?user_id=${userId}`, {
+                            method: 'GET',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
+                        });
+
+                        const preferencesExist = await checkPreferences.json();
+
+                        const ranking = preferencesExist.ranking;
+
+                        if (ranking == undefined) {
+                
+                            const defaultRanking = [
+                                {id: 'sicurezza', position: 1, name: 'Sicurezza', icon: '🛡️'},
+                                {id: 'salute', position: 2, name: 'Salute', icon: '❤️'},
+                                {id: 'energia', position: 3, name: 'Energia', icon: '🔋'},
+                                {id: 'benessere', position: 4, name: 'Benessere', icon: '🌱'}
+                            ];
+                            const response_preferences = await fetch(`/casper/save_user_preferences`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({'user_id': userId, 'ranking': defaultRanking }),
+                            });
+                        
+                            if (!response_preferences.ok) {
+                                throw new Error('errore nel salvataggio delle preferenze di default');
+                            } 
+
+                            await fetch('/casper/get_goal_improvements', {
+                                method: 'POST',
+                                headers: {
+                                    'Accept': 'application/json',
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({ user_id: userId })
+                            });
+                        }
+
+                        else {
+                            await saveUserPreferences(ranking, false);
+                        }
+
+                        // Mostra loader nella suggestions-container
+                        let suggestionsContainer = document.querySelector('.suggestions-container');
+                        if (suggestionsContainer) {
+                            suggestionsContainer.innerHTML = `
+                                <div class="suggestions-loader">
+                                    <div class="loader"></div>
+                                    <span>Generazione dei suggerimenti in corso...</span>
+                                </div>
+                            `;
+                        }
+
+                        fetch('/casper/get_goal_improvements', {
+                            method: 'POST',
+                            headers: {
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ user_id: userId })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (suggestionsContainer) {
+                                loadAndShowSuggestions(suggestionsContainer);
+                            }
+                        })
+                        .catch(error => {
+                            console.log(error);
+                            if (suggestionsContainer) {
+                                suggestionsContainer.innerHTML = '<div class="suggestions-error">Errore nella generazione dei suggerimenti.</div>';
+                            }
+                        });
                         
                     }
 
@@ -396,46 +473,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (logbook !== null && logbook.length > 0) {
                 await checkNotRunningAutomations(logbook, userId);
                 await checkRunningAutomations(logbook, userId);
-            }
-            
-            /* ------------- Saves default goal ranking -------------*/
-            // controlla se esistono già le preferenze per l'utente
-            const checkPreferences = await fetch(`/casper/get_user_preferences?user_id=${userId}`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            const preferencesExist = await checkPreferences.json();
-            if (preferencesExist.ranking == undefined) {
-                
-                const defaultRanking = [
-                    {id: 'sicurezza', position: 1, name: 'Sicurezza', icon: '🛡️'},
-                    {id: 'salute', position: 2, name: 'Salute', icon: '❤️'},
-                    {id: 'energia', position: 3, name: 'Energia', icon: '🔋'},
-                    {id: 'benessere', position: 4, name: 'Benessere', icon: '🌱'}
-                ];
-                const response_preferences = await fetch(`/casper/save_user_preferences`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({'user_id': userId, 'ranking': defaultRanking }),
-                });
-            
-                if (!response_preferences.ok) {
-                    throw new Error('errore nel salvataggio delle preferenze di default');
-                } 
-
-                await fetch('/casper/get_goal_improvements', {
-                    method: 'POST',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ user_id: userId })
-                });
             }
 
             displayDevices(devices);

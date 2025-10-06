@@ -1074,7 +1074,7 @@ async function printUserDevices(devicesList) {
 }
 
 // Funzione per salvare le preferenze utente
-async function saveUserPreferences(ranking) {
+async function saveUserPreferences(ranking, dialog) {
     try {
         const response = await fetch('/casper/save_user_preferences', {
             method: 'POST',
@@ -1090,14 +1090,20 @@ async function saveUserPreferences(ranking) {
         
         const data = await response.json();
         if (data.status === 'success') {
-            generateDialog('success', 'Successo', 'Preferenze salvate con successo!', () => {});
+          if(dialog){
+              generateDialog('success', 'Successo', 'Preferenze salvate con successo!', () => {});
+            }
         } else {
+          if(dialog){
             generateDialog('error', 'Errore', 'Errore nel salvataggio delle preferenze.', () => {});
-            console.error('Errore nel salvataggio delle preferenze:', data.message);
+          }  
+          console.error('Errore nel salvataggio delle preferenze:', data.message);
         }
     } catch (error) {
-        generateDialog('error', 'Errore', 'Errore nel salvataggio delle preferenze.', () => {});
-        console.error('Errore nel salvataggio delle preferenze:', error);
+      if(dialog){
+          generateDialog('error', 'Errore', 'Errore nel salvataggio delle preferenze.', () => {});
+      }
+      console.error('Errore nel salvataggio delle preferenze:', error);
     }
 }
 
@@ -1242,7 +1248,7 @@ async function printUserPreferences() {
           name: item.querySelector('.goal-name').textContent,
           icon: item.querySelector('.goal-icon').textContent
       }));
-      await saveUserPreferences(ranking);
+      await saveUserPreferences(ranking, true);
 
       // Mostra loader nella suggestions-container
       let suggestionsContainer = document.querySelector('.suggestions-container');
