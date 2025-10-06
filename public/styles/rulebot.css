@@ -1350,6 +1350,7 @@ td {
 .air-icon { background: linear-gradient(135deg, #ff6bc4, #ae00ff); }
 .room-icon { background: linear-gradient(135deg, #0066FF, #00FF88); }
 .oven-icon { background: linear-gradient(135deg, #5cf67d, #35e1ff); }
+.tv-icon { background: linear-gradient(135deg, #ff6b35, #8B5CF6); }
 
 .icon-on {
     background: linear-gradient(135deg, #1b6922, #08c046);
