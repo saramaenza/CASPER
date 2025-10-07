@@ -73,9 +73,9 @@ class ChainsDetector:
                (type1 == "turn_off" and type2 == "turned_off") or \
                (type1 == type2)
 
-    def is_chain_present(self, chain_array: List[Dict[str, Any]], unique_id: str) -> bool:
+    def is_chain_present(self, chain_array: List[Dict[str, Any]], unique_id: str, chain_direction: str) -> bool:
         for chain in chain_array:
-            if chain.get("unique_id") == unique_id:
+            if chain.get("unique_id") == unique_id and chain.get("description") == chain_direction:
                 return True
         return False
 
@@ -135,7 +135,6 @@ class ChainsDetector:
                     ("increase", item.get("increase_variable", []))
                 ])
         return OrderedDict([("decrease", []), ("increase", [])])
-    
 
     #########  STUFF FOR GETTING SOLUTIONS #########
 
@@ -156,6 +155,7 @@ class ChainsDetector:
                          action1_details: Dict[str, Any], 
                          rule1_name: str, id_automation1: str,
                          rule2_entity_id: str, state: str = None):
+        
         
         # DIREZIONE 1: Rule1 → Rule2 
         self._check_chain_direction(rule_chain, rule1, rule2, action1_details, rule1_name, id_automation1, "rule1_to_rule2", state)
@@ -193,9 +193,7 @@ class ChainsDetector:
                     'type_action': type_action_source,
                     'domain': domain_source
                 }
-                
-                #print(f"Source action details: {source_action_details}")
-                
+
                 # Controlla se questa azione può triggerare la regola target
                 chain_found = self._check_action_trigger_match(
                     rule_chain, source_rule, target_rule, source_action_details, 
@@ -271,31 +269,23 @@ class ChainsDetector:
             #print(f"Match result: device_match={is_match}, type_check={self.check_operator(type_action_normalized, type_trigger)}")
             
             if is_match and self.check_operator(type_action_normalized, type_trigger):
-                
-                # Determina l'ordine corretto per la catena
-                if direction == "rule1_to_rule2":
-                    first_rule = source_rule
-                    second_rule = target_rule
-                    chain_direction = f"{source_rule.get('alias')} → {target_rule.get('alias')}"
-                else:  # rule2_to_rule1
-                    first_rule = target_rule  # rule1 (nuova)
-                    second_rule = source_rule  # rule2 (esistente)
-                    chain_direction = f"{source_rule.get('alias')} → {target_rule.get('alias')}"
-                
-                # Genera la soluzione
+                    
+                chain_direction = f"{source_rule.get('alias')} → {target_rule.get('alias')}"
+
+                # Genera la soluzione 
                 solution_info = self.call_find_solution_llm(
-                    first_rule.get("id"),
-                    second_rule.get("id"),
-                    first_rule.get("alias"),
-                    second_rule.get("alias"),
-                    first_rule.get("description"),
-                    second_rule.get("description")
+                    source_rule.get("id"),
+                    target_rule.get("id"),
+                    source_rule.get("alias"),
+                    target_rule.get("alias"),
+                    source_rule.get("description"),
+                    target_rule.get("description")
                 )
                 
                 # Crea l'ID univoco della catena
-                unique_id_chain = f"{first_rule.get('id')}_{second_rule.get('id')}"
-                
-                if not self.is_chain_present(rule_chain, unique_id_chain):
+                unique_id_chain = f"{source_rule.get('id')}_{target_rule.get('id')}"
+
+                if not self.is_chain_present(rule_chain, unique_id_chain, chain_direction):
                     chain_data = {
                         "type": "direct-chain",
                         "unique_id": unique_id_chain,
@@ -303,15 +293,15 @@ class ChainsDetector:
                         "chain_description": chain_direction,
                         "rules": [
                             {
-                                "id": first_rule.get("id"),
-                                "name": first_rule.get("alias"),
-                                "description": first_rule.get("description"),
+                                "id": source_rule.get("id"),
+                                "name": source_rule.get("alias"),
+                                "description": source_rule.get("description"),
                                 "role": "trigger" if direction == "rule2_to_rule1" else "source"
                             },
                             {
-                                "id": second_rule.get("id"),
-                                "name": second_rule.get("alias"),
-                                "description": second_rule.get("description"),
+                                "id": target_rule.get("id"),
+                                "name": target_rule.get("alias"),
+                                "description": target_rule.get("description"),
                                 "role": "triggered" if direction == "rule2_to_rule1" else "target"
                             }
                         ],
@@ -435,41 +425,36 @@ class ChainsDetector:
                     # corrisponde alla device_class del trigger target
                     if variable == device_class_trigger:
 
-                        # Determina l'ordine corretto per la catena
-                        if direction == "rule1_to_rule2":
-                            first_rule = source_rule  # rule1 (nuova)
-                            second_rule = target_rule  # rule2 (esistente)
-                        else:  # rule2_to_rule1
-                            first_rule = target_rule  # rule1 (nuova)
-                            second_rule = source_rule  # rule2 (esistente)
+                        chain_direction = f"{source_rule.get('alias')} → {target_rule.get('alias')}"
                         
                         # Genera la soluzione
                         solution_info = self.call_find_solution_llm(
-                            first_rule.get("id"), first_rule.get("alias"), first_rule.get("description"),
-                            second_rule.get("id"), second_rule.get("alias"), second_rule.get("description")
+                            source_rule.get("id"), source_rule.get("alias"), source_rule.get("description"),
+                            target_rule.get("id"), target_rule.get("alias"), target_rule.get("description")
                         )
                         
                         # Crea l'ID univoco della catena
-                        unique_id_chain = f"{first_rule.get('id')}_{second_rule.get('id')}"
+                        unique_id_chain = f"{source_rule.get('id')}_{target_rule.get('id')}"
                         
-                        if not self.is_chain_present(rule_chain, unique_id_chain):
+                        if not self.is_chain_present(rule_chain, unique_id_chain, chain_direction):
                             chain_data = {
                                 "type": "indirect-chain",
                                 "unique_id": unique_id_chain,
                                 "direction": direction,
-                                "chain_variable": variable, 
+                                "chain_variable": variable,
+                                "chain_description": chain_direction, 
                                 "effect_type": var_type,  # e.g., "increase" or "decrease"
                                 "rules": [
                                     {
-                                        "id": first_rule.get("id"),
-                                        "name": first_rule.get("alias"),
-                                        "description": first_rule.get("description"),
+                                        "id": source_rule.get("id"),
+                                        "name": source_rule.get("alias"),
+                                        "description": source_rule.get("description"),
                                         "role": "source" if direction == "rule1_to_rule2" else "trigger"
                                     },
                                     {
-                                        "id": second_rule.get("id"),
-                                        "name": second_rule.get("alias"),
-                                        "description": second_rule.get("description"),
+                                        "id": target_rule.get("id"),
+                                        "name": target_rule.get("alias"),
+                                        "description": target_rule.get("description"),
                                         "role": "target" if direction == "rule1_to_rule2" else "triggered"
                                     }
                                 ],
@@ -535,10 +520,9 @@ class ChainsDetector:
                     rule_name1, id_automation1, rule2_entity_id, state
                 )
         
-        #print("Detected chains:", rule_chain_output)
         return rule_chain_output
 
-    def detect_chains(self, all_rules: List, automation_post_config: Dict[str, Any], chain_type: str = "indirect") \
+    def detect_chains(self, all_rules: List, automation: str | Dict[str, Any], chain_type: str = "indirect") \
                       -> List[Dict[str, Any]]:
 
         processing_function = self.process_indirect_chain
@@ -547,11 +531,31 @@ class ChainsDetector:
         elif chain_type != "indirect":
             raise ValueError(f"Unknown chain_type: {chain_type}. Must be 'direct' or 'indirect'.")
 
-        return self._process_rule_chain_iteration(
-            all_existing_rules=all_rules,
-            rule1_config=automation_post_config,
-            chain_processing_function=processing_function
-        )
+        if automation == "all_rules":
+            # Analyze all automations for chains between them
+            rule_chain_output = []
+            for i, rule1 in enumerate(all_rules):
+                for j, rule2 in enumerate(all_rules):
+                    if i != j:  # Avoid comparing the same rule with itself
+                        self._process_rule_chain_iteration(
+                            all_existing_rules=[rule2],
+                            rule1_config=rule1.get("config"),
+                            chain_processing_function=processing_function
+                        )
+                        rule_chain_output.extend(self._process_rule_chain_iteration(
+                            all_existing_rules=[rule2],
+                            rule1_config=rule1.get("config"),
+                            chain_processing_function=processing_function
+                        ))
+            return rule_chain_output
+        else:
+            # Analyze chains for a single automation
+            rule_chain_output = self._process_rule_chain_iteration(
+                all_existing_rules=all_rules,
+                rule1_config=automation,
+                chain_processing_function=processing_function
+            )
+            return rule_chain_output
 
 # Example usage (to be adapted or moved to a test/main script)
 if __name__ == "__main__":

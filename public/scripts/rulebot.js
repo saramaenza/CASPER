@@ -2977,30 +2977,14 @@ function createChainCard(isActive, headerText, chainInfo) {
     temp_mapping.set(rule1_id, rule1);
     temp_mapping.set(rule2_id, rule2);
 
-    // DETERMINA LA DIREZIONE DELLA CATENA
-    const chainDirection = chainInfo['direction'] || 'rule1_to_rule2';
-    const isReversed = chainDirection === 'rule2_to_rule1';
-    
     // IMPOSTA L'ORDINE CORRETTO PER LA VISUALIZZAZIONE
     let firstRule, secondRule, firstRuleId, firstRuleName, secondRuleId, secondRuleName;
-    
-    if (isReversed) {
-        // Se la direzione è rule2 → rule1, inverti l'ordine visuale
-        firstRule = rule2;
-        secondRule = rule1;
-        firstRuleId = rule2_id;
-        firstRuleName = rule2_name;
-        secondRuleId = rule1_id;
-        secondRuleName = rule1_name;
-    } else {
-        // Direzione normale: rule1 → rule2
-        firstRule = rule1;
-        secondRule = rule2;
-        firstRuleId = rule1_id;
-        firstRuleName = rule1_name;
-        secondRuleId = rule2_id;
-        secondRuleName = rule2_name;
-    }
+    firstRule = rule1;
+    secondRule = rule2;
+    firstRuleId = rule1_id;
+    firstRuleName = rule1_name;
+    secondRuleId = rule2_id;
+    secondRuleName = rule2_name;
 
     const rule1_match = firstRule['description'].match(regex);
     const rule2_match = secondRule['description'].match(regex);

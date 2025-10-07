@@ -508,6 +508,34 @@ app.use('/casper/load_automations_running', verifyToken, async (req, res) =>{
   }
 });
 
+// Endpoint per rilevare problemi nelle automazioni
+app.post('/casper/detect_problem', async (req, res) => {
+  try {
+    const { user_id, session_id, automations } = req.body;
+
+    if (!user_id || !automations) {
+      return res.status(400).json({ error: 'Missing required parameters' });
+    }
+
+    // Chiamata al server Python per eseguire la funzione problem_detector
+    const response = await fetch(`${python_server}/detect_problem`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id, session_id, automations }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Errore durante la chiamata al server Python');
+    }
+
+    const result = await response.json();
+    res.json(result);
+  } catch (error) {
+    console.error('/casper/detect_problem error:', error);
+    res.status(500).json({ error: 'Errore interno del server', details: error.message });
+  }
+});
+
 app.use('/casper/get_problems', verifyToken, async (req, res) => {
   try {
     let user_id = req.body.user_id;

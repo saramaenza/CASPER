@@ -1,5 +1,8 @@
 const { response } = require('express');
 const { toggleAutomation: toggleAutomationDB } = require('./db_methods.cjs');
+const fetch = require('node-fetch'); 
+const python_server = "http://127.0.0.1:8080"
+
 //Funzione per ottenere la lista delle entità con le relative descrizioni.
 async function getEntities(baseUrl, token) {
     const url = `${baseUrl}/api/template`;
@@ -66,6 +69,35 @@ async function getEntities(baseUrl, token) {
     }
 }
 
+
+sanitizeDescription = async (description) => {
+    if (description.includes("Evento:")) {
+        console.log("Descrizione già sanitizzata, nessuna chiamata al server Python necessaria.");
+        return [description, false];
+    }
+
+    try {
+        const response = await fetch(`${python_server}/sanitize_description`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ description }),
+        });
+
+        if (!response.ok) {
+            console.error('Errore nella sanitizzazione della descrizione:', response.status);
+            return [description, false];
+        }
+        const data = await response.json();
+
+        return [data.sanitized_description, true];
+    } catch (error) {
+        console.error('Errore durante la chiamata alla route /sanitize_description:', error);
+        return [description, false];
+    }
+};
+
 async function getAutomationsHA(baseUrl, token) {
     const headers = {
         "Authorization": `Bearer ${token}`,
@@ -107,6 +139,22 @@ async function getAutomationsHA(baseUrl, token) {
                 }
 
                 const config = await configResponse.json();
+
+                let description = config.description || "Nessuna descrizione disponibile";
+
+                let result = await sanitizeDescription(description);
+                let newDescription = result[0];
+                let isUpdated = result[1];
+
+                if (isUpdated) {
+                    config.description = newDescription;
+                    // Aggiorna la configurazione dell'automazione in Home Assistant
+                    const updateSuccess = await postAutomationHA(baseUrl, token, automationId, config);
+                    if (!updateSuccess) {
+                        console.error(`Errore durante l'aggiornamento della configurazione dell'automazione ${automationId} in Home Assistant.`);
+                    }
+                }
+
                 return {
                     id: automationId,
                     state: automationState,

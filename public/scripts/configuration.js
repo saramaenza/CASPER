@@ -25,6 +25,31 @@ async function fetchConfig(userId) {
     }
 }
 
+// Funzione per rilevare problemi nelle automazioni
+async function detectProblems(userId, sessionId, automations) {
+    try {
+        const response = await fetch('/casper/detect_problem', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                user_id: userId,
+                session_id: sessionId,
+                automations: automations,
+            }),
+        });
+        if (!response.ok) {
+            throw new Error('Errore durante il rilevamento dei problemi');
+        }
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error('Errore durante il rilevamento dei problemi:', error);
+        return null;
+    }
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
     const urlInput = document.getElementById('home-assistant-url');
     const tokenInput = document.getElementById('home-assistant-token');
@@ -86,7 +111,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             errorMessage += 'Il campo URL Home Assistant è obbligatorio. ';
             isValid = false;
             loadButton.disabled = false;
-            loadButton.innerHTML = 'Carica Dispositivi';
+            loadButton.innerHTML = 'Carica Configurazione';
         }
         
         // Controlla se il token è vuoto
@@ -95,7 +120,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             errorMessage += 'Il campo Token di Accesso è obbligatorio. ';
             isValid = false;
             loadButton.disabled = false;
-            loadButton.innerHTML = 'Carica Dispositivi';
+            loadButton.innerHTML = 'Carica Configurazione';
         }
         
         // Validazione formato URL (opzionale)
@@ -104,7 +129,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             errorMessage += 'Inserisci un URL valido. ';
             isValid = false;
             loadButton.disabled = false;
-            loadButton.innerHTML = 'Carica Dispositivi';
+            loadButton.innerHTML = 'Carica Configurazione';
         }
         
         // Mostra messaggio di errore se ci sono problemi
@@ -399,7 +424,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         loadButton.innerHTML = '<div style="display:inline-flex;align-items:center;gap:8px;">' +
                            '<div class="loader mini-loader"></div>' +
-                           '<span>Caricamento dispositivi...</span>' +
+                           '<span>Caricamento Configurazione...</span>' +
                            '</div>';
         loadButton.disabled = true; // Disabilita il pulsante durante il caricamento
         // Prima ottieni i riferimenti alle variabili necessarie
@@ -429,7 +454,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (!response_remove.ok) {
                     console.error('Error response:', await response_remove.text());
                 } else {
-                    printUserProblems([]); //svuota la carousel dei problems
+                    //printUserProblems([]); //svuota la carousel dei problems
                     printUserGoalProblems([]); //svuota la carousel delle goal problems
                 }
             }
@@ -451,9 +476,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (!response.ok) {
                 console.error('Error response:', await response.text());
                 // Ripristina il pulsante in caso di errore
-                loadButton.innerHTML = 'Carica Dispositivi';
+                loadButton.innerHTML = 'Carica Configurazione';
                 loadButton.disabled = false;
-                throw new Error('errore nel caricamento dei dispositivi');
+                throw new Error('errore nel caricamento della configurazione');
             }
 
             const devices = await response.json();
@@ -469,12 +494,28 @@ document.addEventListener('DOMContentLoaded', async () => {
             //console.log("carico le automazioni")
             if (!response2.ok) {
                 // Ripristina il pulsante in caso di errore
-                loadButton.innerHTML = 'Carica Dispositivi';
+                loadButton.innerHTML = 'Carica Configurazione';
                 loadButton.disabled = false;
                 throw new Error('errore nel caricamento delle automazioni. Controlla se l\'URL Home Assistant e il Token di Accesso sono corretti.');
             }
 
             const rulesList = await response2.json();
+
+            if(configDB.auth.url !== url && configDB.auth.token !== token) {
+                // rileva problemi della nuova configurazione
+                const sessionId = Cookies.get('chat_session_id'); // Recupera la sessione corrente
+                const automations = 'all_rules'; 
+                const problems = await detectProblems(userId, sessionId, automations);
+
+                if (problems && problems.result) {
+                    let problemsList = await getProblems()
+                    problemsList = problemsList.filter(problem => !problem.ignore && !problem.solved && problem.state != "off");
+                    printUserProblems(problemsList);
+                    let problemsGoalList = await getProblemGoal()
+                    problemsGoalList = problemsGoalList.filter(problem => !problem.ignore && !problem.solved && problem.state != "off");
+                    printUserGoalProblems(problemsGoalList);
+                }
+            }
 
             /* ------------- Saves logbook -------------*/
             const response_logbook = await fetch(`/casper/load_logbook`, {
@@ -532,10 +573,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             statusMessage.classList.remove('error');
             // Ripristina il pulsante in caso di errore
-            loadButton.innerHTML = 'Carica Dispositivi';
-            loadButton.disabled = false;
-
-            
+            loadButton.innerHTML = 'Carica Configurazione';
+            loadButton.disabled = false;       
             
         } catch (error) {
             generateDialog("error", "Errore di caricamento", `Si è verificato un errore: ${error.message}`, () => {});

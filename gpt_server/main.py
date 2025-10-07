@@ -3,6 +3,7 @@ from datetime import datetime
 load_dotenv()
 from typing import Annotated
 from typing_extensions import TypedDict
+from langchain_core.messages import HumanMessage, SystemMessage
 
 from flask import Flask, request, jsonify
 
@@ -14,7 +15,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.messages import trim_messages
 from problems.goal_scores import get_quality_scores_only
 from problems.improvements_goals import get_goal_improvements, replace_ignored_suggestion_with_new
-
+from detect_problem import problem_detector
 from config import get_server_choice
 import tools as _tools
 import utils
@@ -67,6 +68,22 @@ def background_goal_advisor():
         # Aspetta 10 minuti (600 secondi)
         time.sleep(600)
 
+def sanitize_description_with_llm(description):
+    try:
+        formatted_prompt = prompts.sanitize_description.format(description=description)
+
+        messages = [
+            SystemMessage(formatted_prompt),
+            HumanMessage(f"Sanitize the following automation description: '{description}'."),
+        ]
+
+        # Chiamata a LLM
+        response = llm.invoke(messages)
+        return response.content  # Assicurati di restituire il contenuto corretto
+    except Exception as e:
+        print(f"Error during LLM invocation: {e}")
+        raise
+
 class State(TypedDict):
     # Messages have the type "list". The `add_messages` function
     # in the annotation defines how this state key should be updated
@@ -115,7 +132,6 @@ graph_builder.add_edge(START, "chatbot")
 graph = graph_builder.compile(checkpointer=memory)
 
 
-
 @app.route('/send_message', methods=['POST'])
 def send_message():
     try:
@@ -149,6 +165,19 @@ def send_message():
 def health_check():
     return jsonify({'status': 'ok'}), 200
 
+@app.route('/sanitize_description', methods=['POST'])
+def sanitize_description():
+    data = request.json
+    description = data.get('description')
+    if not description:
+        return jsonify({'error': 'Missing description'}), 400
+    try:
+        sanitized = sanitize_description_with_llm(description)
+        return jsonify({'sanitized_description': sanitized}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 @app.route('/get_quality_scores', methods=['POST'])
 def get_quality_scores():
     data = request.json
@@ -172,6 +201,22 @@ def get_goal_improvements_route():
     try:
         solutions = get_goal_improvements(user_id)
         return jsonify(solutions), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/detect_problem', methods=['POST'])
+def detect_problem_endpoint():
+    try:
+        data = request.json
+        user_id = data.get('user_id')
+        session_id = data.get('session_id')
+        automations = data.get('automations')
+
+        if not user_id or not automations:
+            print("Error: Missing required parameters")
+            return jsonify({'error': 'Missing required parameters'}), 400
+        result = problem_detector(user_id, session_id, automations)
+        return jsonify({'result': result}), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
     

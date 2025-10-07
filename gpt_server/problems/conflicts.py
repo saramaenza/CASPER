@@ -69,7 +69,8 @@ class ConflictDetector:
 
     def append_conflict(self, rule_name1, rule_name2, automation1_description, automation2_description, type_of_conflict, id_automation1, id_automation2, id_device, state):  
         """Append a conflict to the array"""
-        solution_info = self.call_find_solution_llm(id_automation1, id_automation2, rule_name1, rule_name2, automation1_description, automation2_description) 
+        solution_info = "prova"
+        #solution_info = self.call_find_solution_llm(id_automation1, id_automation2, rule_name1, rule_name2, automation1_description, automation2_description) 
         id_conflict = str(id_automation1)+"_"+str(id_automation2)+"_"+str(id_device)
         # Check if the conflict is already present before appending
         if not self.is_conflict_present(self.conflicts_array, id_conflict):
@@ -205,7 +206,6 @@ class ConflictDetector:
 
         array_device_action_id1 = device_id1.split(", ") if isinstance(device_id1, str) else device_id1
         array_device_action_id2 = device_id2.split(", ") if isinstance(device_id2, str) else device_id2
-
         if type_of_conflict == "possible" and not array_device_action_id2:
             return
 
@@ -213,22 +213,24 @@ class ConflictDetector:
         if not common_device:
             return
 
-        device_name_action1 = self.ha_client.get_device_name_by_user(common_device[0]) or common_device[0]
-        device_name_action2 = device_name_action1
+        for device in common_device:
 
-        if self.check_operators_appliances(self.get_event_type(action1), self.get_event_type(action2)) and not attr1 and not attr2:
-            self.append_conflict(rule_name1, rule_name2, automation1_description, automation2_description, type_of_conflict, id_automation1, id_automation2, device_id1, state)
-        elif attr1 or attr2:
-            data_attr = attr1 if attr1 else attr2
-            for data in data_attr:
-                value_attribute1 = attr1.get(data, None)
-                value_attribute2 = attr2.get(data, None)
-                if value_attribute1 and value_attribute2 and value_attribute1 != value_attribute2:
-                    self.append_conflict(rule_name1, rule_name2, automation1_description, automation2_description, type_of_conflict, id_automation1, id_automation2, device_id1, state)
-                elif (value_attribute1 and not value_attribute2) or (not value_attribute1 and value_attribute2):
-                    if not self.check_element_exists(rule_name1, rule_name2, None, None, self.get_event_type(action1), self.get_event_type(action2), device_name_action1, device_name_action2):
-                        if self.check_operators_appliances(self.get_event_type(action1), self.get_event_type(action2)):
-                            self.append_conflict(rule_name1, rule_name2, automation1_description, automation2_description, type_of_conflict, id_automation1, id_automation2, device_id1, state)
+            device_name_action1 = self.ha_client.get_device_name_by_user(device) or device
+            device_name_action2 = device_name_action1
+
+            if self.check_operators_appliances(self.get_event_type(action1), self.get_event_type(action2)) and not attr1 and not attr2:
+                self.append_conflict(rule_name1, rule_name2, automation1_description, automation2_description, type_of_conflict, id_automation1, id_automation2, device, state)
+            elif attr1 or attr2:
+                data_attr = attr1 if attr1 else attr2
+                for data in data_attr:
+                    value_attribute1 = attr1.get(data, None)
+                    value_attribute2 = attr2.get(data, None)
+                    if value_attribute1 and value_attribute2 and value_attribute1 != value_attribute2:
+                        self.append_conflict(rule_name1, rule_name2, automation1_description, automation2_description, type_of_conflict, id_automation1, id_automation2, device, state)
+                    elif (value_attribute1 and not value_attribute2) or (not value_attribute1 and value_attribute2):
+                        if not self.check_element_exists(rule_name1, rule_name2, None, None, self.get_event_type(action1), self.get_event_type(action2), device_name_action1, device_name_action2):
+                            if self.check_operators_appliances(self.get_event_type(action1), self.get_event_type(action2)):
+                                self.append_conflict(rule_name1, rule_name2, automation1_description, automation2_description, type_of_conflict, id_automation1, id_automation2, device, state)
 
     def array_conditions(self, condition1, condition2):
         """Process conditions arrays"""
@@ -348,54 +350,61 @@ class ConflictDetector:
     def detect_conflicts(self, rules, rule1):
         """Main function to detect conflicts"""
         self.clear_conflicts()
-        rule_name1 = rule1.get("alias", "")
-        entity_rule_name1 = "automation." + rule_name1.replace(" ", "_")
-        rule1_trigger = rule1.get("trigger") or rule1.get("triggers") or None
-        rule1_condition = rule1.get("condition") or rule1.get("conditions") or None
-        id_automation1 = rule1.get("id", None)
-        automation1_description = rule1.get("description", "")
-        actions1 = rule1.get("actions", []) or rule1.get("action", [])
-        
-        for action1 in actions1:
+
+        # Helper function to process a single rule pair
+        def process_rule_pair(rule1, rule2, state=None):
+            rule_name1 = rule1.get("alias", "")
+            rule_name2 = rule2.get("alias", "")
+            entity_rule_name1 = f"automation.{rule_name1.replace(' ', '_')}"
+            entity_rule_name2 = f"automation.{rule_name2.replace(' ', '_')}"
+
+            if entity_rule_name1 == entity_rule_name2:
+                return  # Skip if the rules are the same
+
+            rule1_trigger = rule1.get("trigger") or rule1.get("triggers")
+            rule2_trigger = rule2.get("trigger") or rule2.get("triggers")
+            rule1_condition = rule1.get("condition") or rule1.get("conditions")
+            rule2_condition = rule2.get("condition") or rule2.get("conditions")
+            actions1 = rule1.get("actions", []) or rule1.get("action", [])
+            actions2 = rule2.get("actions", []) or rule2.get("action", [])
+
+            id_automation1 = rule1.get("id")
+            id_automation2 = rule2.get("id")
+            automation1_description = rule1.get("description", "")
+            automation2_description = rule2.get("description", "")
+
+            # Check triggers and conditions
+            same_trigger = rule1_trigger == rule2_trigger
+            self.trigger_tag = "same_event" if same_trigger else "different_event"
+            rule1_condition, rule2_condition = self.process_conditions(rule1_condition, rule2_condition)
+            conditions_compatible = self.check_condition(rule1_condition, rule2_condition)
+
+            if not conditions_compatible:
+                return  # Skip if conditions are not compatible
+
+            type_of_conflict = "certain" if same_trigger else "possible"
+
+            # Process actions for conflicts
+            for action1 in actions1:
+                for action2 in actions2:
+                    self.process_action_conflict(
+                        action1, action2, rule_name1, rule_name2, type_of_conflict,
+                        id_automation1, id_automation2, automation1_description,
+                        automation2_description, state
+                    )
+
+        # Process all rules or a single rule
+        if rule1 != "all_rules":
             for rule2 in rules:
-                state = rule2.get("state", None)
-                rule2 = rule2['config']
-                rule_name2 = rule2.get("alias", None)
-                rule2_trigger = rule2.get("trigger") or rule2.get("triggers") or None
-                rule2_condition = rule2.get("condition") or rule2.get("conditions") or None
-                entity_rule_name2 = "automation." + rule_name2.replace(" ", "_")
-                automation2_description = rule2.get("description", "")
+                process_rule_pair(rule1, rule2['config'], state=rule2.get("state"))
+        else:
+            for i, rule1 in enumerate(rules):
+                for j in range(i + 1, len(rules)):
+                    process_rule_pair(rule1['config'], rules[j]['config'], state=rules[j].get("state"))
 
-                if entity_rule_name1 != entity_rule_name2:
-                    actions2 = rule2.get("actions", []) or rule2.get("action", [])
-                    id_automation2 = rule2.get("id", None)
-                    same_trigger = rule1_trigger == rule2_trigger
-                    rule1_condition, rule2_condition = self.process_conditions(rule1_condition, rule2_condition)
-                    if same_trigger:
-                        self.trigger_tag = "same_event"
-                    else:
-                        self.trigger_tag = "different_event"
-                    # Check if conditions allow for conflicts
-                    conditions_compatible = self.check_condition(rule1_condition, rule2_condition)
-
-                   # Determine conflict type
-                    if conditions_compatible:
-                        if same_trigger:
-                            type_of_conflict = "certain"
-                        else:
-                            type_of_conflict = "possible"
-                        
-                        # Conflict on actions and solution retrieval
-                        for action2 in actions2:
-                            self.process_action_conflict(action1, action2, rule_name1, rule_name2, type_of_conflict, id_automation1, id_automation2, automation1_description, automation2_description, state)
-                    else:
-                        # If conditions are not compatible, skip further checks
-                        continue
-                    # Conflict on actions and solution retrieval
-                    for action2 in actions2:
-                        self.process_action_conflict(action1, action2, rule_name1, rule_name2, type_of_conflict, id_automation1, id_automation2, automation1_description, automation2_description, state)
+        print("Info Conflict Array LLM: ", self.conflicts_array)
         return self.conflicts_array
-
+    
 # Usage example and backward compatibility
 """def detectConflicts(rules, rule1, ha_client: HomeAssistantClient, user_id: str):
     detector = ConflictDetector(ha_client, user_id)

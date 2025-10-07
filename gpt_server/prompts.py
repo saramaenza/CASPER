@@ -241,3 +241,12 @@ Target Goal: {goal}
 Automations already present in the system: {automations}
 Automations already ignored by the user for this goal: {ignored_automations_for_goal}
 """
+
+sanitize_description = """
+Your task is to sanitize the description of a home automation. The description should contain the same information as the input but structured as the following format:
+Event: <event> (<entity_id>) Condition: <condition> (<entity_id>) AND <condition> (<entity_id>) OR ... Action: <actions> (<entity_ids>).
+Maintain the order Event-Condition-Action. If there are no conditions omit the Condition field.
+
+Use Italian language for the sanitized description.
+Description to sanitize: {description}
+"""

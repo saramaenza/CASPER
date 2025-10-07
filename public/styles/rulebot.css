@@ -1345,12 +1345,13 @@ td {
 .bathroom-icon { background: linear-gradient(135deg, #8B5CF6, #FF6B35); }
 .living-icon { background: linear-gradient(135deg, #FF4757, #FFD700); }
 .schedule-icon { background: linear-gradient(135deg, #0066FF, #8B5CF6); }
-.ac-icon { background: linear-gradient(135deg, #56f8d5, #3189fd); }
+.ac-icon { background: linear-gradient(135deg, #3189fd, #3189fd); }
 .plug-icon { background: linear-gradient(135deg, #FF6B35, #ff0073); }
 .air-icon { background: linear-gradient(135deg, #ff6bc4, #ae00ff); }
 .room-icon { background: linear-gradient(135deg, #0066FF, #00FF88); }
 .oven-icon { background: linear-gradient(135deg, #5cf67d, #35e1ff); }
 .tv-icon { background: linear-gradient(135deg, #ff6b35, #8B5CF6); }
+.fridge-icon { background: linear-gradient(135deg, #3189fd, #3189fd); }
 
 .icon-on {
     background: linear-gradient(135deg, #1b6922, #08c046);
