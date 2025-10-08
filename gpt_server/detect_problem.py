@@ -50,7 +50,6 @@ def problem_detector(user_id, session_id, automation):
             return "No problems detected."
         try:
             problems_w_id = _db.post_problem(user_id, all_problems)
-            print(f"Debug: Saved {len(problems_w_id)} main problems to the database.")
         except Exception as e:
             print(f"Error while saving main problems: {e}")
             problems_w_id = []

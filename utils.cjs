@@ -82,7 +82,7 @@ async function getEntities(baseUrl, token) {
 
 sanitizeDescription = async (description) => {
     if (description.includes("Evento:")) {
-        console.log("Descrizione già sanitizzata, nessuna chiamata al server Python necessaria.");
+        //console.log("Descrizione già sanitizzata, nessuna chiamata al server Python necessaria.");
         return [description, false];
     }
 
@@ -267,7 +267,7 @@ async function testHomeAssistantConnection(baseUrl, token) {
         }
         
         const data = await response.json();
-        console.log(`Connessione a Home Assistant riuscita. Versione: ${data.version}`);
+        //console.log(`Connessione a Home Assistant riuscita. Versione: ${data.version}`);
         return true;
     } catch (error) {
         console.error(`Errore nel test di connessione:`, error);

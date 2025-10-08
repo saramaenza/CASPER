@@ -402,7 +402,7 @@ class ConflictDetector:
                 for j in range(i + 1, len(rules)):
                     process_rule_pair(rule1['config'], rules[j]['config'], state=rules[j].get("state"))
 
-        print("Info Conflict Array LLM: ", self.conflicts_array)
+        #print("Info Conflict Array LLM: ", self.conflicts_array)
         return self.conflicts_array
     
 # Usage example and backward compatibility
@@ -459,4 +459,4 @@ if __name__ == "__main__":
     # Call the function
     conflicts_array = detector.detect_conflicts(all_rules, automations_post)
 
-    print("Info Conflict Array LLM: ", conflicts_array)
+    #print("Info Conflict Array LLM: ", conflicts_array)
