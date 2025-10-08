@@ -420,6 +420,40 @@ app.get('/casper/chatbot_status', async (req, res) => {
   }
 });
 
+app.post('/casper/test_connection', async (req, res) => {
+    const { url, token } = req.body;
+    
+    if (!url || !token) {
+        return res.status(400).json({ 
+            success: false, 
+            message: 'URL e token sono richiesti' 
+        });
+    }
+    
+    try {
+        const { testHomeAssistantConnection } = require('./utils.cjs');
+        const isValid = await testHomeAssistantConnection(url, token);
+        
+        if (isValid) {
+            res.json({ 
+                success: true, 
+                message: 'Connessione riuscita' 
+            });
+        } else {
+            res.status(401).json({ 
+                success: false, 
+                message: 'Token non valido o Home Assistant non raggiungibile' 
+            });
+        }
+    } catch (error) {
+        console.error('Errore nel test di connessione:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Errore interno del server' 
+        });
+    }
+});
+
 app.use('/casper/get_goals_scores', async (req, res) => {
   try {
     let user_id = req.query.user_id;

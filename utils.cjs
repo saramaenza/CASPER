@@ -5,6 +5,12 @@ const python_server = "http://127.0.0.1:8080"
 
 //Funzione per ottenere la lista delle entità con le relative descrizioni.
 async function getEntities(baseUrl, token) {
+    // Prima testa la connessione
+    const connectionTest = await testHomeAssistantConnection(baseUrl, token);
+    if (!connectionTest) {
+        console.error('Connessione a Home Assistant fallita. Verifica URL e token.');
+        return null;
+    }
     const url = `${baseUrl}/api/template`;
     const headers = {
         "Authorization": `Bearer ${token}`,
@@ -60,7 +66,11 @@ async function getEntities(baseUrl, token) {
             const entities = await response.json();
             return entities;
         } else {
-            console.error(`Errore nella richiesta per recuperare i device in Home assistant, utils.js: ${response.status}`);
+            if (response.status === 401) {
+                console.error(`Token Home Assistant non valido o scaduto. Verifica le credenziali.`);
+            } else {
+                console.error(`Errore nella richiesta per recuperare i device in Home assistant: ${response.status}`);
+            }
             return null;
         }
     } catch (error) {
@@ -99,6 +109,12 @@ sanitizeDescription = async (description) => {
 };
 
 async function getAutomationsHA(baseUrl, token) {
+    // Prima testa la connessione
+    const connectionTest = await testHomeAssistantConnection(baseUrl, token);
+    if (!connectionTest) {
+        console.error('Connessione a Home Assistant fallita per le automazioni. Verifica URL e token.');
+        return null;
+    }
     const headers = {
         "Authorization": `Bearer ${token}`,
         "Content-Type": "application/json"
@@ -111,7 +127,11 @@ async function getAutomationsHA(baseUrl, token) {
         });
 
         if (!statesResponse.ok) {
-            console.error(`Errore nel recupero degli stati: ${statesResponse.status}`);
+            if (statesResponse.status === 401) {
+                console.error('Token Home Assistant non valido per il recupero degli stati delle automazioni');
+            } else {
+                console.error(`Errore nel recupero degli stati: ${statesResponse.status}`);
+            }
             return null;
         }
 
@@ -227,6 +247,34 @@ async function getLogbook(baseUrl, token) {
     }
 }
 
+async function testHomeAssistantConnection(baseUrl, token) {
+    const headers = {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+    };
+    
+    try {
+        const response = await fetch(`${baseUrl}/api/`, {
+            headers: headers
+        });
+        
+        if (!response.ok) {
+            console.error(`Test connessione fallito: ${response.status}`);
+            if (response.status === 401) {
+                console.error('Token non valido o scaduto');
+            }
+            return false;
+        }
+        
+        const data = await response.json();
+        console.log(`Connessione a Home Assistant riuscita. Versione: ${data.version}`);
+        return true;
+    } catch (error) {
+        console.error(`Errore nel test di connessione:`, error);
+        return false;
+    }
+}
+
 async function getEntitiesStates(baseUrl, token, conf) {
     const headers = {
         "Authorization": `Bearer ${token}`,
@@ -240,11 +288,28 @@ async function getEntitiesStates(baseUrl, token, conf) {
         });
 
         if (!statesResponse.ok) {
-            console.error(`Errore nel recupero degli stati: ${statesResponse.json()}`);
+            const errorText = await statesResponse.text();
+            console.error(`Errore nel recupero degli stati: ${statesResponse.status} - ${errorText}`);
             return null;
         }
 
-        let states = await statesResponse.json();
+        // Controlla il content-type prima di fare il parsing JSON
+        const contentType = statesResponse.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            const responseText = await statesResponse.text();
+            console.error(`Risposta non JSON ricevuta: ${responseText}`);
+            return null;
+        }
+
+        let states;
+        try {
+            states = await statesResponse.json();
+        } catch (jsonError) {
+            const responseText = await statesResponse.text();
+            console.error(`Errore nel parsing JSON: ${jsonError.message}`);
+            console.error(`Contenuto della risposta: ${responseText}`);
+            return null;
+        }
 
         // Filtra gli stati in base alla configurazione
         states = states.filter(state => {
@@ -255,10 +320,9 @@ async function getEntitiesStates(baseUrl, token, conf) {
         
         return states;
        
-    }
-        catch (error) {
+    } catch (error) {
         console.error(`Errore durante il recupero degli stati:`, error);
-        return false;
+        return null;
     }
 }
 
@@ -327,4 +391,4 @@ async function deleteAutomation(baseUrl, token, automationId) {
     }
 }
 
-module.exports = { getEntities, getAutomationsHA, postAutomationHA, getLogbook, toggleAutomation, getEntitiesStates, deleteAutomation };
+module.exports = { getEntities, getAutomationsHA, postAutomationHA, getLogbook, toggleAutomation, getEntitiesStates, testHomeAssistantConnection, deleteAutomation };

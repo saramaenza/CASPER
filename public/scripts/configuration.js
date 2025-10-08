@@ -427,6 +427,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                            '<span>Caricamento Configurazione...</span>' +
                            '</div>';
         loadButton.disabled = true; // Disabilita il pulsante durante il caricamento
+
         // Prima ottieni i riferimenti alle variabili necessarie
         const tokenRaw = Cookies.get("auth-token");
         const token = jwt_decode(tokenRaw);
@@ -435,6 +436,61 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             const url = urlInput.value.trim().replace(/\/+$/, '');
             const token = tokenInput.value.trim();
+
+            if (!validateInputFields()) {
+                return;
+            } 
+
+            // Prima testa la connessione con gestione degli errori migliorata
+            let testResponse;
+            try {
+                testResponse = await fetch(`/casper/test_connection`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({'url': url, 'token': token }),
+                });
+            } catch (fetchError) {
+                console.error('Errore nella chiamata di test:', fetchError);
+                generateDialog("error", "Errore di connessione", 
+                    "Non riesco a connettermi a Home Assistant. Controlla la tua connessione internet e assicurati che l'URL e il token di Home Assistant siano corretti.", 
+                    () => {}
+                );
+                return;
+            }
+
+            // Controlla se la risposta è JSON valido
+            let errorData;
+            try {
+                if (!testResponse.ok) {
+                    const responseText = await testResponse.text();
+                    // Prova a fare il parsing JSON, se fallisce usa il testo
+                    try {
+                        errorData = JSON.parse(responseText);
+                    } catch (jsonError) {
+                        console.error('Risposta non JSON ricevuta:', responseText);
+                        generateDialog("error", "Errore del server", 
+                            "Il server ha restituito una risposta non valida. Controlla i log del server.", 
+                            () => {}
+                        );
+                        return;
+                    }
+                    
+                    generateDialog("error", "Errore di connessione", 
+                        `Non riesco a connettermi a Home Assistant. Controlla la tua connessione internet e assicurati che l'URL e il token di Home Assistant siano corretti.`, 
+                        () => {}
+                    );
+                    return;
+                }
+            } catch (error) {
+                console.error('Errore nel controllo della risposta:', error);
+                generateDialog("error", "Errore di comunicazione", 
+                    "Errore nella comunicazione con il server.", 
+                    () => {}
+                );
+                return;
+            }
 
             //Recupero le credenziali salvate per verificare se sono cambiate
             const configDB = await fetchConfig(userId);
@@ -577,14 +633,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             loadButton.disabled = false;       
             
         } catch (error) {
-            generateDialog("error", "Errore di caricamento", `Si è verificato un errore: ${error.message}`, () => {});
+            console.error('Errore generale:', error);
+            generateDialog("error", "Errore di caricamento", 
+                `Si è verificato un errore: ${error.message}`, 
+                () => {}
+            );
             devicesList.classList.add('hidden');
         } finally {
             loadButton.disabled = false;
-            const spinner = loadButton.querySelector('.spinner');
-            if (spinner) {
-                spinner.classList.add('hidden');
-            }
+            loadButton.innerHTML = 'Carica Configurazione';
         }
     });
     
