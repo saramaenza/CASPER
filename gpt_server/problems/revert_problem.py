@@ -59,8 +59,7 @@ def detectRevertProblem(automation, goal, user_id, ha_client_instance):
         if not device_id and not area_id:
             continue
         area = area_id
-
-        """     TODO: da sistemare
+       
         # Verifica se l'automazione risolve un problema di revert
         if eventType == "turn_off":
             existing_problems = _db.get_problems_goals(user_id)  # Recupera i problemi di revert esistenti
@@ -70,18 +69,16 @@ def detectRevertProblem(automation, goal, user_id, ha_client_instance):
                 if "_revert_energy" in unique_id:
                     revert_problem.append(problem_db)
             for problem_db in revert_problem:
-                if problem_db.get("goal") == "energy":
-                    rules_db = problem_db.get("rules", [])
-                    for rule_db in rules_db:
-                        device_id_db_rule = rule_db.get("device", "")
-                        event_type_db_rule = rule_db.get("eventType", "")
-                        # Verifica se il problema riguarda lo stesso dispositivo
-                        if device_id == device_id_db_rule:
-                            if (event_type_db_rule == "turn_on"):
-                                problem_db_id = problem_db.get("id", "")
-                                # Setta come "solved" il problema dalla collezione
-                                _db.solve_problem_goal(user_id, problem_db_id)
-        """
+                rules_db = problem_db.get("rules", [])
+                for rule_db in rules_db:
+                    device_id_db_rule = rule_db.get("device", "")
+                    event_type_db_rule = rule_db.get("eventType", "")
+                    # Verifica se il problema riguarda lo stesso dispositivo
+                    if device_id == device_id_db_rule:
+                        if (event_type_db_rule == "turn_on"):
+                            problem_db_id = problem_db.get("id", "")
+                            # Setta come "solved" il problema dalla collezione
+                            _db.solve_problem_goal(user_id, problem_db_id)    
 
         find_revert_problem_result = find_revert_problem(
             eventType,
