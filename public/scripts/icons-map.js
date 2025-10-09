@@ -28,7 +28,8 @@ const domainMap = {
     "siren": "bx-bell",
     "sun": "bx-sun", // o bx-moon per la notte
     "timer": "bx-timer",
-    "update": "bx-download",
+    "update": "bx-chevrons-down",
+    "event": "bx-calendar-event",
     "vacuum": "bx-loader-circle", // Potrebbe essere necessaria un'icona più specifica
     "weather": "bx-cloud", // Varia molto in base allo stato (bx-sun, bx-cloud-rain, etc.)
     "zone": "bx-map-pin",
@@ -74,7 +75,8 @@ const classMap = {
     "smoke": "bx-bonfire", // Approssimazione
     "sound": "bx-volume-full",
     "tamper": "bx-shield-x",
-    "update": "bx-cloud-download",
+    "update": "bx-chevrons-down",
+    "event": "bx-calendar-event",
     "vibration": "bx-broadcast",
     "window": "bx-cupboard", // Per sensori di apertura finestre
 

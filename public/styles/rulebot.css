@@ -1352,6 +1352,9 @@ td {
 .oven-icon { background: linear-gradient(135deg, #5cf67d, #35e1ff); }
 .tv-icon { background: linear-gradient(135deg, #ff6b35, #8B5CF6); }
 .fridge-icon { background: linear-gradient(135deg, #3189fd, #3189fd); }
+.alexa-icon { background: linear-gradient(135deg, #35e1ff, #5cf67d); }
+.robot-vacuum-icon { background: linear-gradient(135deg, #00FF88, #0066FF); }
+.door-icon { background: linear-gradient(135deg, #FF6B35, #ff0073); }
 
 .icon-on {
     background: linear-gradient(135deg, #1b6922, #08c046);

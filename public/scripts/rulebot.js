@@ -781,6 +781,12 @@ function getAutomationIconInfo(automation) {
             className: "light-icon"
         };
     }
+    if (text.includes("echo dot") || text.includes("alexa")) {
+        return {
+            icon: "🗣️",
+            className: "alexa-icon"
+        };
+    } 
     if (text.includes("temperatura") || text.includes("climate") || text.includes("riscaldamento") || text.includes("heating") || text.includes("calore") || text.includes("heat") || text.includes("stufetta") || text.includes("stufa")) {
         return {
             icon: "🌡️",
@@ -895,10 +901,16 @@ function getAutomationIconInfo(automation) {
             className: "ac-icon"
         };
     }
+    if (text.includes("robot aspirapolvere") || text.includes("robot vacuum") || text.includes("roomba")) {
+        return {
+            icon: "🤖",
+            className: "robot-vacuum-icon"
+        };
+    }
     // Default
     return {
         icon: "⚡",
-        className: "kitchen-icon"
+        className: "default-icon"
     };
 }
 
