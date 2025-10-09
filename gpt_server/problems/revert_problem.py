@@ -13,10 +13,8 @@ def detectRevertProblem(automation, goal, user_id, ha_client_instance):
     if automation == "all_rules":
 
         all_automations = _db.get_automations(user_id)  # Recupera tutte le automazioni dal database
-
         for single_automation in all_automations:
             config = single_automation.get("config", {})
-
             goalAdvisor_array.extend(
                 detectRevertProblem(config, goal, user_id, ha_client_instance)
             )
@@ -28,7 +26,10 @@ def detectRevertProblem(automation, goal, user_id, ha_client_instance):
     id_automation = automation.get("id", None)
     actions = automation.get("actions", []) or automation.get("action", [])
 
-    for index, action in enumerate(actions):
+    # Extract all nested actions
+    all_actions = extract_all_actions(actions)
+
+    for index, action in enumerate(all_actions):
 
         entity_id = action.get("entity_id", None)
         if entity_id is None:
@@ -59,7 +60,7 @@ def detectRevertProblem(automation, goal, user_id, ha_client_instance):
         if not device_id and not area_id:
             continue
         area = area_id
-       
+
         # Verifica se l'automazione risolve un problema di revert
         if eventType == "turn_off":
             existing_problems = _db.get_problems_goals(user_id)  # Recupera i problemi di revert esistenti
@@ -79,7 +80,8 @@ def detectRevertProblem(automation, goal, user_id, ha_client_instance):
                             problem_db_id = problem_db.get("id", "")
                             # Setta come "solved" il problema dalla collezione
                             _db.solve_problem_goal(user_id, problem_db_id)    
-
+            return goalAdvisor_array  # Non è un problema di revert, esci
+        
         find_revert_problem_result = find_revert_problem(
             eventType,
             nameDevice,
@@ -112,15 +114,17 @@ def detectRevertProblem(automation, goal, user_id, ha_client_instance):
 
 def find_revert_problem(eventType, nameDevice, device_id, automation_description, userGoal, user_id, ha_client_instance, automation):
     result_effects = []
+    rules = _db.get_automations(user_id)
 
     if userGoal == "energy":
         if eventType == "turn_on":
             has_oppositive_action = False
-            rules = _db.get_automations(user_id)
             for rule2 in rules:
                 rule2 = rule2['config']
                 actions2 = rule2.get("actions", []) or rule2.get("action", [])
-                for action2 in actions2:
+                # Extract all nested actions from rule2
+                all_actions2 = extract_all_actions(actions2)
+                for action2 in all_actions2:
                     type2 = action2.get("type", None)
                     if type2 is None:
                         service2 = action2.get("service")
@@ -149,8 +153,7 @@ def find_revert_problem(eventType, nameDevice, device_id, automation_description
                     
             if not has_oppositive_action:
                 problem_description = f"Questa automazione accende l'oggetto {nameDevice} ma non esiste un'automazione che lo spegne."
-                solution_info = ""
-                #solution_info = call_find_solution_llm(userGoal, problem_description, automation_description, user_id)
+                solution_info = call_find_solution_llm(userGoal, problem_description, automation_description, user_id)
                 solution = solution_info if solution_info is not None else ""
                 result_effects.append((problem_description, problem_description + "[low]", "", [], solution))
 
@@ -158,8 +161,6 @@ def find_revert_problem(eventType, nameDevice, device_id, automation_description
         dangerous_device_keywords = ["forno", "stufetta", "heater", "oven", "stove", "radiator", "riscaldamento", "stufa", "fornello"]
         if eventType == "turn_on" and any(keyword in nameDevice.lower() for keyword in dangerous_device_keywords):
             has_security_automation = False
-            rules = _db.get_automations(user_id)
-            
             current_automation = None
             for rule in rules:
                 if rule.get('id') == automation.get('id'):
@@ -180,10 +181,11 @@ def find_revert_problem(eventType, nameDevice, device_id, automation_description
                     rule2 = rule2['config']
                     triggers = rule2.get("trigger", []) or rule2.get("triggers", [])
                     actions2 = rule2.get("actions", []) or rule2.get("action", [])
+                    all_actions2 = extract_all_actions(actions2)
                     for trigger in triggers:
                         trigger_platform = trigger.get("platform", "")
                         if trigger_platform in ["time", "state", "zone"]:
-                            for action2 in actions2:
+                            for action2 in all_actions2:
                                 type2 = action2.get("type", None)
                                 if type2 is None:
                                     service2 = action2.get("service", "")
@@ -200,32 +202,89 @@ def find_revert_problem(eventType, nameDevice, device_id, automation_description
             
             if not has_security_automation:
                 problem_description = f"Dispositivo potenzialmente pericoloso '{nameDevice}' viene acceso ma non esiste un'automazione di sicurezza per spegnerlo automaticamente dopo un certo tempo o in caso di assenza dell'utente."
-                solution_info = ""
-                #solution_info = call_find_solution_llm(userGoal, problem_description, automation_description, user_id)
+                solution_info = call_find_solution_llm(userGoal, problem_description, automation_description, user_id)
                 solution = solution_info if solution_info is not None else ""
                 result_effects.append((problem_description, problem_description + "[high]", "", [], solution))
 
     return result_effects
+
+def extract_all_actions(actions):
+    """
+    Recursively extract all actions from nested structures like 'choose', 'if', etc.
+    Returns a list of all atomic actions found.
+    """
+    all_actions = []
+    
+    for action in actions:
+        # Handle 'choose' actions
+        if "choose" in action:
+            for choice in action["choose"]:
+                if "sequence" in choice:
+                    all_actions.extend(extract_all_actions(choice["sequence"]))
+            # Handle default sequence if present
+            if "default" in action:
+                all_actions.extend(extract_all_actions(action["default"]))
+        
+        # Handle 'if' actions
+        elif "if" in action:
+            if "then" in action:
+                all_actions.extend(extract_all_actions(action["then"]))
+            if "else" in action:
+                all_actions.extend(extract_all_actions(action["else"]))
+        
+        # Handle 'repeat' actions
+        elif "repeat" in action and "sequence" in action:
+            all_actions.extend(extract_all_actions(action["sequence"]))
+        
+        # Handle 'parallel' actions
+        elif "parallel" in action:
+            for parallel_sequence in action["parallel"]:
+                if "sequence" in parallel_sequence:
+                    all_actions.extend(extract_all_actions(parallel_sequence["sequence"]))
+        
+        # This is an atomic action
+        else:
+            all_actions.append(action)
+    
+    return all_actions
 
 if __name__ == "__main__":
     import os
     from ha_client import HomeAssistantClient
     
     # url HA ufficio
-    base_url = "http://luna.isti.cnr.it:8123"
+    base_url = "http://192.168.0.10:8123"
     
     # url HA casa simone
     # base_url = "https://test-home.duckdns.org"
-    user_id = "688899c65d536a3990670ba4"
+    user_id = "681dc95bd86883dcc0eeebad"
     
     # token HA ufficio
-    token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiI2ODdmNGEyMDg5ZjA0NDc2YjQ2ZGExNWM3ZTYwNTRjYyIsImlhdCI6MTcxMTA5ODc4MywiZXhwIjoyMDI2NDU4NzgzfQ.lsqxXXhaSBa5BuoXbmho_XsEkq2xeCAeXL4lu7c2LMk"
+    token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiI5OTExYzg0ZDkzYmE0MGM1Yjk3NzMzNGMzYTU4NzNkYSIsImlhdCI6MTc1OTkxMzgyMywiZXhwIjoyMDc1MjczODIzfQ.MxA-KCc-4qC4dzg4V9ngtPb9Pq35FG2G5xkvfOz6f3M"
     
     # Create HomeAssistant client
     ha_client = HomeAssistantClient(base_url, token)
 
     #automations_post = {'alias': 'Accendi Lampadina alle 11:00', 'description': 'Evento: alle 11:00 (time). Azione: accendere Lampadina (light.lampadina).', 'trigger': [{'platform': 'time', 'at': '11:00:00'}], 'action': [{'service': 'light.turn_on', 'target': {'entity_id': 'light.lampadina'}}], 'mode': 'single', 'id': '2'}
-    automations_post = {'alias': 'Spegni Lampadina alle 11:00', 'description': 'Evento: alle 11:00 (time). Azione: spegnere Lampadina (light.lampadina).', 'trigger': [{'platform': 'time', 'at': '11:00:00'}], 'action': [{'service': 'light.turn_off', 'target': {'entity_id': 'light.lampadina'}}], 'mode': 'single', 'id': '2'}
+    automations_post = {
+            "alias": "Accendi il purificatore alle 09:00",
+            "description": "Evento: alle 09:00 (time). Azione: accendi il Purificatore Air Purifier (fan.xiaomi_cpa4_a885_air_purifier_2).",
+            "triggers": [
+                {
+                "at": "09:00:00",
+                "trigger": "time"
+                }
+            ],
+            "actions": [
+                {
+                "target": {
+                    "entity_id": "fan.xiaomi_cpa4_a885_air_purifier_2"
+                },
+                "action": "fan.turn_on",
+                "data": {}
+                }
+            ]
+        }
 
     detector = detectRevertProblem(automations_post, "energy", user_id, ha_client)
 

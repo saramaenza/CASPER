@@ -6,7 +6,6 @@ from problems.list_devices_variables import list_devices
 # Importa HomeAssistantClient dal nuovo file
 from ha_client import HomeAssistantClient
 
-
 from langchain_core.messages import HumanMessage, SystemMessage
 import prompts
 import db_functions as _db
@@ -20,19 +19,8 @@ class ChainsDetector:
         self.ha_client = ha_client
         self.list_devices_variables = list_devices
         self.user_id = user_id
-        # self.all_ha_states = self._initialize_states() # Removed global states, fetch when needed or pass if required by many methods
-
-    # def _initialize_states(self) -> List[Dict[str, Any]]: # Changed from global
-    #     states_str = self.ha_client.get_all_states()
-    #     try:
-    #         return json.loads(states_str)
-    #     except json.JSONDecodeError:
-    #         # Log error or raise
-    #         return []
 
     # Search for the entity ID of the automation based on the ID of the automation's 'attributes' element
-    # This function operates on data that might come from get_all_states.
-    # Consider if it should be a static method or if 'data' should be fetched internally.
     @staticmethod
     def find_automation_entity_id(all_states_data: List[Dict[str, Any]], automation_id: str) -> str | None:
         for item in all_states_data:
@@ -56,7 +44,7 @@ class ChainsDetector:
         if type_event is None and service:
             type_event = re.sub(r'.*?\\.', '', service)
         if type_event is None:
-            action_val = e.get("action") # Renamed from 'action' to avoid conflict
+            action_val = e.get("action")
             if action_val is not None:
                 type_event = action_val.split('.')[-1]
         if type_event is None:
@@ -65,10 +53,9 @@ class ChainsDetector:
         if type_event is None:
             type_event = e.get("to")
             type_event = "turned_on" if type_event == "on" else "turned_off"
-        return type_event if type_event is not None else "unknown" # Ensure a string is always returned
+        return type_event if type_event is not None else "unknown"
 
     def check_operator(self, type1: str, type2: str) -> bool:
-        #print(f"Checking operator between {type1} and {type2}")
         return (type1 == "turn_on" and type2 == "turned_on") or \
                (type1 == "turn_off" and type2 == "turned_off") or \
                (type1 == type2)
@@ -79,25 +66,78 @@ class ChainsDetector:
                 return True
         return False
 
-    def _get_device_id_from_action(self, action: Dict[str, Any]) -> str | None: # Renamed from get_device_id
+    def get_device_id(self, action: Dict[str, Any]) -> str | None:
         target = action.get("target", {})
         device_id = action.get("device_id") or target.get("device_id") or \
                     action.get("entity_id") or target.get("entity_id")
         return re.sub(r'[\'\\\[\\\]]', '', str(device_id)) if device_id else None
 
-    def process_action(self, action: Dict[str, Any]) -> Tuple[str | None, str | None, bool, str | None]:
-        if isinstance(action, str): # Should not happen with typed automations
-            return None, None, False, None
+    def extract_all_actions(self, actions, _depth=0, _max_depth=10):
+        """
+        Recursively extract all actions from nested structures like 'choose', 'if', etc.
+        Returns a list of all atomic actions found.
+        """
+        if _depth > _max_depth:
+            print(f"Warning: Maximum recursion depth reached in extract_all_actions")
+            return []
+            
+        all_actions = []
         
-        device_id = self._get_device_id_from_action(action)
-        service = action.get("service")
-        domain = action.get("domain") or (service.split('.')[0] if service else None)
-        if domain is None: # Original had 'domain == None'
-            action_val = action.get("action")
-            if action_val: # Original had 'action.get("action").split('.')[0]'
-                 domain = action_val.split('.')[0]
+        for action in actions:
+            # Handle 'choose' actions
+            if "choose" in action:
+                for choice in action["choose"]:
+                    if "sequence" in choice:
+                        all_actions.extend(self.extract_all_actions(choice["sequence"], _depth + 1, _max_depth))
+                # Handle default sequence if present
+                if "default" in action:
+                    all_actions.extend(self.extract_all_actions(action["default"], _depth + 1, _max_depth))
+            
+            # Handle 'if' actions
+            elif "if" in action:
+                if "then" in action:
+                    all_actions.extend(self.extract_all_actions(action["then"], _depth + 1, _max_depth))
+                if "else" in action:
+                    all_actions.extend(self.extract_all_actions(action["else"], _depth + 1, _max_depth))
+            
+            # Handle 'repeat' actions
+            elif "repeat" in action and "sequence" in action:
+                all_actions.extend(self.extract_all_actions(action["sequence"], _depth + 1, _max_depth))
+            
+            # Handle 'parallel' actions
+            elif "parallel" in action:
+                for parallel_sequence in action["parallel"]:
+                    if "sequence" in parallel_sequence:
+                        all_actions.extend(self.extract_all_actions(parallel_sequence["sequence"], _depth + 1, _max_depth))
+            
+            # This is an atomic action
+            else:
+                all_actions.append(action)
+        
+        return all_actions
 
-        has_attrs = bool(action.get("data"))
+    def process_action(self, action):
+        """Process action and extract relevant information"""
+        if isinstance(action, str):
+            return None, None, None, None
+        
+        # Handle nested actions - extract all atomic actions
+        if isinstance(action, dict) and any(key in action for key in ["choose", "if", "repeat", "parallel"]):
+            return self.extract_all_actions([action]), None, None, None
+        
+        # Handle atomic actions
+        device_id = self.get_device_id(action)
+        service = action.get("service")
+        action_field = action.get("action")
+        
+        # Determine domain from service or action
+        domain = None
+        if service:
+            domain = service.split('.')[0]
+        elif action_field:
+            domain = action_field.split('.')[0]
+            
+        has_attrs = action.get("data", {}) or action.get("data_template", {})
         area_id = action.get("target", {}).get("area_id")
         return device_id, area_id, has_attrs, domain
 
@@ -105,21 +145,35 @@ class ChainsDetector:
         return [self.ha_client.get_device_id_from_entity_id(e) for e in entity_ids]
 
     def process_action_for_chain(self, action: Dict[str, Any]) -> Tuple[str | List[str] | None, str | None, str | None]:
+        # Handle nested actions
+        if isinstance(action, dict) and any(key in action for key in ["choose", "if", "repeat", "parallel"]):
+            atomic_actions = self.extract_all_actions([action])
+            # For chain processing, we'll process each atomic action separately
+            # Return the first atomic action's details for now
+            if atomic_actions:
+                # FIX: Don't call process_action_for_chain recursively, call process_action directly
+                first_atomic_action = atomic_actions[0]
+                device_action, area_action, _, domain_action = self.process_action(first_atomic_action)
+                if not device_action and area_action and domain_action:
+                    entities_by_domain_and_area = self.ha_client.get_entities_by_domain_and_area(area_action, domain_action)
+                    if entities_by_domain_and_area:
+                        device_action = self.get_devices_ids_from_entity_ids(entities_by_domain_and_area)
+                return device_action, area_action, domain_action
+            else:
+                return None, None, None
+        
+        # Handle atomic actions
         device_action, area_action, _, domain_action = self.process_action(action)
-        if not device_action and area_action and domain_action: # Ensure domain_action is not None
+        if not device_action and area_action and domain_action:
             entities_by_domain_and_area = self.ha_client.get_entities_by_domain_and_area(area_action, domain_action)
-            # get_devices_ids_from_entity_ids expects List[str], ensure entities_by_domain_and_area is List[str]
             if entities_by_domain_and_area:
-                 device_action = self.get_devices_ids_from_entity_ids(entities_by_domain_and_area)
+                device_action = self.get_devices_ids_from_entity_ids(entities_by_domain_and_area)
         return device_action, area_action, domain_action
 
     def process_trigger(self, entity_trigger: str | List[str]) -> Tuple[str | None, str | None]:
-        # entity_trigger can be a single entity_id string or a list of them.
-        # The original code only used the first one if it was a list.
-        # This might need refinement based on how multiple entity_triggers should be handled.
         first_entity_id = entity_trigger[0] if isinstance(entity_trigger, list) and entity_trigger else entity_trigger
         
-        if not isinstance(first_entity_id, str): # Guard against non-string values
+        if not isinstance(first_entity_id, str):
             return None, None
 
         device_trigger = self.ha_client.get_device_id_from_entity_id(first_entity_id)
@@ -136,11 +190,9 @@ class ChainsDetector:
                 ])
         return OrderedDict([("decrease", []), ("increase", [])])
 
-    #########  STUFF FOR GETTING SOLUTIONS #########
-
     def call_find_solution_llm(self, idAutomation1: str, idAutomation2: str, ruleName1: str, ruleName2: str, automation1_description: str, automation2_description: str):  
         formatted_prompt = prompts.recommender_chains.format(
-                home_devices=_db.get_devices(self.user_id), # Use self.user_id
+                home_devices=_db.get_devices(self.user_id),
             )
         messages = [
             SystemMessage(formatted_prompt),
@@ -150,12 +202,10 @@ class ChainsDetector:
         data = structured_response.invoke(messages)
         return data
 
-
     def process_direct_chain(self, rule_chain: List[Dict[str, Any]], rule1: Dict[str, Any], rule2,
                          action1_details: Dict[str, Any], 
                          rule1_name: str, id_automation1: str,
                          rule2_entity_id: str, state: str = None):
-        
         
         # DIREZIONE 1: Rule1 → Rule2 
         self._check_chain_direction(rule_chain, rule1, rule2, action1_details, rule1_name, id_automation1, "rule1_to_rule2", state)
@@ -170,23 +220,24 @@ class ChainsDetector:
                           direction: str = "",
                           state: str = None):
     
-        #print(f"\n--- Checking direction: {direction} ---")
-        #print(f"Source: {source_rule.get('alias', 'No alias')}")
-        #print(f"Target: {target_rule.get('alias', 'No alias')}")
-        
         # Se non abbiamo i dettagli dell'azione (direzione 2), li calcoliamo
         if source_action_details is None:
             source_actions = source_rule.get("actions", []) or source_rule.get("action", [])
             if not isinstance(source_actions, list):
                 source_actions = [source_actions]
             
-            # Processa ogni azione della regola sorgente
+            # Extract all atomic actions from nested structures
+            all_atomic_actions = []
             for source_action in source_actions:
                 if not isinstance(source_action, dict):
                     continue
-                
-                device_action_source, _, domain_source = self.process_action_for_chain(source_action)
-                type_action_source = self.get_event_type(source_action)
+                atomic_actions = self.extract_all_actions([source_action])
+                all_atomic_actions.extend(atomic_actions)
+            
+            # Processa ogni azione atomica della regola sorgente
+            for atomic_action in all_atomic_actions:
+                device_action_source, _, domain_source = self.process_action_for_chain(atomic_action)
+                type_action_source = self.get_event_type(atomic_action)
                 
                 source_action_details = {
                     'device_action': device_action_source,
@@ -217,22 +268,17 @@ class ChainsDetector:
         device_action_source = source_action_details['device_action']
         type_action_source = source_action_details['type_action']
         
-        #print(f"Checking action: device={device_action_source}, type={type_action_source}")
-        
         # Ottieni i trigger della regola target
         target_triggers = target_rule.get("triggers", []) or target_rule.get("trigger", [])
         if not isinstance(target_triggers, list):
             target_triggers = [target_triggers]
         
         if not target_triggers:
-            #print("No triggers in target rule")
             return False
         
         for trigger_item in target_triggers:
             if not isinstance(trigger_item, dict):
                 continue
-            
-            #print(f"Checking trigger: {trigger_item}")
             
             # Estrai l'entità dal trigger
             trigger_entity_id = trigger_item.get('entity_id')
@@ -252,8 +298,6 @@ class ChainsDetector:
             
             type_trigger = self.get_event_type(trigger_item)
             
-            #print(f"Trigger details: device={device_trigger}, type={type_trigger}")
-            
             # Verifica match
             is_match = False
             if device_trigger is not None and device_action_source is not None:
@@ -265,8 +309,6 @@ class ChainsDetector:
             
             # Normalizza i tipi per il confronto
             type_action_normalized = type_action_source.split('.')[-1] if '.' in type_action_source else type_action_source
-            
-            #print(f"Match result: device_match={is_match}, type_check={self.check_operator(type_action_normalized, type_trigger)}")
             
             if is_match and self.check_operator(type_action_normalized, type_trigger):
                     
@@ -322,10 +364,6 @@ class ChainsDetector:
                            rule1_name: str, id_automation1: str,
                            rule2_entity_id: str, state: str = None):
 
-        #print(f"\n=== PROCESS_INDIRECT_CHAIN DEBUG ===")
-        #print(f"Rule1: {rule1_name} (ID: {id_automation1})")
-        #print(f"Rule2: {rule2.get('alias', 'No alias')} (ID: {rule2.get('id')})")
-        
         # DIREZIONE 1: Rule1 → variabile → Rule2 (comportamento originale)
         self._check_indirect_chain_direction(rule_chain, rule1, rule2, action1_details, rule1_name, id_automation1, "rule1_to_rule2", state)
         
@@ -345,21 +383,24 @@ class ChainsDetector:
             if not isinstance(source_actions, list):
                 source_actions = [source_actions]
             
-            # Processa ogni azione della regola sorgente
+            # Extract all atomic actions from nested structures
+            all_atomic_actions = []
             for source_action in source_actions:
                 if not isinstance(source_action, dict):
                     continue
-                
-                device_action_source, _, domain_source = self.process_action_for_chain(source_action)
-                type_action_source = self.get_event_type(source_action)
+                atomic_actions = self.extract_all_actions([source_action])
+                all_atomic_actions.extend(atomic_actions)
+            
+            # Processa ogni azione atomica della regola sorgente
+            for atomic_action in all_atomic_actions:
+                device_action_source, _, domain_source = self.process_action_for_chain(atomic_action)
+                type_action_source = self.get_event_type(atomic_action)
                 
                 source_action_details = {
                     'device_action': device_action_source,
                     'type_action': type_action_source,
                     'domain': domain_source
                 }
-                
-                #print(f"Source action details: {source_action_details}")
                 
                 # Controlla se questa azione può influenzare una variabile che triggera la regola target
                 chain_found = self._check_indirect_variable_match(
@@ -384,13 +425,11 @@ class ChainsDetector:
         type_action_source = source_action_details['type_action'].split('.')[-1] if '.' in source_action_details['type_action'] else source_action_details['type_action']
         domain_source = source_action_details['domain']
 
-        if not domain_source:  # domain è essenziale per get_context_variables
-            #print("No domain found for source action")
+        if not domain_source:
             return False
         
         # Ottieni le variabili di contesto influenzate dall'azione sorgente
         context_var_action = self.get_context_variables(domain_source, type_action_source)
-        #print(f"Context variables from action: {context_var_action}")
         
         # Ottieni i trigger della regola target
         target_triggers = target_rule.get("triggers", []) or target_rule.get("trigger", [])
@@ -398,13 +437,11 @@ class ChainsDetector:
             target_triggers = [target_triggers]
 
         if not target_triggers:
-            #print("No triggers in target rule")
             return False
 
         # Controlla ogni variabile influenzata dall'azione sorgente
         for var_type, variables in context_var_action.items():  # increase/decrease
             for variable in variables:  # e.g., "temperature", "humidity"
-                #print(f"Checking variable: {variable} ({var_type})")
                 
                 # Controlla ogni trigger della regola target
                 for trigger_item in target_triggers:
@@ -416,9 +453,8 @@ class ChainsDetector:
                         continue
 
                     _, device_class_trigger = self.process_trigger(entity_trigger)
-                    #print(f"Target trigger entity: {entity_trigger}, device_class: {device_class_trigger}")
 
-                    if not device_class_trigger:  # Se non c'è device_class, non può matchare la variabile
+                    if not device_class_trigger:
                         continue
                     
                     # Verifica se la variabile influenzata dall'azione sorgente 
@@ -443,7 +479,7 @@ class ChainsDetector:
                                 "direction": direction,
                                 "chain_variable": variable,
                                 "chain_description": chain_direction, 
-                                "effect_type": var_type,  # e.g., "increase" or "decrease"
+                                "effect_type": var_type,
                                 "rules": [
                                     {
                                         "id": source_rule.get("id"),
@@ -464,7 +500,7 @@ class ChainsDetector:
                             
                             rule_chain.append(chain_data)
                             
-                            return True  # Esci dopo aver trovato la prima catena indiretta
+                            return True
         
         return False
 
@@ -476,24 +512,29 @@ class ChainsDetector:
         
         rule1_alias = rule1_config.get("alias")
         if not rule1_alias:
-            #print("Rule 1 has no alias, skipping.")
-            return [] # Or handle error appropriately
+            return []
 
         entity_rule_name1 = "automation." + rule1_alias.replace(" ", "_")
         rule_name1 = rule1_alias
         id_automation1 = rule1_config.get("id")
         if id_automation1 is None:
-            #print("Rule 1 has no ID, skipping.")
             return []
 
         actions1 = rule1_config.get("actions", []) or rule1_config.get("action", [])
-        if not isinstance(actions1, list): actions1 = [actions1] # Ensure it's a list
+        if not isinstance(actions1, list): 
+            actions1 = [actions1]
 
+        # Extract all atomic actions from nested structures
+        all_atomic_actions = []
         for action1_config in actions1:
-            if not isinstance(action1_config, dict): continue # Skip malformed actions
+            if not isinstance(action1_config, dict): 
+                continue
+            atomic_actions = self.extract_all_actions([action1_config])
+            all_atomic_actions.extend(atomic_actions)
 
-            device_action1, _, domain1 = self.process_action_for_chain(action1_config)
-            type_action1 = self.get_event_type(action1_config)
+        for atomic_action in all_atomic_actions:
+            device_action1, _, domain1 = self.process_action_for_chain(atomic_action)
+            type_action1 = self.get_event_type(atomic_action)
 
             action1_details = {
                 'device_action': device_action1,
@@ -508,7 +549,8 @@ class ChainsDetector:
                     continue
 
                 rule2_alias = rule2_config.get("alias")
-                if not rule2_alias: continue
+                if not rule2_alias: 
+                    continue
 
                 rule2_entity_id = "automation." + rule2_alias.replace(" ", "_")
                 
@@ -537,16 +579,12 @@ class ChainsDetector:
             for i, rule1 in enumerate(all_rules):
                 for j, rule2 in enumerate(all_rules):
                     if i != j:  # Avoid comparing the same rule with itself
-                        self._process_rule_chain_iteration(
+                        result = self._process_rule_chain_iteration(
                             all_existing_rules=[rule2],
                             rule1_config=rule1.get("config"),
                             chain_processing_function=processing_function
                         )
-                        rule_chain_output.extend(self._process_rule_chain_iteration(
-                            all_existing_rules=[rule2],
-                            rule1_config=rule1.get("config"),
-                            chain_processing_function=processing_function
-                        ))
+                        rule_chain_output.extend(result)
             return rule_chain_output
         else:
             # Analyze chains for a single automation
@@ -557,62 +595,150 @@ class ChainsDetector:
             )
             return rule_chain_output
 
-# Example usage (to be adapted or moved to a test/main script)
+# Example usage
 if __name__ == "__main__":
-    # Configuration - should come from a config file or environment variables
-    HA_BASE_URL = "http://luna.isti.cnr.it:8123" # Example
-    HA_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiI2ODdmNGEyMDg5ZjA0NDc2YjQ2ZGExNWM3ZTYwNTRjYyIsImlhdCI6MTcxMTA5ODc4MywiZXhwIjoyMDI2NDU4NzgzfQ.lsqxXXhaSBa5BuoXbmho_XsEkq2xeCAeXL4lu7c2LMk" # Example
-    LIST_DEVICES_PATH = 'C:/Users/andre/Programmazione/CASPER ENV/CASPER/gpt_server/problems/list_devices_variables.json' # Example
-
-    #user_id="681e05bfd5c21048c157e431"
-    user_id="682c59206a47b8e0ef343796"
+    # Configuration
+    HA_BASE_URL = "http://192.168.0.10:8123"
+    HA_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiI5OTExYzg0ZDkzYmE0MGM1Yjk3NzMzNGMzYTU4NzNkYSIsImlhdCI6MTc1OTkxMzgyMywiZXhwIjoyMDc1MjczODIzfQ.MxA-KCc-4qC4dzg4V9ngtPb9Pq35FG2G5xkvfOz6f3M"
+    
+    user_id = "681dc95bd86883dcc0eeebad"
+    
     # Instantiate the client and detector
-    ha_client = HomeAssistantClient(base_url=HA_BASE_URL, token=HA_TOKEN) # Modificato per usare il client importato
-    # The _db module needs to be accessible here. For a standalone script, you might need to mock it
-    # or ensure the script is run in an environment where `from .. import db_functions as _db` works.
-    # For this example, I'll assume _db is available.
+    ha_client = HomeAssistantClient(base_url=HA_BASE_URL, token=HA_TOKEN)
+    
+    # Mock _db if needed
     try:
-        from .. import db_functions as _db_module # Corretto l'import per coerenza
+        import db_functions as _db_module
     except ImportError:
-        # Mock _db if running standalone and .. import fails
         class MockDb:
             def get_automations(self, user_id):
-                #print(f"MockDb: Called get_automations for user {user_id}")
-                return [
-                    {"config": {
-                        "id": "2",
-                        "alias": "Spegni presa Ventilatore quando si accende Lampadina Sara",
-                        "description": "Evento: quando la lampadina Lampadina_Sara viene accesa (light.lampadina_sara1). Condizione: nessuna. Azione: spegni la presa Ventilatore (switch.presa_ventilatore).",
-                        "triggers": [{"platform": "state", "entity_id": "light.lampadina_sara1", "to": "on"}],
-                        "condition": [],
-                        "actions": [{"service": "switch.turn_off", "target": {"entity_id": "switch.presa_ventilatore"}}]
-                    }, "user_id": user_id},
-                    {"config": {
-                        "id": "3",
-                        "alias": "Dummy rule if light sara turns on",
-                        "description": "Another rule triggered by light.lampadina_sara1",
-                        "triggers": [{"platform": "state", "entity_id": "light.lampadina_sara1", "to": "on"}],
-                        "condition": [],
-                        "actions": [{"service": "notify.notify", "data": {"message": "Light Sara turned on!"}}]
-                    }, "user_id": user_id},
-                    {"config": {
-                        "id": "4",
-                        "alias": "Dummy rule if light sara turns off",
-                        "description": "A rule INDIRECTLY triggered by light.lampadina_sara1",
-                        "triggers": [{"platform": "numeric_state", "entity_id": "sensor.shellymotion2_8cf681e3ca82_luminosity", "below": "50"}],
-                        "condition": [],
-                        "actions": [{"service": "notify.notify", "data": {"message": "Light Sara turned off!"}}]
-                    }, "user_id": user_id}
+                return  [
+                    {
+                        "config": {
+                            "alias": "Gestione automatica del Purificatore Air Purifier in base a PM2,5 e CO2",
+                            "description": "Evento: Le polveri sottili superano 35 µg/m³ (sensor.pm25) OPPURE l'anidride carbonica in salotto supera 1000 ppm (sensor.co2_salotto).\n\nAzione: Accende il Purificatore Air Purifier (fan.xiaomi_cpa4_a885_air_purifier_2).\n\nEvento: Le polveri sottili scendono sotto 10 µg/m³ (sensor.pm25) E l'anidride carbonica scende sotto 600 ppm (sensor.co2_salotto).\n\nAzione: Spegne il Purificatore Air Purifier (fan.xiaomi_cpa4_a885_air_purifier_2).",
+                            "triggers": [
+                                {
+                                "entity_id": "sensor.xiaomi_cpa4_a885_pm25_density_2",
+                                "above": 35,
+                                "trigger": "numeric_state"
+                                },
+                                {
+                                "entity_id": "sensor.sensore_netatmo_anidride_carbonica",
+                                "above": 1000,
+                                "trigger": "numeric_state"
+                                },
+                                {
+                                "entity_id": "sensor.xiaomi_cpa4_a885_pm25_density_2",
+                                "below": 10,
+                                "trigger": "numeric_state"
+                                },
+                                {
+                                "entity_id": "sensor.sensore_netatmo_anidride_carbonica",
+                                "below": 600,
+                                "trigger": "numeric_state"
+                                }
+                            ],
+                            "conditions": [
+                                {
+                                "condition": "or",
+                                "conditions": [
+                                    {
+                                    "condition": "numeric_state",
+                                    "entity_id": "sensor.xiaomi_cpa4_a885_pm25_density_2",
+                                    "above": 35
+                                    },
+                                    {
+                                    "condition": "numeric_state",
+                                    "entity_id": "sensor.sensore_netatmo_anidride_carbonica",
+                                    "above": 1000
+                                    }
+                                ]
+                                },
+                                {
+                                "condition": "and",
+                                "conditions": [
+                                    {
+                                    "condition": "numeric_state",
+                                    "entity_id": "sensor.xiaomi_cpa4_a885_pm25_density_2",
+                                    "below": 10
+                                    },
+                                    {
+                                    "condition": "numeric_state",
+                                    "entity_id": "sensor.sensore_netatmo_anidride_carbonica",
+                                    "below": 600
+                                    }
+                                ]
+                                }
+                            ],
+                            "actions": [
+                                {
+                                "choose": [
+                                    {
+                                    "conditions": [
+                                        {
+                                        "condition": "or",
+                                        "conditions": [
+                                            {
+                                            "condition": "numeric_state",
+                                            "entity_id": "sensor.xiaomi_cpa4_a885_pm25_density_2",
+                                            "above": 35
+                                            },
+                                            {
+                                            "condition": "numeric_state",
+                                            "entity_id": "sensor.sensore_netatmo_anidride_carbonica",
+                                            "above": 1000
+                                            }
+                                        ]
+                                        }
+                                    ],
+                                    "sequence": [
+                                        {
+                                        "data": {},
+                                        "target": {
+                                            "entity_id": "fan.xiaomi_cpa4_a885_air_purifier_2"
+                                        },
+                                        "action": "fan.turn_on"
+                                        }
+                                    ]
+                                    },
+                                    {
+                                    "conditions": [
+                                        {
+                                        "condition": "and",
+                                        "conditions": [
+                                            {
+                                            "condition": "numeric_state",
+                                            "entity_id": "sensor.xiaomi_cpa4_a885_pm25_density_2",
+                                            "below": 10
+                                            },
+                                            {
+                                            "condition": "numeric_state",
+                                            "entity_id": "sensor.sensore_netatmo_anidride_carbonica",
+                                            "below": 600
+                                            }
+                                        ]
+                                        }
+                                    ],
+                                    "sequence": [
+                                        {
+                                        "data": {},
+                                        "target": {
+                                            "entity_id": "fan.xiaomi_cpa4_a885_air_purifier_2"
+                                        },
+                                        "action": "fan.turn_off"
+                                        }
+                                    ]
+                                    }
+                                ]
+                                }
+                            ]
+                        }
+                    }
                 ]
         _db_module = MockDb()
-        #print("Used MockDb as relative import failed (likely running standalone).")
 
-
-    detector = ChainsDetector(ha_client=ha_client,
-                              list_devices_variables_path=LIST_DEVICES_PATH,
-                              db_module=_db_module,
-                              user_id=DB_USER_ID
-                              )
+    detector = ChainsDetector(ha_client=ha_client, user_id=user_id)
 
     current_automation_config = {
         "alias": "Accendi la lampadina Sara quando piove fuori casa",
@@ -635,16 +761,17 @@ if __name__ == "__main__":
         ],
         "id": "1"
     }
-    current_automation_description = "Evento: quando fuori casa piove (weather.forecast_casa). Azione: accendi Lampadina_Sara (light.lampadina_sara1)."
 
-    #print("\\n--- Detecting Direct Chains ---")
+    print("\n--- Detecting Direct Chains ---")
     direct_chains = detector.detect_chains(
-        automation_post_config=current_automation_config,
+        all_rules=[],
+        automation=current_automation_config,
         chain_type="direct"
     )
 
-    #print("\\n--- Detecting Indirect Chains ---")
+    print("\n--- Detecting Indirect Chains ---")
     indirect_chains = detector.detect_chains(
-        automation_post_config=current_automation_config,
+        all_rules=[],
+        automation=current_automation_config,
         chain_type="indirect"
     )

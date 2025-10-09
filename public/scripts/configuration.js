@@ -661,6 +661,9 @@ function getIcon(room) {
     if (text.includes("salotto") || text.includes("living")) {
         return "🛋️";
     }
+    if (text.includes("soggiorno") || text.includes("living")) {
+        return "🛋️";
+    }
     if (text.includes("studio") || text.includes("office") || text.includes("ufficio")) {
         return "💼";
     }
@@ -678,6 +681,36 @@ function getIcon(room) {
     }
     if (text.includes("fuori") || text.includes("outside")) {
         return "☀️";
+    }
+    if (text.includes("entrata") || text.includes("entrance")) {
+        return "🚪";
+    }
+    if (text.includes("sala") || text.includes("dining")) {
+        return "🍽️";
+    }
+    if (text.includes("lavanderia") || text.includes("laundry")) {
+        return "🧺";
+    }
+    if (text.includes("taverna") || text.includes("basement")) {
+        return "🍻";
+    }
+    if (text.includes("ripostiglio") || text.includes("closet")) {
+        return "🧹";
+    }
+    if (text.includes("palestra") || text.includes("gym")) {
+        return "🏋️‍♂️";
+    }
+    if (text.includes("sala giochi") || text.includes("playroom")) {
+        return "🎮";
+    }
+    if (text.includes("biblioteca") || text.includes("library")) {
+        return "📚";
+    }
+    if (text.includes("sala cinema") || text.includes("home theater")) {
+        return "🎬";
+    }
+    if (text.includes("soffitta") || text.includes("attic")) {
+        return "📦";
     }
     return "🏠"; // Default room icon
 }

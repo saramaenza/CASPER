@@ -2976,14 +2976,44 @@ function printUserProblems(problemsList) {
 }
 
 function createChainCard(isActive, headerText, chainInfo) {
-    const regex = /^event(?:s|o|i)?:\s*(?<event>.*?)(?:\s*(?:condition(?:s)?|condizion(?:e|i)):\s*(?<condition>.*?))?\s*(?:action(?:s)?|azion(?:i|e)):\s*(?<action>.*)$/i;
-    
+
     const rule1 = chainInfo['rules'][0];
     const rule1_id = rule1['id'];
     const rule1_name = rule1['name'];
     const rule2 = chainInfo['rules'][1];
     const rule2_id = rule2['id'];
     const rule2_name = rule2['name'];
+
+    // Funzione per parsare descrizioni complesse
+    function parseComplexDescription(description) {
+        // Prova prima con la regex semplice
+        const simpleMatch = description.match(/^event(?:s|o|i)?:\s*(?<event>.*?)(?:\s*(?:condition(?:s)?|condizion(?:e|i)):\s*(?<condition>.*?))?\s*(?:action(?:s)?|azion(?:i|e)):\s*(?<action>.*)$/i);
+        
+        if (simpleMatch && simpleMatch.groups) {
+            return simpleMatch.groups;
+        }
+
+        // Se non matcha, prova a estrarre le informazioni dalla descrizione complessa
+        const complexMatch = description.match(/evento:\s*(.*?)(?:\n|$).*?azione:\s*(.*?)(?:\n|$)/is);
+        
+        if (complexMatch) {
+            return {
+                event: complexMatch[1].trim(),
+                condition: null,
+                action: complexMatch[2].trim()
+            };
+        }
+
+        // Fallback: cerca pattern più flessibili
+        const eventMatch = description.match(/(?:evento|event)[:\s]+(.*?)(?:azione|action|condizione|condition|\n)/is);
+        const actionMatch = description.match(/(?:azione|action)[:\s]+(.*?)(?:evento|event|\n|$)/is);
+        
+        return {
+            event: eventMatch ? eventMatch[1].trim() : 'Evento non identificato',
+            condition: null,
+            action: actionMatch ? actionMatch[1].trim() : 'Azione non identificata'
+        };
+    }
 
     const temp_mapping = new Map();
     temp_mapping.set(rule1_id, rule1);
@@ -2998,8 +3028,8 @@ function createChainCard(isActive, headerText, chainInfo) {
     secondRuleId = rule2_id;
     secondRuleName = rule2_name;
 
-    const rule1_match = firstRule['description'].match(regex);
-    const rule2_match = secondRule['description'].match(regex);
+    const rule1_match = { groups: parseComplexDescription(firstRule['description']) };
+    const rule2_match = { groups: parseComplexDescription(secondRule['description']) };
 
     // Early return if invalid format
     if (!rule1_match?.groups || !rule2_match?.groups) {
@@ -3365,20 +3395,52 @@ function createChainCard(isActive, headerText, chainInfo) {
 // diversi eventi, stesse condizioni, azioni diverse --> different_event_same_conditions
 function createConflictCard(isActive, headerText, conflictInfo) {
 
-    const regex = /^event(?:s|o|i)?:\s*(?<event>.*?)(?:\s*(?:condition(?:s)?|condizion(?:e|i)):\s*(?<condition>.*?))?\s*(?:action(?:s)?|azion(?:i|e)):\s*(?<action>.*)$/i;
+    // Regex aggiornata per gestire descrizioni complesse con operatori logici
+    //const regex = /^(?:event(?:s|o|i)?:\s*(?<event>.*?)(?:\s*(?:condition(?:s)?|condizion(?:e|i)):\s*(?<condition>.*?))?\s*(?:action(?:s)?|azion(?:i|e)):\s*(?<action>.*?)(?:\n\n?event(?:s|o|i)?:\s*(?<event2>.*?)(?:\s*(?:condition(?:s)?|condizion(?:e|i)):\s*(?<condition2>.*?))?\s*(?:action(?:s)?|azion(?:i|e)):\s*(?<action2>.*?))?)|(?<complex_description>.+)$/ims;
 
-    // Estrai le informazioni delle regole
+    // ...existing code...
     const rule_1 = conflictInfo['rules'][0];
     const rule1_id = rule_1['id'];
     const rule1_name = rule_1['name'];
-    const rule1_description = removeHomeAssistantEntities(rule_1['description'])
+    let rule1_description = removeHomeAssistantEntities(rule_1['description']);
     const rule_2 = conflictInfo['rules'][1];
     const rule2_id = rule_2['id'];
     const rule2_name = rule_2['name'];
-    const rule2_description = removeHomeAssistantEntities(rule_2['description'])
+    let rule2_description = removeHomeAssistantEntities(rule_2['description']);
 
-    const rule1_match = rule1_description.match(regex);
-    const rule2_match = rule2_description.match(regex);
+    // Funzione per parsare descrizioni complesse
+    function parseComplexDescription(description) {
+        // Prova prima con la regex semplice
+        const simpleMatch = description.match(/^event(?:s|o|i)?:\s*(?<event>.*?)(?:\s*(?:condition(?:s)?|condizion(?:e|i)):\s*(?<condition>.*?))?\s*(?:action(?:s)?|azion(?:i|e)):\s*(?<action>.*)$/i);
+        
+        if (simpleMatch && simpleMatch.groups) {
+            return simpleMatch.groups;
+        }
+
+        // Se non matcha, prova a estrarre le informazioni dalla descrizione complessa
+        const complexMatch = description.match(/evento:\s*(.*?)(?:\n|$).*?azione:\s*(.*?)(?:\n|$)/is);
+        
+        if (complexMatch) {
+            return {
+                event: complexMatch[1].trim(),
+                condition: null,
+                action: complexMatch[2].trim()
+            };
+        }
+
+        // Fallback: cerca pattern più flessibili
+        const eventMatch = description.match(/(?:evento|event)[:\s]+(.*?)(?:azione|action|condizione|condition|\n)/is);
+        const actionMatch = description.match(/(?:azione|action)[:\s]+(.*?)(?:evento|event|\n|$)/is);
+        
+        return {
+            event: eventMatch ? eventMatch[1].trim() : 'Evento non identificato',
+            condition: null,
+            action: actionMatch ? actionMatch[1].trim() : 'Azione non identificata'
+        };
+    }
+
+    const rule1_match = { groups: parseComplexDescription(rule1_description) };
+    const rule2_match = { groups: parseComplexDescription(rule2_description) };
 
     const temp_mapping = new Map();
     temp_mapping.set(rule1_id, rule_1);
@@ -3698,7 +3760,9 @@ function createConflictCard(isActive, headerText, conflictInfo) {
                       conditionBox2.innerHTML = "/";
                     }
                     else {
-                      conditionBox2.innerHTML = `se ${rule2.condition.toLowerCase()},` || "/";
+                      if (rule2.condition !== null){
+                        conditionBox2.innerHTML = `se ${rule2.condition.toLowerCase()},` || "/";
+                      }
                       const timelineDiv2 = document.createElement("div");
                       timelineDiv2.className = "timeline-icon-wrapper";
                       timelineDiv2.appendChild(createTimelineIconCondition());

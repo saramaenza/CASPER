@@ -63,13 +63,13 @@ class ConflictDetector:
     def is_conflict_present(self, conflict_array, id_conflict):
         """Check if id_conflict is already in the array"""
         for conflict in conflict_array:
-            if conflict.get("id_conflict") == id_conflict:
+            if conflict.get("unique_id") == id_conflict:
                 return True
         return False   
 
     def append_conflict(self, rule_name1, rule_name2, automation1_description, automation2_description, type_of_conflict, id_automation1, id_automation2, id_device, state):  
         """Append a conflict to the array"""
-        solution_info = "prova"
+        solution_info = "test"
         #solution_info = self.call_find_solution_llm(id_automation1, id_automation2, rule_name1, rule_name2, automation1_description, automation2_description) 
         id_conflict = str(id_automation1)+"_"+str(id_automation2)+"_"+str(id_device)
         # Check if the conflict is already present before appending
@@ -95,13 +95,67 @@ class ConflictDetector:
                 "state": state
             })
 
+    def extract_all_actions(self, actions, _depth=0, _max_depth=10):
+        """
+        Recursively extract all actions from nested structures like 'choose', 'if', etc.
+        Returns a list of all atomic actions found.
+        """
+        if _depth > _max_depth:
+            print(f"Warning: Maximum recursion depth reached in extract_all_actions")
+            return []
+            
+        all_actions = []
+        
+        for action in actions:
+            # Handle 'choose' actions
+            if "choose" in action:
+                for choice in action["choose"]:
+                    if "sequence" in choice:
+                        all_actions.extend(self.extract_all_actions(choice["sequence"], _depth + 1, _max_depth))
+                # Handle default sequence if present
+                if "default" in action:
+                    all_actions.extend(self.extract_all_actions(action["default"], _depth + 1, _max_depth))
+            
+            # Handle 'if' actions
+            elif "if" in action:
+                if "then" in action:
+                    all_actions.extend(self.extract_all_actions(action["then"], _depth + 1, _max_depth))
+                if "else" in action:
+                    all_actions.extend(self.extract_all_actions(action["else"], _depth + 1, _max_depth))
+            
+            # Handle 'repeat' actions
+            elif "repeat" in action and "sequence" in action:
+                all_actions.extend(self.extract_all_actions(action["sequence"], _depth + 1, _max_depth))
+            
+            # Handle 'parallel' actions
+            elif "parallel" in action:
+                for parallel_sequence in action["parallel"]:
+                    if "sequence" in parallel_sequence:
+                        all_actions.extend(self.extract_all_actions(parallel_sequence["sequence"], _depth + 1, _max_depth))
+            
+            # This is an atomic action
+            else:
+                all_actions.append(action)
+        
+        return all_actions
+
     def process_action(self, action):
         """Process action and extract relevant information"""
         if isinstance(action, str):
             return None, None, False, None
+        
+        # Only handle atomic actions here - nested actions are handled in detect_conflicts
         device_id = self.get_device_id(action)
         service = action.get("service")
-        domain = service.split('.')[0] if service else None
+        action_field = action.get("action")
+        
+        # Determine domain from service or action
+        domain = None
+        if service:
+            domain = service.split('.')[0]
+        elif action_field:
+            domain = action_field.split('.')[0]
+            
         has_attrs = action.get("data", {}) or action.get("data_template", {})
         area_id = action.get("target", {}).get("area_id")
         return device_id, area_id, has_attrs, domain
@@ -189,11 +243,34 @@ class ConflictDetector:
         return event_type
 
     def process_action_conflict(self, action1, action2, rule_name1, rule_name2, type_of_conflict, id_automation1, id_automation2, automation1_description, automation2_description, state):
-        """Process and detect conflicts in actions"""
+        """Process and detect conflicts in actions using iterative approach"""
+        # Handle nested actions using iterative approach to avoid recursion
+        actions1_to_process = []
+        actions2_to_process = []
+        
+        # Extract all atomic actions from action1
+        if isinstance(action1, dict) and any(key in action1 for key in ["choose", "if", "repeat", "parallel"]):
+            actions1_to_process = self.extract_all_actions([action1])
+        else:
+            actions1_to_process = [action1]
+        
+        # Extract all atomic actions from action2
+        if isinstance(action2, dict) and any(key in action2 for key in ["choose", "if", "repeat", "parallel"]):
+            actions2_to_process = self.extract_all_actions([action2])
+        else:
+            actions2_to_process = [action2]
+        
+        # Process all combinations of atomic actions
+        for atomic_action1 in actions1_to_process:
+            for atomic_action2 in actions2_to_process:
+                self._process_atomic_action_conflict(atomic_action1, atomic_action2, rule_name1, rule_name2, type_of_conflict, id_automation1, id_automation2, automation1_description, automation2_description, state)
+
+    def _process_atomic_action_conflict(self, action1, action2, rule_name1, rule_name2, type_of_conflict, id_automation1, id_automation2, automation1_description, automation2_description, state):
+        """Process conflict between two atomic actions"""
         device_id1, area1, attr1, domain1 = self.process_action(action1)
         device_id2, area2, attr2, domain2 = self.process_action(action2)
 
-        if not device_id1 and not area1 or not device_id2 and not area2:
+        if (not device_id1 and not area1) or (not device_id2 and not area2):
             return
 
         if not device_id1 and area1:
@@ -204,8 +281,21 @@ class ConflictDetector:
             entities_by_domain_and_area2 = self.ha_client.get_entities_by_domain_and_area(area2, domain2)
             device_id2 = self.get_devices_id(entities_by_domain_and_area2)
 
-        array_device_action_id1 = device_id1.split(", ") if isinstance(device_id1, str) else device_id1
-        array_device_action_id2 = device_id2.split(", ") if isinstance(device_id2, str) else device_id2
+        # Handle device_id as list or string
+        if isinstance(device_id1, list):
+            array_device_action_id1 = device_id1
+        elif isinstance(device_id1, str):
+            array_device_action_id1 = device_id1.split(", ")
+        else:
+            array_device_action_id1 = []
+
+        if isinstance(device_id2, list):
+            array_device_action_id2 = device_id2
+        elif isinstance(device_id2, str):
+            array_device_action_id2 = device_id2.split(", ")
+        else:
+            array_device_action_id2 = []
+        
         if type_of_conflict == "possible" and not array_device_action_id2:
             return
 
@@ -214,7 +304,6 @@ class ConflictDetector:
             return
 
         for device in common_device:
-
             device_name_action1 = self.ha_client.get_device_name_by_user(device) or device
             device_name_action2 = device_name_action1
 
@@ -223,8 +312,8 @@ class ConflictDetector:
             elif attr1 or attr2:
                 data_attr = attr1 if attr1 else attr2
                 for data in data_attr:
-                    value_attribute1 = attr1.get(data, None)
-                    value_attribute2 = attr2.get(data, None)
+                    value_attribute1 = attr1.get(data, None) if attr1 else None
+                    value_attribute2 = attr2.get(data, None) if attr2 else None
                     if value_attribute1 and value_attribute2 and value_attribute1 != value_attribute2:
                         self.append_conflict(rule_name1, rule_name2, automation1_description, automation2_description, type_of_conflict, id_automation1, id_automation2, device, state)
                     elif (value_attribute1 and not value_attribute2) or (not value_attribute1 and value_attribute2):
@@ -373,6 +462,10 @@ class ConflictDetector:
             automation1_description = rule1.get("description", "")
             automation2_description = rule2.get("description", "")
 
+             # Extract all nested actions
+            all_actions1 = self.extract_all_actions(actions1)
+            all_actions2 = self.extract_all_actions(actions2)
+
             # Check triggers and conditions
             same_trigger = rule1_trigger == rule2_trigger
             self.trigger_tag = "same_event" if same_trigger else "different_event"
@@ -384,9 +477,9 @@ class ConflictDetector:
 
             type_of_conflict = "certain" if same_trigger else "possible"
 
-            # Process actions for conflicts
-            for action1 in actions1:
-                for action2 in actions2:
+            # Process actions for conflicts using the corrected method
+            for action1 in all_actions1:
+                for action2 in all_actions2:
                     self.process_action_conflict(
                         action1, action2, rule_name1, rule_name2, type_of_conflict,
                         id_automation1, id_automation2, automation1_description,
@@ -402,7 +495,6 @@ class ConflictDetector:
                 for j in range(i + 1, len(rules)):
                     process_rule_pair(rule1['config'], rules[j]['config'], state=rules[j].get("state"))
 
-        #print("Info Conflict Array LLM: ", self.conflicts_array)
         return self.conflicts_array
     
 # Usage example and backward compatibility
@@ -414,14 +506,14 @@ class ConflictDetector:
 
 if __name__ == "__main__":
     # url HA ufficio
-    base_url = "http://luna.isti.cnr.it:8123"
+    base_url = "http://192.168.0.10:8123"
     
     # url HA casa simone
     # base_url = "https://test-home.duckdns.org"
-    user_id = "681e05bfd5c21048c157e431"
+    user_id = "681dc95bd86883dcc0eeebad"
     
     # token HA ufficio
-    token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiI2ODdmNGEyMDg5ZjA0NDc2YjQ2ZGExNWM3ZTYwNTRjYyIsImlhdCI6MTcxMTA5ODc4MywiZXhwIjoyMDI2NDU4NzgzfQ.lsqxXXhaSBa5BuoXbmho_XsEkq2xeCAeXL4lu7c2LMk"
+    token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiI5OTExYzg0ZDkzYmE0MGM1Yjk3NzMzNGMzYTU4NzNkYSIsImlhdCI6MTc1OTkxMzgyMywiZXhwIjoyMDc1MjczODIzfQ.MxA-KCc-4qC4dzg4V9ngtPb9Pq35FG2G5xkvfOz6f3M"
     
     # Create HomeAssistant client
     ha_client = HomeAssistantClient(base_url, token)
@@ -429,34 +521,154 @@ if __name__ == "__main__":
     # Create ConflictDetector
     detector = ConflictDetector(ha_client, user_id)
     
-    all_rules = _db.get_automations(user_id)
+    #all_rules = _db.get_automations(user_id)
+
+    all_rules = [
+        {
+            "config": {
+                "alias": "Gestione automatica del Purificatore Air Purifier in base a PM2,5 e CO2",
+                "description": "Evento: Le polveri sottili superano 35 µg/m³ (sensor.pm25) OPPURE l'anidride carbonica in salotto supera 1000 ppm (sensor.co2_salotto).\n\nAzione: Accende il Purificatore Air Purifier (fan.xiaomi_cpa4_a885_air_purifier_2).\n\nEvento: Le polveri sottili scendono sotto 10 µg/m³ (sensor.pm25) E l'anidride carbonica scende sotto 600 ppm (sensor.co2_salotto).\n\nAzione: Spegne il Purificatore Air Purifier (fan.xiaomi_cpa4_a885_air_purifier_2).",
+                "triggers": [
+                    {
+                    "entity_id": "sensor.xiaomi_cpa4_a885_pm25_density_2",
+                    "above": 35,
+                    "trigger": "numeric_state"
+                    },
+                    {
+                    "entity_id": "sensor.sensore_netatmo_anidride_carbonica",
+                    "above": 1000,
+                    "trigger": "numeric_state"
+                    },
+                    {
+                    "entity_id": "sensor.xiaomi_cpa4_a885_pm25_density_2",
+                    "below": 10,
+                    "trigger": "numeric_state"
+                    },
+                    {
+                    "entity_id": "sensor.sensore_netatmo_anidride_carbonica",
+                    "below": 600,
+                    "trigger": "numeric_state"
+                    }
+                ],
+                "conditions": [
+                    {
+                    "condition": "or",
+                    "conditions": [
+                        {
+                        "condition": "numeric_state",
+                        "entity_id": "sensor.xiaomi_cpa4_a885_pm25_density_2",
+                        "above": 35
+                        },
+                        {
+                        "condition": "numeric_state",
+                        "entity_id": "sensor.sensore_netatmo_anidride_carbonica",
+                        "above": 1000
+                        }
+                    ]
+                    },
+                    {
+                    "condition": "and",
+                    "conditions": [
+                        {
+                        "condition": "numeric_state",
+                        "entity_id": "sensor.xiaomi_cpa4_a885_pm25_density_2",
+                        "below": 10
+                        },
+                        {
+                        "condition": "numeric_state",
+                        "entity_id": "sensor.sensore_netatmo_anidride_carbonica",
+                        "below": 600
+                        }
+                    ]
+                    }
+                ],
+                "actions": [
+                    {
+                    "choose": [
+                        {
+                        "conditions": [
+                            {
+                            "condition": "or",
+                            "conditions": [
+                                {
+                                "condition": "numeric_state",
+                                "entity_id": "sensor.xiaomi_cpa4_a885_pm25_density_2",
+                                "above": 35
+                                },
+                                {
+                                "condition": "numeric_state",
+                                "entity_id": "sensor.sensore_netatmo_anidride_carbonica",
+                                "above": 1000
+                                }
+                            ]
+                            }
+                        ],
+                        "sequence": [
+                            {
+                            "data": {},
+                            "target": {
+                                "entity_id": "fan.xiaomi_cpa4_a885_air_purifier_2"
+                            },
+                            "action": "fan.turn_on"
+                            }
+                        ]
+                        },
+                        {
+                        "conditions": [
+                            {
+                            "condition": "and",
+                            "conditions": [
+                                {
+                                "condition": "numeric_state",
+                                "entity_id": "sensor.xiaomi_cpa4_a885_pm25_density_2",
+                                "below": 10
+                                },
+                                {
+                                "condition": "numeric_state",
+                                "entity_id": "sensor.sensore_netatmo_anidride_carbonica",
+                                "below": 600
+                                }
+                            ]
+                            }
+                        ],
+                        "sequence": [
+                            {
+                            "data": {},
+                            "target": {
+                                "entity_id": "fan.xiaomi_cpa4_a885_air_purifier_2"
+                            },
+                            "action": "fan.turn_off"
+                            }
+                        ]
+                        }
+                    ]
+                    }
+                ]
+            }
+        }
+    ]
     
     automations_post = {
-        "id": "17422966096088",
-        "alias": "Accendi aria condizionata quando è caldo",
-        "description": "",
-        "trigger": [
-         {
-            'type': 'temperature', 
-            'device_id': 'a24cf7f1a05a48da6fa9a6a352edb738', 
-            'entity_id': 'c903fca897d3ca52a02c7be8e37271ab', 
-            'domain': 'sensor', 
-            'trigger': 'device', 
-            'above': 26}
+        "alias": "Spegni il purificatore alle 11:00",
+        "description": "Evento: alle 11:00 (fan.xiaomi_cpa4_a885_air_purifier_2) Azione: spegni il purificatore (fan.xiaomi_cpa4_a885_air_purifier_2)",
+        "triggers": [
+            {
+            "at": "11:00:00",
+            "trigger": "time"
+            }
         ],
-        "condition": [],  # Modificato da "conditions" a "condition" per coerenza con HA
-        "action": [
-          {
-            "type": "turn_on",  # "type" è usato in UI, HA usa "service"
-            "device_id": "280e80f05bac59e20d7b901d6d483dfb",
-            "entity_id": "1e833b3d059eb1a6b67b2a26aa64bf18",  # Spesso ridondante se device_id è presente
-            "domain": "fan"  # "domain" è usato in UI, HA lo deduce da service o entity_id
-          }
-        ],
-        "mode": "single"
+        "actions": [
+            {
+            "target": {
+                "entity_id": "fan.xiaomi_cpa4_a885_air_purifier_2"
+            },
+            "action": "fan.turn_off",
+            "data": {}
+            }
+        ]
     }
 
     # Call the function
     conflicts_array = detector.detect_conflicts(all_rules, automations_post)
 
-    #print("Info Conflict Array LLM: ", conflicts_array)
+    print("Info Conflict Array LLM: ", conflicts_array)
