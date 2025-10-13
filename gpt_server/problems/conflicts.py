@@ -69,8 +69,7 @@ class ConflictDetector:
 
     def append_conflict(self, rule_name1, rule_name2, automation1_description, automation2_description, type_of_conflict, id_automation1, id_automation2, id_device, state):  
         """Append a conflict to the array"""
-        solution_info = "test"
-        #solution_info = self.call_find_solution_llm(id_automation1, id_automation2, rule_name1, rule_name2, automation1_description, automation2_description) 
+        solution_info = self.call_find_solution_llm(id_automation1, id_automation2, rule_name1, rule_name2, automation1_description, automation2_description) 
         id_conflict = str(id_automation1)+"_"+str(id_automation2)+"_"+str(id_device)
         # Check if the conflict is already present before appending
         if not self.is_conflict_present(self.conflicts_array, id_conflict):

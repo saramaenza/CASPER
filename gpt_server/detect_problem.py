@@ -34,7 +34,7 @@ def problem_detector(user_id, session_id, automation):
         indirect_chains = chain_detector.detect_chains(data, automation, "indirect") 
         conflicts = conflict_detector.detect_conflicts(data, automation)
 
-        goals =  ["security", "energy"]
+        goals =  ["energy", "security"]
         all_revert_problems = []
         for goal in goals:
             revert_problem = []
