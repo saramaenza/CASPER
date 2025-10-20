@@ -284,7 +284,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             // Crea il pulsante per salvare i dispositivi selezionati
             const saveButton = document.createElement('button');
-            saveButton.textContent = 'Salva Dispositivi Selezionati';
+            saveButton.textContent = 'Salva Oggetti Selezionati';
             saveButton.classList.add('btn', 'btn-save');
             saveButton.id = 'save-selection';
 
@@ -323,7 +323,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         generateDialog(
                             "success",
                             "Salvataggio completato",
-                            "I dispositivi selezionati sono stati salvati con successo.",
+                            "Gli oggetti selezionati sono stati salvati con successo.",
                             () => {}
                         );
                         // controlla se esistono già le preferenze per l'utente
@@ -494,24 +494,26 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             //Recupero le credenziali salvate per verificare se sono cambiate
             const configDB = await fetchConfig(userId);
-            
-            // svuota le collezioni "problems" e "goals" e "improvements_solutions"(?) dell'utente se le credenziali sono cambiate
-            if (configDB.auth.url !== url && configDB.auth.token !== token) {
-                console.log("Le credenziali sono cambiate");
-                
-                const response_remove = await fetch(`/casper/remove_problems`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({'user_id': userId}),
-                });
 
-                if (!response_remove.ok) {
-                    console.error('Error response:', await response_remove.text());
-                } else {
-                    //printUserProblems([]); //svuota la carousel dei problems
-                    printUserGoalProblems([]); //svuota la carousel delle goal problems
+            if (configDB.auth !== undefined) {
+                // svuota le collezioni "problems" e "goals" e "improvements_solutions"(?) dell'utente se le credenziali sono cambiate
+                if (configDB.auth.url !== url && configDB.auth.token !== token) {
+                    console.log("Le credenziali sono cambiate");
+                    
+                    const response_remove = await fetch(`/casper/remove_problems`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({'user_id': userId}),
+                    });
+
+                    if (!response_remove.ok) {
+                        console.error('Error response:', await response_remove.text());
+                    } else {
+                        //printUserProblems([]); //svuota la carousel dei problems
+                        printUserGoalProblems([]); //svuota la carousel delle goal problems
+                    }
                 }
             }
 
@@ -556,20 +558,21 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
             const rulesList = await response2.json();
+            if (configDB.auth !== undefined) {
+                if(configDB.auth.url !== url && configDB.auth.token !== token) {
+                    // rileva problemi della nuova configurazione
+                    const sessionId = Cookies.get('chat_session_id'); // Recupera la sessione corrente
+                    const automations = 'all_rules'; 
+                    const problems = await detectProblems(userId, sessionId, automations);
 
-            if(configDB.auth.url !== url && configDB.auth.token !== token) {
-                // rileva problemi della nuova configurazione
-                const sessionId = Cookies.get('chat_session_id'); // Recupera la sessione corrente
-                const automations = 'all_rules'; 
-                const problems = await detectProblems(userId, sessionId, automations);
-
-                if (problems && problems.result) {
-                    let problemsList = await getProblems()
-                    problemsList = problemsList.filter(problem => !problem.ignore && !problem.solved && problem.state != "off");
-                    printUserProblems(problemsList);
-                    let problemsGoalList = await getProblemGoal()
-                    problemsGoalList = problemsGoalList.filter(problem => !problem.ignore && !problem.solved && problem.state != "off");
-                    printUserGoalProblems(problemsGoalList);
+                    if (problems && problems.result) {
+                        let problemsList = await getProblems()
+                        problemsList = problemsList.filter(problem => !problem.ignore && !problem.solved && problem.state != "off");
+                        printUserProblems(problemsList);
+                        let problemsGoalList = await getProblemGoal()
+                        problemsGoalList = problemsGoalList.filter(problem => !problem.ignore && !problem.solved && problem.state != "off");
+                        printUserGoalProblems(problemsGoalList);
+                    }
                 }
             }
 

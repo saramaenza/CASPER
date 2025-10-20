@@ -56,7 +56,7 @@ async function registerUser(event) {
             "La registrazione è avvenuta con successo",
             () => {
                 // Callback per il pulsante "OK"
-                window.location.replace(base_link);
+                window.location.replace(base_link+"/casper");
             }
         );
         return; 
