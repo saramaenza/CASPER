@@ -232,6 +232,8 @@ class ConflictDetector:
         if event_type is None and service is not None:
             event_type = re.sub(r'.*?\.', '', service) 
         if event_type is None:
+            event_type = e.get('to')
+        if event_type is None:
             action = e.get("action")
             if action is not None:
                 event_type = re.sub(r'.*?\.', '', action) 
@@ -434,6 +436,34 @@ class ConflictDetector:
             if condition2[0]['condition'] == "or" and len(condition2[0]['conditions']) == 1:
                 condition2[0]['condition'] = "and"
         return self.array_conditions(condition1, condition2)
+    
+    def check_opposite_triggers(self, trigger1, trigger2):
+        # Estrai l'entità dai triggers
+        trigger_entity_id_1 = trigger1.get('entity_id')
+        trigger_entity_id_2 = trigger2.get('entity_id')
+        device_trigger_1 = None
+        device_trigger_2 = None
+
+        if not device_trigger_1 and 'device_id' in trigger1:
+            device_trigger_1 = trigger1.get("device_id")
+
+        if not device_trigger_2 and 'device_id' in trigger2:
+            device_trigger_2 = trigger2.get("device_id")
+
+        if not device_trigger_1 and trigger_entity_id_1:
+            device_trigger_1 = trigger_entity_id_1
+
+        if not device_trigger_2 and trigger_entity_id_2:
+            device_trigger_2 = trigger_entity_id_2
+
+        if device_trigger_1 != device_trigger_2:
+            return False
+        else:
+            type_trigger_1 = self.get_event_type(trigger1)
+            type_trigger_2 = self.get_event_type(trigger2)
+            if type_trigger_1 == type_trigger_2:
+                return False
+        return True 
 
     def detect_conflicts(self, rules, rule1):
         """Main function to detect conflicts"""
@@ -458,6 +488,15 @@ class ConflictDetector:
 
             id_automation1 = rule1.get("id")
             id_automation2 = rule2.get("id")
+            
+            # Controllo per trigger opposti
+            for t1 in rule1_trigger:
+                #print("Checking trigger from rule 1:", t1)
+                for t2 in rule2_trigger:
+                    #print("Against trigger from rule 2:", t2)
+                    if self.check_opposite_triggers(t1, t2):
+                        return
+
             automation1_description = rule1.get("description", "")
             automation2_description = rule2.get("description", "")
 
