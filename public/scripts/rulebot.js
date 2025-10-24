@@ -775,7 +775,7 @@ function getAutomationIconInfo(automation) {
       text = (groups.action).toLowerCase();
     }
     
-    if (text.includes("luce") || text.includes("light") || text.includes("lampadina")) {
+    if (text.includes("luce") || text.includes("light") || text.includes("lampadina") || text.includes("lampada")) {
         return {
             icon: "💡",
             className: "light-icon"
@@ -853,10 +853,16 @@ function getAutomationIconInfo(automation) {
             className: "speaker-icon"
         };
     }
-    if (text.includes("telecamera") || text.includes("camera")) {
+    if (text.includes("telecamera") || text.includes("videocamera")) {
         return {
             icon: "📹",
             className: "camera-icon"
+        };
+    }
+    if (text.includes("tapparella") || text.includes("blind") || text.includes("shutter") || text.includes("curtain") || text.includes("tenda") || text.includes("tende") || text.includes("avvolgibile") || text.includes("avvolgibili")) {
+        return {
+            icon: "🚪",
+            className: "blind-icon"
         };
     }
     if (text.includes("allarme") || text.includes("alarm")) {
@@ -895,7 +901,7 @@ function getAutomationIconInfo(automation) {
             className: "oven-icon"
         };
     }
-    if(text.includes("aria condizionata") || text.includes("air conditioning") || text.includes("ac")) {
+    if(text.includes("aria condizionata") || text.includes("air conditioning") || text.includes(" ac ")) {
         return {
             icon: "❄️",
             className: "ac-icon"
@@ -3100,7 +3106,7 @@ function createChainCard(isActive, headerText, chainInfo) {
     firstIcon.textContent = firstIconInfo.icon;
 
     const automationText = rule1_match.groups.action?.toLowerCase() || "";
-    if (automationText.includes("accendi") || automationText.includes("turn on") || automationText.includes("accendere") || automationText.includes("turning on") || automationText.includes("attiva") || automationText.includes("attivare") || automationText.includes("enable") || automationText.includes("acceso")) {
+    if (automationText.includes("accendi") || automationText.includes("turn on") || automationText.includes("imposta") || automationText.includes("accendere") || automationText.includes("turning on") || automationText.includes("attiva") || automationText.includes("attivare") || automationText.includes("enable") || automationText.includes("acceso")) {
         firstIcon.classList.add("icon-on");
     } else if (automationText.includes("spegni") || automationText.includes("turn off") || automationText.includes("spegnere") || automationText.includes("turning off") || automationText.includes("disattiva") || automationText.includes("disattivare") || automationText.includes("disable") || automationText.includes("spento")) {
         firstIcon.classList.add("icon-off");
@@ -3155,7 +3161,7 @@ function createChainCard(isActive, headerText, chainInfo) {
     secondIcon.textContent = secondIconInfo.icon;
 
     const automation2Text = rule2_match.groups.action?.toLowerCase() || "";
-    if (automation2Text.includes("accendi") || automation2Text.includes("turn on") || automation2Text.includes("accendere") || automation2Text.includes("turning on") || automation2Text.includes("attiva") || automation2Text.includes("attivare") || automation2Text.includes("enable") || automation2Text.includes("acceso")) {
+    if (automation2Text.includes("accendi") || automation2Text.includes("turn on") || automation2Text.includes("accendere") || automationText.includes("imposta") || automation2Text.includes("turning on") || automation2Text.includes("attiva") || automation2Text.includes("attivare") || automation2Text.includes("enable") || automation2Text.includes("acceso")) {
         secondIcon.classList.add("icon-on");
     } else if (automation2Text.includes("spegni") || automation2Text.includes("turn off") || automation2Text.includes("spegnere") || automation2Text.includes("turning off") || automation2Text.includes("disattiva") || automation2Text.includes("disattivare") || automation2Text.includes("disable") || automation2Text.includes("spento")) {
         secondIcon.classList.add("icon-off");
@@ -3793,7 +3799,7 @@ function createConflictCard(isActive, headerText, conflictInfo) {
 
           // Distinzione accensione/spegnimento con classe e animazione
           const actionText = rule1_match.groups.action?.toLowerCase() || "";
-          if (actionText.includes("accendi") || actionText.includes("turn on") || actionText.includes("accendere") || actionText.includes("turning on") || actionText.includes("attiva") || actionText.includes("attivare") || actionText.includes("enable") || actionText.includes("acceso")) {
+          if (actionText.includes("accendi") || actionText.includes("turn on") || actionText.includes("accendere") || actionText.includes("imposta") || actionText.includes("turning on") || actionText.includes("attiva") || actionText.includes("attivare") || actionText.includes("enable") || actionText.includes("acceso")) {
               iconElem1.classList.add("icon-on");
               iconElem1.classList.add("glow-animate");
           } else if (actionText.includes("spegni") || actionText.includes("turn off") || actionText.includes("spegnere") || actionText.includes("turning off") || actionText.includes("disattiva") || actionText.includes("disattivare") || actionText.includes("disable") || actionText.includes("spento")) {
@@ -3830,7 +3836,7 @@ function createConflictCard(isActive, headerText, conflictInfo) {
           iconElem2.className = `card-icon ${iconInfo2.className}`;
 
           const actionText = rule2_match.groups.action?.toLowerCase() || "";
-          if (actionText.includes("accendi") || actionText.includes("turn on") || actionText.includes("accendere") || actionText.includes("turning on") || actionText.includes("attiva") || actionText.includes("attivare") || actionText.includes("enable") || actionText.includes("acceso")) {
+          if (actionText.includes("accendi") || actionText.includes("turn on") || actionText.includes("accendere") || actionText.includes("imposta") || actionText.includes("turning on") || actionText.includes("attiva") || actionText.includes("attivare") || actionText.includes("enable") || actionText.includes("acceso")) {
               iconElem2.classList.add("icon-on");
           } else if (actionText.includes("spegni") || actionText.includes("turn off") || actionText.includes("spegnere") || actionText.includes("turning off") || actionText.includes("disattiva") || actionText.includes("disattivare") || actionText.includes("disable") || actionText.includes("spento")) {
               iconElem2.classList.add("icon-off");

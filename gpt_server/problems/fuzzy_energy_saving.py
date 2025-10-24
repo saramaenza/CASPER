@@ -141,11 +141,15 @@ def getEnergySavingFuzzy(rules, area, environment, nameDevice, environmentVariab
     #print("\n********* ENERGY SAVING ************\n")
 
     # Ottieni i dati
-    energyValue = getData(area, "energy", environmentVariables, ha_client) or 0
     windowStateValue = getData(area, "window", environmentVariables, ha_client) or 2
+    if windowStateValue == "on":
+        windowStateValue = "open"
+    if windowStateValue == "off":
+        windowStateValue = "closed"
     windowStateValue = 1 if windowStateValue == "open" else 0
     fanStateValue = getData(area, "fan", environmentVariables, ha_client) or 2
     fanStateValue = 1 if fanStateValue == "on" else 0
+    energyValue = getData(area, "energy", environmentVariables, ha_client) or 0
     presenceState = getData(area, "motion", environmentVariables, ha_client) or 2
     presenceState = 1 if presenceState == "on" else 0
     lightState = getData(area, "light", environmentVariables, ha_client) or 2
@@ -157,12 +161,27 @@ def getEnergySavingFuzzy(rules, area, environment, nameDevice, environmentVariab
     personState = 0 if personState == "home" else 1
     aqiValue = getData(area, "aqi", environmentVariables, ha_client) or 0
     lightLevelValue = getData(area, "illuminance", environmentVariables, ha_client) or 0
+    try:
+        if isinstance(lightLevelValue, str):
+            s = lightLevelValue.lower().strip()
+            if s in ("on", "true"):
+                lightLevelValue = 100.0
+            elif s in ("off", "false"):
+                lightLevelValue = 0.0
+            elif s in ("unavailable", "unknown", "none", "null"):
+                lightLevelValue = 0.0
+            else:
+                lightLevelValue = float(s)
+        else:
+            lightLevelValue = float(lightLevelValue)
+    except Exception:
+        lightLevelValue = 100.0 if lightState == 1 else 0.0
     stoveNames = ["stove", "fornello", "stufa", "heater", "stufetta"]
     stoveState = getData(area, stoveNames, environmentVariables, ha_client) or 2
     stoveState = 1 if stoveState == "on" else 0
 
     data_env = {
-        "energy": 1000,
+        "energy": energyValue,
         "window_open": windowStateValue,
         "fan_state": fanStateValue,
         "light_state": lightState,
@@ -170,7 +189,7 @@ def getEnergySavingFuzzy(rules, area, environment, nameDevice, environmentVariab
         "person": personState,
         "heater_state": heaterState,
         "aqi": aqiValue,
-        "illuminance": float(lightLevelValue) if lightLevelValue not in [None, 'unavailable', 'unknown'] else 0,
+        "illuminance": lightLevelValue,
         "stove_state": stoveState
     }
     

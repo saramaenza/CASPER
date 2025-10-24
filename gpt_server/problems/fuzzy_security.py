@@ -66,13 +66,30 @@ def getSecurityFuzzy(rules, area, environment, environmentVariables, ha_client):
     #print("\n********* SECURITY ************\n")
 
     # Ottieni i dati
+    lightState = getData(area, "light", environmentVariables, ha_client) or 2
+    lightState = 1 if lightState == "on" else 0
     lightLevelValue = getData(area, "illuminance", environmentVariables, ha_client) or 101
+    try:
+        if isinstance(lightLevelValue, str):
+            s = lightLevelValue.lower().strip()
+            if s in ("on", "true"):
+                lightLevelValue = 100.0
+            elif s in ("off", "false"):
+                lightLevelValue = 0.0
+            elif s in ("unavailable", "unknown", "none", "null"):
+                lightLevelValue = 0.0
+            else:
+                lightLevelValue = float(s)
+        else:
+            lightLevelValue = float(lightLevelValue)
+    except Exception:
+        lightLevelValue = 100.0 if lightState == 1 else 0.0
     personHomeValue = getData(area, "person", environmentVariables, ha_client) or 2
 
     personHomeValue = 1 if personHomeValue == "home" else 0
 
     data_env = {
-        "illuminance": float(lightLevelValue),
+        "illuminance": lightLevelValue,
         "person_home": personHomeValue
     }
 

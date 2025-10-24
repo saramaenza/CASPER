@@ -12,13 +12,16 @@ def getData(area, var_name, environmentVariables, ha_client):
 def getRealDataVariable(area, variable, environmentVariables, ha_client):
     for item in environmentVariables.values():
         homeNames = ["home", "casa"]
-        if (item.get('room') == area and item.get('class') == variable) or (item.get('room') == area and item.get('name').lower().strip() in variable) or (item.get('room').lower() in homeNames and item.get('name').lower().strip() in variable) or (item.get('room').lower() in homeNames and item.get('class') == variable):
+        itemClass = item.get('class')
+        if itemClass is None:
+            if 'fan.' in item.get('entity_id', ''):
+                itemClass = 'fan'
+        if (item.get('room') == area and itemClass) or (item.get('room') == area and item.get('name').lower().strip() in variable) or (item.get('room').lower() in homeNames and item.get('name').lower().strip() in variable) or (item.get('room').lower() in homeNames and itemClass == variable):
             entity_id = item.get('entity_id')
             base_url = ha_client.base_url
             auth_header = ha_client.headers.get('Authorization', '')
             token = auth_header.replace('Bearer ', '') if auth_header.startswith('Bearer ') else None
             state = get_entity_state_from_ha(entity_id, base_url, token)
-            #print(f"State for {item.get('name', '')} in area {area}: {state}")
             if state is not None:
                 return state.lower()
 

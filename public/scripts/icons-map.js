@@ -4,7 +4,7 @@ const domainMap = {
     "sensor": "bx-tachometer",
     "switch": "bx-plug-connect", // o bx-toggle-off
     "fan": "bx-air-conditioner",
-    "cover": "bx-window-open", // o bx-window-close
+    "cover": "bx-cupboard", // o bx-window-close
     "climate": "bxs-thermometer",
     "automation": "bx-bot",
     "button": "bx-checkbox-checked",

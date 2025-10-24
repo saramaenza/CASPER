@@ -1355,6 +1355,10 @@ td {
 .alexa-icon { background: linear-gradient(135deg, #35e1ff, #5cf67d); }
 .robot-vacuum-icon { background: linear-gradient(135deg, #00FF88, #0066FF); }
 .door-icon { background: linear-gradient(135deg, #FF6B35, #ff0073); }
+.camera-icon { background: linear-gradient(135deg, #ff6b35, #8B5CF6);}
+.blind-icon { background: linear-gradient(135deg, #5cf67d, #35e1ff); }
+.computer-icon { background: linear-gradient(135deg, #ff0073, #ff6bc4); }
+.washer-icon { background: linear-gradient(135deg, #35e1ff, #0066FF); }
 
 .icon-on {
     background: linear-gradient(135deg, #1b6922, #08c046);

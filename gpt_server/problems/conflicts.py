@@ -315,6 +315,10 @@ class ConflictDetector:
                 for data in data_attr:
                     value_attribute1 = attr1.get(data, None) if attr1 else None
                     value_attribute2 = attr2.get(data, None) if attr2 else None
+                    if value_attribute2 is None and data == "brightness_pct":
+                        if any(k in attr1 for k in ("brightness", "brightness_pct")):
+                            value_attribute2 = round(int(attr2.get("brightness")) * 100 / 255)
+
                     if value_attribute1 and value_attribute2 and value_attribute1 != value_attribute2:
                         self.append_conflict(rule_name1, rule_name2, automation1_description, automation2_description, type_of_conflict, id_automation1, id_automation2, device, state)
                     elif (value_attribute1 and not value_attribute2) or (not value_attribute1 and value_attribute2):

@@ -31,6 +31,8 @@ class ChainsDetector:
     def get_event_type(self, e: Dict[str, Any]) -> str:
         type_event = e.get('type') or e.get("type_action")
         service = e.get("service")
+        if(e.get("platform") == "state"):
+            type_event = e.get("to")
         if isinstance(type_event, str) and '.' in type_event:
             type_event = type_event.split('.')[-1]
         
@@ -56,9 +58,31 @@ class ChainsDetector:
         return type_event if type_event is not None else "unknown"
 
     def check_operator(self, type1: str, type2: str) -> bool:
-        return (type1 == "turn_on" and type2 == "turned_on") or \
-               (type1 == "turn_off" and type2 == "turned_off") or \
-               (type1 == type2)
+        if not type1 or not type2:
+            return False
+        t1 = str(type1).lower()
+        t2 = str(type2).lower()
+
+        if t1 == t2:
+            return True
+
+        equivalents = {
+            "turn_on": {"turned_on", "turn_on", "on"},
+            "turn_off": {"turned_off", "turn_off", "off"},
+            "close": {"closed", "close", "close_cover"},
+            "open": {"opened", "open", "open_cover"},
+            "close_cover": {"close", "closed", "close_cover"},
+            "open_cover": {"open", "opened", "open_cover"},
+            "closed": {"close", "close_cover", "closed"},
+            "opened": {"open", "open_cover", "opened"}
+        }
+
+        if t1 in equivalents and t2 in equivalents[t1]:
+            return True
+        if t2 in equivalents and t1 in equivalents[t2]:
+            return True
+
+        return False
 
     def is_chain_present(self, chain_array: List[Dict[str, Any]], unique_id: str, chain_direction: str) -> bool:
         for chain in chain_array:
@@ -66,11 +90,33 @@ class ChainsDetector:
                 return True
         return False
 
-    def get_device_id(self, action: Dict[str, Any]) -> str | None:
+    def get_device_id(self, action) -> str | List[str] | None:
         target = action.get("target", {})
         device_id = action.get("device_id") or target.get("device_id") or \
                     action.get("entity_id") or target.get("entity_id")
-        return re.sub(r'[\'\\\[\\\]]', '', str(device_id)) if device_id else None
+        if not device_id:
+            return None
+        # If it's already a list, normalize elements to strings
+        if isinstance(device_id, list):
+            cleaned = []
+            for d in device_id:
+                if d is None:
+                    continue
+                ds = str(d).strip()
+                ds = re.sub(r'^[\[\]\'"]+|[\[\]\'"]+$', '', ds)
+                if ds:
+                    cleaned.append(ds)
+            return cleaned if cleaned else None
+
+        # Normalize string: remove surrounding brackets/quotes then split by comma if present
+        ds = str(device_id).strip()
+        ds = re.sub(r'^[\[\]\'"]+|[\[\]\'"]+$', '', ds)
+
+        if ',' in ds:
+            items = [itm.strip() for itm in ds.split(',') if itm.strip()]
+            return items if items else None
+
+        return ds if ds else None
 
     def extract_all_actions(self, actions, _depth=0, _max_depth=10):
         """

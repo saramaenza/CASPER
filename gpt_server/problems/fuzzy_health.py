@@ -112,7 +112,24 @@ def getHealthFuzzy(rules, area, environment, environmentVariables, ha_client):
     
 
     # Ottieni i dati
+    lightState = getData(area, "light", environmentVariables, ha_client) or 2
+    lightState = 1 if lightState == "on" else 0
     lightLevelValue = getData(area, "illuminance", environmentVariables, ha_client) or 0
+    try:
+        if isinstance(lightLevelValue, str):
+            s = lightLevelValue.lower().strip()
+            if s in ("on", "true"):
+                lightLevelValue = 100.0
+            elif s in ("off", "false"):
+                lightLevelValue = 0.0
+            elif s in ("unavailable", "unknown", "none", "null"):
+                lightLevelValue = 0.0
+            else:
+                lightLevelValue = float(s)
+        else:
+            lightLevelValue = float(lightLevelValue)
+    except Exception:
+        lightLevelValue = 100.0 if lightState == 1 else 0.0
     soundPressureValue = getData(area, "sound_pressure", environmentVariables, ha_client) or 0
     aqiValue = getData(area, "aqi", environmentVariables, ha_client) or 0
     co2Value = getData(area, "carbon_dioxide", environmentVariables, ha_client) or 0
@@ -123,7 +140,7 @@ def getHealthFuzzy(rules, area, environment, environmentVariables, ha_client):
 
 
     data_env = {
-        "illuminance": int(lightLevelValue) if lightLevelValue not in [None, 'unavailable', 'unknown'] else 0,
+        "illuminance": lightLevelValue,
         "time_of_day": timeOfTheDayValue,
         "sound_pressure": soundPressureValue,
         "aqi": float(aqiValue),
