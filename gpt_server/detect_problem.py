@@ -33,6 +33,7 @@ def problem_detector(user_id, session_id, automation):
         direct_chains = chain_detector.detect_chains(data, automation, "direct")
         indirect_chains = chain_detector.detect_chains(data, automation, "indirect") 
         conflicts = conflict_detector.detect_conflicts(data, automation)
+        all_problems = direct_chains + indirect_chains + conflicts
 
         goals =  ["energy", "security"]
         all_revert_problems = []
@@ -42,8 +43,7 @@ def problem_detector(user_id, session_id, automation):
             if revert_problem is not None and len(revert_problem) > 0:
                 _db.post_goal(user_id, goal, revert_problem)
                 all_revert_problems.extend(revert_problem)
-        all_problems = direct_chains + indirect_chains + conflicts
-
+        
         #end = time.time()
         #print(f"Problem detection took {end - start} seconds")
         if not all_problems and not all_revert_problems:
@@ -53,16 +53,14 @@ def problem_detector(user_id, session_id, automation):
         except Exception as e:
             print(f"Error while saving main problems: {e}")
             problems_w_id = []
-
-        filtered_problems = [problems for problems in problems_w_id if problems.get('state', 'on') == "on"]
-
         response_message = []
-
-        if not problems_w_id:
-            response_message.append(f"Detected {len(filtered_problems)} problems but Error: Unable to save detected problems to DB.")
-        else:
-            problems_id = [problem['id'] for problem in filtered_problems]
-            response_message.append(f"Detected {len(filtered_problems)} problems (problems ids: {problems_id}). Problem cards with details are available for the user in the interface under the Problems section.")
+        if problems_w_id is not None:
+            filtered_problems = [problems for problems in problems_w_id if problems.get('state', 'on') == "on"]
+            if not problems_w_id:
+                response_message.append(f"Detected {len(filtered_problems)} problems but Error: Unable to save detected problems to DB.")
+            else:
+                problems_id = [problem['id'] for problem in filtered_problems]
+                response_message.append(f"Detected {len(filtered_problems)} problems (problems ids: {problems_id}). Problem cards with details are available for the user in the interface under the Problems section.")
 
         # Gestione dei problemi di tipo "revert"
         if all_revert_problems:
