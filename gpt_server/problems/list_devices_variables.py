@@ -59,6 +59,15 @@ list_devices = {
         }
       ]
     },
+    "purifier": {
+      "possibleValues": [                        
+        {
+          "value": "turn_on",
+          "increase_variable": ["aqi", "energy", "sound_pressure"],
+          "decrease_variable": []
+        }
+      ]
+    },
     "switch": {
       "possibleValues": [                        
         {
