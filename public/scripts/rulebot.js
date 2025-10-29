@@ -2324,6 +2324,7 @@ function printUserGoalProblems(problemsGoalList) {
     severityBadge.textContent = severityLevelContent;
     severityBadge.title = `Livello di gravità: ${severityLevelContent}`;
 
+    /* Rimosso temporaneamente per test utente
     // Count badge (se esiste l'attributo count)
     if (problem.count && problem.count > 1) {
       const countBadge = document.createElement('span');
@@ -2356,6 +2357,7 @@ function printUserGoalProblems(problemsGoalList) {
       countBadge.title = durationTitle;
       leftSection.appendChild(countBadge);
     }
+    */
 
     leftSection.appendChild(goalTag);
     leftSection.appendChild(severityBadge);

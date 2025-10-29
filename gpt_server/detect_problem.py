@@ -94,7 +94,7 @@ def detect_goal_advisor(user_id):
         automations = ["automazione"] #per test utente
         for automation in automations:
             #automation_config = _db.get_automation(user_id, automation['id'])
-            automation_config = _db.get_automation(user_id, "12") #per test utente
+            automation_config = _db.get_automation(user_id, "8") #per test utente
             for goal in goals:
                 goal_advisor = detectGoalAdvisor(automation_config, goal, user_id, ha_client)
                 if goal_advisor is not None and len(goal_advisor) > 0:
