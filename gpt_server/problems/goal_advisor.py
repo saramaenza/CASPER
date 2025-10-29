@@ -41,7 +41,6 @@ def getContextVariables(list_devices_variables, action_domain, eventType):
                         ("decrease", decrease),
                         ("increase", increase)
                     ])
-    # WTF 
     if action_domain != "switch": 
         return OrderedDict([
         ("decrease", []),
@@ -82,17 +81,15 @@ def getNegative(list_variables_goals, var_effect, variable, userGoal, area, name
     automation_description = description
  
     #automation_description = "This automations activates the fan when the temperature is over 25 degrees Celsius in the office." if automation_description == "" else automation_description
-
     goal_to_fuzzy_function = {
         "well-being": getWellBeingFuzzy,
         "health": getHealthFuzzy,
         "security": getSecurityFuzzy,
         "energy": lambda fuzzy_rules, area, environment, environmentVariables, ha_client_instance: getEnergySavingFuzzy(fuzzy_rules, area, environment, nameDevice, environmentVariables, ha_client_instance)
-    }
+    }    
 
     for effect in negative_effects:
-
-        if effect["goal"] != userGoal:
+        if effect["goal"] != "energy":
             continue
 
         # Iterate over all "when" conditions for this effect
@@ -216,6 +213,8 @@ def detectGoalAdvisor(automation, goal, user_id, ha_client_instance):
         service = action.get("service")
 
         domain = service.split('.')[0] if service else action.get("domain")
+        if domain is None:
+            domain = action.get('action').split('.')[0] if action.get('action') is not None else None
 
         device_id = get_device_id(action)
         
@@ -232,7 +231,11 @@ def detectGoalAdvisor(automation, goal, user_id, ha_client_instance):
             #get the device name given by the user
         eventType = action.get("type", None)
         if eventType is None:
-            eventType = service.split('.')[1] 
+            if service is not None:
+                eventType = service.split('.')[1] 
+            if action.get("action") is not None:
+                eventType = action.get("action").split('.')[1] 
+        
         #type = getTextType(eventType)
         
         if not device_id and not area_id:

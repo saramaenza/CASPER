@@ -194,6 +194,8 @@ def getEnergySavingFuzzy(rules, area, environment, nameDevice, environmentVariab
     }
     
     # Dizionario per mappare le regole ai loro dettagli
+    #commentato per test
+    """
     rule_configs = {
         'rule1': {'rules': [rule1_1, rule1_2, rule1_3], 'inputs': ['energy']},
         'rule2': {'rules': [rule2_1, rule2_2, rule2_3, rule2_4, rule2_5, rule2_6, rule2_7, rule2_8, rule2_9], 'inputs': ['window_open', 'fan_state']},
@@ -203,6 +205,10 @@ def getEnergySavingFuzzy(rules, area, environment, nameDevice, environmentVariab
         'rule6': {'rules': [rule6_1, rule6_2, rule6_3, rule6_4, rule6_5, rule6_6, rule6_7, rule6_8, rule6_9, rule6_10], 'inputs': ['aqi', 'fan_state']},
         'rule7': {'rules': [rule7_1, rule7_2, rule7_3, rule7_4, rule7_5, rule7_6], 'inputs': ['illuminance', 'light_state']},
         'rule8': {'rules': [rule8_1, rule8_2, rule8_3, rule8_4, rule8_5, rule8_6, rule8_7, rule8_8, rule8_9], 'inputs': ['heater_state', 'stove_state']}
+    }"""
+
+    rule_configs = {
+        'rule2': {'rules': [rule2_1, rule2_2, rule2_3, rule2_4, rule2_5, rule2_6, rule2_7, rule2_8, rule2_9], 'inputs': ['window_open', 'fan_state']},
     }
 
     if rules not in rule_configs:
