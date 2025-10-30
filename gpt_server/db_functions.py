@@ -191,8 +191,11 @@ def get_devices(user_id):
     try:
         collection = db["config"]
         device = collection.find_one({"user_id": user_id})
-        return format_device_list(device['selected'])
-        #return device['selected']
+        
+        if device and 'selected' in device:
+            return format_device_list(device['selected'])
+        else:
+            return None
     except Exception as e:
         print("--> Get Device Error <--")
         print(e)
@@ -202,7 +205,12 @@ def get_devices(user_id):
 def get_config(user_id):
     try:
         collection = db["config"]
-        return collection.find_one({"user_id": user_id})['selected']
+        config = collection.find_one({"user_id": user_id})
+        
+        if config and 'selected' in config:
+            return config['selected']
+        else:
+            return None
     except Exception as e:
         print("--> Get Config Error <--")
         print(e)

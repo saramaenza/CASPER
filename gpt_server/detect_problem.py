@@ -84,23 +84,28 @@ def detect_goal_advisor(user_id):
     Detects goal advisor based on the automation configuration and the specified goal.
     """
     try:
+        print("Starting goal advisor detection for user:", user_id)
         #user_id = '6818c8ac24e5db8f9a0304e5'
         auth = _db.get_credentials(user_id)
         ha_client = HomeAssistantClient(auth['url'], auth['key'])
-        
         #automations = _db.get_automations_states(user_id)
         #goals = ["security", "well-being", "energy", "health"]
         goals = ["energy"] #per test utente
-        automations = ["automazione"] #per test utente
+        if auth['url'] == "http://luna.isti.cnr.it:8123": #per test utente
+            automations = ["automazione"] #per test utente
+        else:
+            automations = _db.get_automations_states(user_id)
         for automation in automations:
-            #automation_config = _db.get_automation(user_id, automation['id'])
-            automation_config = _db.get_automation(user_id, "8") #per test utente
-            for goal in goals:
-                goal_advisor = detectGoalAdvisor(automation_config, goal, user_id, ha_client)
-                if goal_advisor is not None and len(goal_advisor) > 0:
-                    #print(f"Goal advisor detected for user {user_id} with goal {goal}: {goal_advisor}")
-                    _db.post_goal(user_id, goal, goal_advisor)
-    
+            if auth['url'] == "http://luna.isti.cnr.it:8123": #per test utente
+                automation_config = _db.get_automation(user_id, "08") #per test utente
+            else:
+                automation_config = _db.get_automation(user_id, automation['id'])
+            if automation_config is not None:
+                for goal in goals:
+                    goal_advisor = detectGoalAdvisor(automation_config, goal, user_id, ha_client)
+                    if goal_advisor is not None and len(goal_advisor) > 0:
+                        #print(f"Goal advisor detected for user {user_id} with goal {goal}: {goal_advisor}")
+                        _db.post_goal(user_id, goal, goal_advisor)
     except Exception as e:
         print(f"Error in detectGoalAdvisor: {e}")
         return None

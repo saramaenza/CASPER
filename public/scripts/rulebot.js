@@ -775,7 +775,7 @@ function getAutomationIconInfo(automation) {
       text = (groups.action).toLowerCase();
     }
     
-    if (text.includes("luce") || text.includes("light") || text.includes("lampadina") || text.includes("lampada")) {
+    if (text.includes("luce") || text.includes("luci") || text.includes("light") || text.includes("lampadina") || text.includes("lampada")) {
         return {
             icon: "💡",
             className: "light-icon"
@@ -911,6 +911,12 @@ function getAutomationIconInfo(automation) {
         return {
             icon: "🤖",
             className: "robot-vacuum-icon"
+        };
+    }
+    if (text.includes("notifica") || text.includes("notification")) {
+        return {
+            icon: "📲",
+            className: "notification-icon"
         };
     }
     // Default
@@ -2324,8 +2330,9 @@ function printUserGoalProblems(problemsGoalList) {
     severityBadge.textContent = severityLevelContent;
     severityBadge.title = `Livello di gravità: ${severityLevelContent}`;
 
-    /* Rimosso temporaneamente per test utente
     // Count badge (se esiste l'attributo count)
+    // Tolto per test utente
+    /**
     if (problem.count && problem.count > 1) {
       const countBadge = document.createElement('span');
       countBadge.className = 'count-badge';
@@ -2356,8 +2363,7 @@ function printUserGoalProblems(problemsGoalList) {
       countBadge.textContent = durationText;
       countBadge.title = durationTitle;
       leftSection.appendChild(countBadge);
-    }
-    */
+    }**/
 
     leftSection.appendChild(goalTag);
     leftSection.appendChild(severityBadge);
@@ -2588,6 +2594,12 @@ async function printGoalOverview() {
   console.log("Goal scores:", goal_scores);
   
   const goalAdvContainer = document.querySelector('#goal-adv-container');
+
+  // Rimuovi l'overview panel esistente, se presente
+  const existingOverviewPanel = document.querySelector('.overview-panel');
+  if (existingOverviewPanel) {
+    existingOverviewPanel.remove();
+  }
   
   // Crea l'overview panel
   const overviewPanel = document.createElement('div');
@@ -2595,28 +2607,33 @@ async function printGoalOverview() {
   
   const goalsContainer = document.createElement('div');
   goalsContainer.className = 'goals-container';
-  
+
+  const scoreWellBeing = goal_scores['well-being'] !== "undefined" ? goal_scores['well-being'] : 100;
+  const scoreEnergy = goal_scores['energy'] !== "undefined" ? goal_scores['energy'] : 100;
+  const scoreHealth = goal_scores['health'] !== "undefined" ? goal_scores['health'] : 100;
+  const scoreSecurity = goal_scores['security'] !== "undefined" ? goal_scores['security'] : 100;
+
   // Definisci i goals con i loro dati  
   const goals = [
     {
       name: '🌱 Benessere',
-      score: goal_scores['well-being'] || 100,
-      progressClass: getProgressClass(goal_scores['well-being'] || 100)
+      score: scoreWellBeing,
+      progressClass: getProgressClass(scoreWellBeing)
     },
     {
       name: '🔋 Energia',
-      score: goal_scores['energy'] || 100,
-      progressClass: getProgressClass(goal_scores['energy'] || 100)
+      score: scoreEnergy,
+      progressClass: getProgressClass(scoreEnergy)
     },
     {
       name: '❤️ Salute',
-      score: goal_scores['health'] || 100,
-      progressClass: getProgressClass(goal_scores['health'] || 100)
+      score: scoreHealth,
+      progressClass: getProgressClass(scoreHealth)
     },
     {
       name: '🛡️ Sicurezza',
-      score: goal_scores['security'] || 100,
-      progressClass: getProgressClass(goal_scores['security'] || 100)
+      score: scoreSecurity,
+      progressClass: getProgressClass(scoreSecurity)
     }
   ];
   
@@ -2741,6 +2758,12 @@ async function printGoalOverview() {
   });
   
   overviewPanel.appendChild(goalsContainer);
+
+  // Rimuovi il pulsante "Mostra tutti" esistente, se presente
+  const existingShowAllButton = document.querySelector('.show-all-goals-btn');
+  if (existingShowAllButton) {
+    existingShowAllButton.remove();
+  }
   
   // Crea il pulsante "Mostra tutti" sin dall'inizio
   const showAllButton = document.createElement('button');
@@ -3750,7 +3773,7 @@ function createConflictCard(isActive, headerText, conflictInfo) {
                     const conditionBox1 = document.createElement("div");
                     conditionBox1.className = "condition-box";       
                     if (rule1.condition === undefined) {
-                      conditionBox1.innerHTML = "/";
+                      conditionBox1.innerHTML = "<i style='font-size: 14px;'>nessuna condizione </i>";
                     }
                     else {
                       conditionBox1.innerHTML = `se ${rule1.condition.toLowerCase()},` || "/";
@@ -3765,7 +3788,7 @@ function createConflictCard(isActive, headerText, conflictInfo) {
                     conditionBox2.className = "condition-box";
                   
                     if (rule2.condition === undefined) {
-                      conditionBox2.innerHTML = "/";
+                      conditionBox2.innerHTML = "<i style='font-size: 14px;'>nessuna condizione </i>";
                     }
                     else {
                       if (rule2.condition !== null){

@@ -403,7 +403,23 @@ document.addEventListener('DOMContentLoaded', async () => {
                                 suggestionsContainer.innerHTML = '<div class="suggestions-error">Errore nella generazione dei suggerimenti.</div>';
                             }
                         });
-                        
+                        // Goal advisor
+                        const response_goal = await fetch(`${base_link}/casper/detect_goal_advisor`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({'userId': userId }),
+                        });
+
+                        if (!response_goal.ok) {
+                            generateDialog(
+                                "error",
+                                "Errore durante il salvataggio",
+                                `Si è verificato un errore: ${error.message}`,
+                                () => {}
+                            );
+                        }
                     }
 
                 } catch (error) {
@@ -573,6 +589,21 @@ document.addEventListener('DOMContentLoaded', async () => {
                         problemsGoalList = problemsGoalList.filter(problem => !problem.ignore && !problem.solved && problem.state != "off");
                         printUserGoalProblems(problemsGoalList);
                     }
+                }
+            }
+            else {
+                // rileva problemi della nuova configurazione
+                const sessionId = Cookies.get('chat_session_id'); // Recupera la sessione corrente
+                const automations = 'all_rules'; 
+                const problems = await detectProblems(userId, sessionId, automations);
+
+                if (problems && problems.result) {
+                    let problemsList = await getProblems()
+                    problemsList = problemsList.filter(problem => !problem.ignore && !problem.solved && problem.state != "off");
+                    printUserProblems(problemsList);
+                    let problemsGoalList = await getProblemGoal()
+                    problemsGoalList = problemsGoalList.filter(problem => !problem.ignore && !problem.solved && problem.state != "off");
+                    printUserGoalProblems(problemsGoalList);
                 }
             }
 

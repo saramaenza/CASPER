@@ -15,7 +15,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.messages import trim_messages
 from problems.goal_scores import get_quality_scores_only
 from problems.improvements_goals import get_goal_improvements, replace_ignored_suggestion_with_new
-from detect_problem import problem_detector
+from detect_problem import problem_detector, detect_goal_advisor
 from config import get_server_choice
 import tools as _tools
 import utils
@@ -201,6 +201,20 @@ def get_goal_improvements_route():
     try:
         solutions = get_goal_improvements(user_id)
         return jsonify(solutions), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    
+@app.route('/detect_goal_advisor', methods=['POST'])
+def api_detect_goal_advisor():
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+
+        if not user_id:
+            return jsonify({'error': 'Missing user_id'}), 400
+        # Chiama la funzione detect_goal_advisor
+        result = detect_goal_advisor(user_id)
+        return jsonify({'status': 'success', 'result': result})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 

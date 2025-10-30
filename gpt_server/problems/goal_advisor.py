@@ -181,8 +181,12 @@ def get_real_environment_variables(entities):
 
 def call_find_solution_llm(user_goal: str, fuzzy_rule_activated: str, automation_description: str, user_id: str):
     """Generate solution for conflicts using LLM"""
+    home_devices = _db.get_devices(user_id)
+    if home_devices is None:
+        home_devices = "No devices found for the user."
+
     formatted_prompt = prompts.recommender.format(
-        home_devices=_db.get_devices(user_id),
+        home_devices=home_devices,
     )
     messages = [
         SystemMessage(formatted_prompt),
@@ -196,6 +200,9 @@ def call_find_solution_llm(user_goal: str, fuzzy_rule_activated: str, automation
 def detectGoalAdvisor(automation, goal, user_id, ha_client_instance):
     goalAdvisor_array = []
     config_data = _db.get_config(user_id)
+    if not config_data:
+        print("No configuration data found for user in Goal Advisor:", user_id)
+        return goalAdvisor_array
 
     environmentVariables = get_real_environment_variables(config_data)  
       

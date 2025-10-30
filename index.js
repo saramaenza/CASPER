@@ -639,6 +639,32 @@ app.use('/casper/save_config', verifyToken, async (req, res) =>{
   }
 })
 
+app.use('/casper/detect_goal_advisor', verifyToken, async (req, res) => {
+  try {
+    const { userId } = req.body;
+
+    if (!userId) {
+      return res.status(400).json({ error: 'Missing userId parameter' });
+    }
+
+    // Chiamata al server Python per eseguire detect_goal_advisor
+    const response = await fetch(`${python_server}/detect_goal_advisor`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: userId }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Errore durante la chiamata al server Python');
+    }
+
+    const result = await response.json();
+    res.json(result);
+  } catch (error) {
+    console.error('/casper/detect_goal_advisor error:', error);
+    res.status(500).json({ error: 'Errore interno del server', details: error.message });
+  }
+});
 app.use('/casper/delete_rule', verifyToken, async (req, res) =>{
   try {
     const response = await deleteRule(req.body.id, req.body.rule_id, deleteAutomation);

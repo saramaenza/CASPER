@@ -16,6 +16,8 @@
   --increase-color: #4CAF50;
   --decrease-color: #f44336;
   --action-conflict: #fffefe;
+  --text-condition: #fffefe;
+  --stroke-color: #dfdfdf;
 }
 
 /* Light theme */
@@ -36,6 +38,8 @@
   --increase-color: #2E7D32;
   --decrease-color: #C62828;
   --action-conflict: #9a3d34;
+  --text-condition: #002e4d;
+  --stroke-color: #555;
 } 
 
 * {
@@ -368,7 +372,7 @@ body{
     border-radius: 8px;
     padding: 8px 12px;
     font-size: 14px;
-    color: #002e4d;
+    color: var(--text-condition);
     text-align: center;
     min-width: 120px;
     margin-bottom: 10px;
@@ -380,7 +384,7 @@ body{
     border-radius: 8px;
     padding: 8px 12px;
     font-size: 14px;
-    color: #002e4d;
+    color: var(--text-condition);;
     text-align: center;
     max-width: 120px;
     margin-bottom: 10px;
@@ -1359,6 +1363,7 @@ td {
 .blind-icon { background: linear-gradient(135deg, #5cf67d, #35e1ff); }
 .computer-icon { background: linear-gradient(135deg, #ff0073, #ff6bc4); }
 .washer-icon { background: linear-gradient(135deg, #35e1ff, #0066FF); }
+.notification-icon { background: linear-gradient(135deg, #ff6200, #cbc800); }
 
 .icon-on {
     background: linear-gradient(135deg, #1b6922, #08c046);
