@@ -510,8 +510,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             //Recupero le credenziali salvate per verificare se sono cambiate
             const configDB = await fetchConfig(userId);
-
-            if (configDB.auth !== undefined) {
+            //prova test
+            if (configDB.auth !== undefined) { 
                 // svuota le collezioni "problems" e "goals" e "improvements_solutions"(?) dell'utente se le credenziali sono cambiate
                 if (configDB.auth.url !== url && configDB.auth.token !== token) {
                     console.log("Le credenziali sono cambiate");
