@@ -445,12 +445,14 @@ def save_automation(user_id, automation_id, config):
     """
     try:
         ##Prima provo a salvare l'automazione su Home Assistant, se tutto va bene, salvo su MongoDB
+        """
         auth = get_credentials(user_id)
         ha = HomeAssistantClient(auth['url'], auth['key'])
         response = ha.save_automation(config, automation_id)
         if response['result'] != "ok":
             print(f"Error saving automation {automation_id} for user {user_id}: {response['error']}")
             return "Error saving the automation to Home Assistant."
+        """
         collection = db["automations"]
         user_automations = collection.find_one({"user_id": user_id})
         alias = config.get('alias', 'Unnamed Automation')
