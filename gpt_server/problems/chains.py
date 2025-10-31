@@ -185,6 +185,15 @@ class ChainsDetector:
             
         has_attrs = action.get("data", {}) or action.get("data_template", {})
         area_id = action.get("target", {}).get("area_id")
+
+        if (area_id == None):
+            #TODO: da gestire array di ID
+            if isinstance(device_id, list):
+                return device_id, area_id, has_attrs, domain
+            if(device_id is None):
+                return device_id, area_id, has_attrs, domain
+            area_id = self.ha_client.getRoomDevice(device_id)  
+
         return device_id, area_id, has_attrs, domain
 
     def get_devices_ids_from_entity_ids(self, entity_ids: List[str]) -> List[str]:
@@ -197,7 +206,6 @@ class ChainsDetector:
             # For chain processing, we'll process each atomic action separately
             # Return the first atomic action's details for now
             if atomic_actions:
-                # FIX: Don't call process_action_for_chain recursively, call process_action directly
                 first_atomic_action = atomic_actions[0]
                 device_action, area_action, _, domain_action = self.process_action(first_atomic_action)
                 if not device_action and area_action and domain_action:
@@ -220,11 +228,13 @@ class ChainsDetector:
         first_entity_id = entity_trigger[0] if isinstance(entity_trigger, list) and entity_trigger else entity_trigger
         
         if not isinstance(first_entity_id, str):
-            return None, None
+            return None, None, None
 
         device_trigger = self.ha_client.get_device_id_from_entity_id(first_entity_id)
         device_class_trigger = self.ha_client.get_device_class_by_entity_id(first_entity_id)
-        return device_trigger, device_class_trigger
+        area_trigger = self.ha_client.getRoomDevice(first_entity_id)
+        return device_trigger, device_class_trigger, area_trigger
+        
 
     def get_context_variables(self, action_domain: str, event_type: str) -> OrderedDict:
         domain_data = self.list_devices_variables.get("list_of_domains", {}).get(action_domain, {})
@@ -282,13 +292,14 @@ class ChainsDetector:
             
             # Processa ogni azione atomica della regola sorgente
             for atomic_action in all_atomic_actions:
-                device_action_source, _, domain_source = self.process_action_for_chain(atomic_action)
+                device_action_source, area_source, domain_source = self.process_action_for_chain(atomic_action)
                 type_action_source = self.get_event_type(atomic_action)
                 
                 source_action_details = {
                     'device_action': device_action_source,
                     'type_action': type_action_source,
-                    'domain': domain_source
+                    'domain': domain_source,
+                    'area': area_source
                 }
 
                 # Controlla se questa azione può triggerare la regola target
@@ -439,13 +450,14 @@ class ChainsDetector:
             
             # Processa ogni azione atomica della regola sorgente
             for atomic_action in all_atomic_actions:
-                device_action_source, _, domain_source = self.process_action_for_chain(atomic_action)
+                device_action_source, area_source, domain_source = self.process_action_for_chain(atomic_action)
                 type_action_source = self.get_event_type(atomic_action)
                 
                 source_action_details = {
                     'device_action': device_action_source,
                     'type_action': type_action_source,
-                    'domain': domain_source
+                    'domain': domain_source,
+                    'area': area_source
                 }
                 
                 # Controlla se questa azione può influenzare una variabile che triggera la regola target
@@ -498,10 +510,14 @@ class ChainsDetector:
                     if not entity_trigger:
                         continue
 
-                    _, device_class_trigger = self.process_trigger(entity_trigger)
+                    _, device_class_trigger, area_trigger = self.process_trigger(entity_trigger)
 
                     if not device_class_trigger:
                         continue
+
+                    if source_action_details.get('area') and area_trigger:
+                        if source_action_details.get('area') != area_trigger:
+                            continue
                     
                     # Verifica se la variabile influenzata dall'azione sorgente 
                     # corrisponde alla device_class del trigger target
