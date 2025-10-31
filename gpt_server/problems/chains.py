@@ -187,12 +187,16 @@ class ChainsDetector:
         area_id = action.get("target", {}).get("area_id")
 
         if (area_id == None):
+            if device_id is None:
+                device_id = action.get("service")
             #TODO: da gestire array di ID
             if isinstance(device_id, list):
                 return device_id, area_id, has_attrs, domain
             if(device_id is None):
                 return device_id, area_id, has_attrs, domain
             area_id = self.ha_client.getRoomDevice(device_id)  
+            if area_id is None or area_id == "None":
+                area_id = "Sconosciuto"
 
         return device_id, area_id, has_attrs, domain
 
@@ -482,6 +486,7 @@ class ChainsDetector:
 
         type_action_source = source_action_details['type_action'].split('.')[-1] if '.' in source_action_details['type_action'] else source_action_details['type_action']
         domain_source = source_action_details['domain']
+        area_source = source_action_details['area']
 
         if not domain_source:
             return False
@@ -514,9 +519,15 @@ class ChainsDetector:
 
                     if not device_class_trigger:
                         continue
+                    
+                    print("#############################################")
+                    print("AUTOMAZIONE 1", rule1_name)
+                    print("AUTOMAZIONE 2", target_rule.get("alias"))
+                    print("STANZA TRIGGER TARGET:", area_trigger)
+                    print("STANZA AZIONE SORGENTE:", area_source)
 
-                    if source_action_details.get('area') and area_trigger:
-                        if source_action_details.get('area') != area_trigger:
+                    if area_source is not None or area_trigger is not None:
+                        if area_source != area_trigger:
                             continue
                     
                     # Verifica se la variabile influenzata dall'azione sorgente 
@@ -535,6 +546,8 @@ class ChainsDetector:
                         unique_id_chain = f"{source_rule.get('id')}_{target_rule.get('id')}"
                         
                         if not self.is_chain_present(rule_chain, unique_id_chain, chain_direction):
+                            print("---------TROVATA CATENA")
+                            print("#############################################")
                             chain_data = {
                                 "type": "indirect-chain",
                                 "unique_id": unique_id_chain,
