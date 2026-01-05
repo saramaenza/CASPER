@@ -3,6 +3,8 @@ CASPER (Conversational Assistant for Smart home Problem Explanation and Resoluti
 
 The system combines conversational agents, automation analysis, and goal-oriented reasoning to detect problems in smart environments and propose personalized solutions focused on user well-being and efficiency.
 
+🔗 Live Website: https://rulebot.isti.cnr.it/casper/
+
 ## Overview
 
 CASPER enables users to:
